@@ -97,12 +97,14 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/icons/Icon.vue'
 import { useAppStore, useAuthStore } from '@/stores'
+import { usePublicLocale } from '@/composables/usePublicLocale'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const { publicPath } = usePublicLocale()
 
 const open = ref(false)
 const rootRef = ref<HTMLElement | null>(null)
@@ -133,7 +135,18 @@ async function onLogout() {
     // Logging out locally still matters even if the server call fails.
     console.error('Logout error:', error)
   }
-  await router.push('/login')
+  await router.push(logoutTarget())
+}
+
+/**
+ * Land on the public site after signing out, not on the login form.
+ *
+ * Backend mode is the exception: it closes the public pages to anonymous
+ * visitors, so routing there would just bounce off the guard back to /login.
+ * Go straight to /login in that case and skip the flash.
+ */
+function logoutTarget(): string {
+  return appStore.backendModeEnabled ? '/login' : publicPath('/')
 }
 
 function onClickOutside(event: MouseEvent) {

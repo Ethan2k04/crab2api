@@ -377,10 +377,13 @@ async function handleLogout() {
   try {
     await authStore.logout()
   } catch (error) {
-    // Ignore logout errors - still redirect to login
+    // Signing out locally still matters even if the server call fails.
     console.error('Logout error:', error)
   }
-  await router.push('/login')
+  // Land on the public site, not the login form. Backend mode is the
+  // exception: it closes public pages to anonymous visitors, so routing there
+  // would only bounce off the guard back to /login.
+  await router.push(appStore.backendModeEnabled ? '/login' : publicPath('/'))
 }
 
 function handleReplayGuide() {

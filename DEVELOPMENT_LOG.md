@@ -381,6 +381,25 @@ DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景�
 
 ---
 
+## 2026-08-10 — 退出登录改为跳转主页
+
+退出登录后原本跳 `/login`,现在跳落地页(跟随当前语言,`/` 或 `/zh`)。三处出口全部统一:
+
+| 位置 | 说明 |
+|------|------|
+| `components/common/UserMenu.vue` | 落地页 / 公开页的头像菜单 |
+| `components/layout/AppHeader.vue` | 控制台右上角用户菜单 |
+| `components/admin/AdminComplianceDialog.vue` | 管理员拒绝合规承诺时的强制登出(保持硬跳转以清空内存态) |
+
+**Backend 模式是例外**:该模式下公开页对未登录用户是封闭的,跳主页会被路由守卫立刻弹回 `/login`,白闪一次。所以这三处都判断 `backendModeEnabled`,该模式下直接去 `/login`。
+
+保持跳 `/login` 不变的场景(语义不同,不是「用户主动登出」):
+- 安装向导完成后 → 需要首次登录
+- OAuth 回调失败页的「返回登录」按钮
+- 会话过期 / 401 被动登出 → 需要重新认证并带 `redirect` 回原页面
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）

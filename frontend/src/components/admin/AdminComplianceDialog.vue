@@ -106,6 +106,7 @@ import Input from '@/components/common/Input.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { useAdminComplianceStore, useAppStore, useAuthStore } from '@/stores'
 import { getLocale } from '@/i18n'
+import { localizedPublicPath } from '@/composables/usePublicLocale'
 import zhDocument from '../../../../docs/legal/admin-compliance.zh.md?raw'
 import enDocument from '../../../../docs/legal/admin-compliance.en.md?raw'
 
@@ -179,7 +180,12 @@ async function submit(): Promise<void> {
 
 async function logout(): Promise<void> {
   await authStore.logout()
-  window.location.href = '/login'
+  // Hard navigation on purpose: a compliance refusal should drop every bit of
+  // in-memory admin state. Target is the public site, matching the other
+  // sign-out paths; backend mode has no public site, so /login stands in.
+  window.location.href = appStore.backendModeEnabled
+    ? '/login'
+    : localizedPublicPath('/', getLocale())
 }
 </script>
 
