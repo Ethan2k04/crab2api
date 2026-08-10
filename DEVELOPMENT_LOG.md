@@ -187,7 +187,22 @@
 
 ---
 
-### 9. 本次未能在本机验证的部分 ⚠️
+### 9. 部署：从源码构建镜像
+
+上游的 compose 文件全部拉取已发布的 `weishaw/sub2api:latest` 镜像，**那个镜像里没有 Crab2API 前端**。因此新增 `deploy/docker-compose.crab2api.yml` 覆盖层，把 `sub2api` 服务改为从本仓库 Dockerfile 构建（镜像名 `crab2api:local`，容器名 `crab2api`）。
+
+服务键仍叫 `sub2api`，是为了让这个覆盖层能和上游任意 compose 文件干净合并。
+
+```bash
+cd deploy
+cp .env.example .env                  # 至少填 POSTGRES_PASSWORD / JWT_SECRET / TOTP_ENCRYPTION_KEY
+mkdir -p data postgres_data redis_data
+docker compose -f docker-compose.local.yml -f docker-compose.crab2api.yml up -d --build
+```
+
+---
+
+### 10. 本次未能在本机验证的部分 ⚠️
 
 开发机上**没有安装 Go 与 Node/pnpm，Docker Desktop 也未启动**，因此以下命令均未实际执行：
 

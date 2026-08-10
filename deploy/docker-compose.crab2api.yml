@@ -1,0 +1,43 @@
+# =============================================================================
+# Crab2API — build-from-source override
+# =============================================================================
+# The stock compose files pull the published upstream image
+# (weishaw/sub2api:latest), which does NOT contain the Crab2API frontend.
+# This override rebuilds the image from this repository instead.
+#
+# Use it layered on top of one of the stock files — the later -f wins:
+#
+#   cd deploy
+#   cp .env.example .env          # then edit: POSTGRES_PASSWORD, JWT_SECRET, ...
+#   mkdir -p data postgres_data redis_data
+#   docker compose -f docker-compose.local.yml -f docker-compose.crab2api.yml up -d --build
+#
+# Rebuild after changing frontend or backend code:
+#
+#   docker compose -f docker-compose.local.yml -f docker-compose.crab2api.yml up -d --build
+#
+# Logs / status:
+#
+#   docker compose -f docker-compose.local.yml -f docker-compose.crab2api.yml logs -f sub2api
+#
+# The same override works with docker-compose.yml and
+# docker-compose.standalone.yml — the application service is called `sub2api`
+# in all of them. The service key is left unrenamed on purpose so the override
+# keeps merging cleanly with upstream compose files.
+# =============================================================================
+
+services:
+  sub2api:
+    image: crab2api:local
+    container_name: crab2api
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        # Stamped into the binary and shown in the console's version badge.
+        VERSION: ${CRAB2API_VERSION:-dev}
+        COMMIT: ${CRAB2API_COMMIT:-local}
+        # Mainland-China friendly defaults; override in .env if you are outside.
+        GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
+        GOSUMDB: ${GOSUMDB:-sum.golang.google.cn}
+        NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-}
