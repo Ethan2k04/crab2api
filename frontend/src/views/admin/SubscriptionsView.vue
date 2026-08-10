@@ -705,7 +705,7 @@
               </ol>
               <div class="ml-8 mt-2">
                 <router-link
-                  to="/admin/groups"
+                  to="/dashboard/admin/groups"
                   @click="showGuideModal = false"
                   class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
                 >

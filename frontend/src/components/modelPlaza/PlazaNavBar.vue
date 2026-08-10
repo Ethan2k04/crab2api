@@ -52,10 +52,10 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 
 const settings = computed(() => appStore.cachedPublicSettings)
-const siteName = computed(() => settings.value?.site_name || 'Sub2API')
+const siteName = computed(() => settings.value?.site_name || 'Crab2API')
 const siteLogo = computed(() =>
   sanitizeUrl(settings.value?.site_logo || '', { allowRelative: true, allowDataUrl: true })
 )
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-const backTarget = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
+const backTarget = computed(() => (authStore.isAdmin ? '/dashboard/admin/dashboard' : '/dashboard'))
 </script>

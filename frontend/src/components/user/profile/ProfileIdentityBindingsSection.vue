@@ -557,7 +557,7 @@ function startBinding(provider: UserAuthProvider): void {
     return
   }
   startOAuthBinding(provider, {
-    redirectTo: route.fullPath || '/profile',
+    redirectTo: route.fullPath || '/dashboard/profile',
     wechatOAuthSettings: provider === 'wechat' ? wechatOAuthSettings.value : null,
   })
 }

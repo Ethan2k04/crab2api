@@ -450,7 +450,7 @@ function buildWechatOAuthAuthorizeUrl(
 
   try {
     const targetUrl = new URL(normalizedUrl, window.location.origin)
-    const redirectPath = targetUrl.searchParams.get('redirect') || '/purchase'
+    const redirectPath = targetUrl.searchParams.get('redirect') || '/dashboard/purchase'
     const redirectUrl = new URL(redirectPath, window.location.origin)
     const paymentType = normalizeVisibleMethod(context.paymentType) || context.paymentType.trim() || 'wxpay'
 

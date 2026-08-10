@@ -778,7 +778,7 @@ onMounted(async () => {
 
   await adminSettingsStore.fetch()
   if (!adminSettingsStore.opsMonitoringEnabled) {
-    await router.replace('/admin/settings')
+    await router.replace('/dashboard/admin/settings')
     return
   }
 

@@ -21,17 +21,17 @@ type ComponentImportFn = () => Promise<unknown>
  */
 const PREFETCH_ADJACENCY: Record<string, string[]> = {
   // Admin routes - 预加载最常访问的相邻页面
-  '/admin/dashboard': ['/admin/accounts', '/admin/users'],
-  '/admin/accounts': ['/admin/dashboard', '/admin/users'],
-  '/admin/users': ['/admin/groups', '/admin/dashboard'],
-  '/admin/groups': ['/admin/subscriptions', '/admin/users'],
-  '/admin/subscriptions': ['/admin/groups', '/admin/redeem'],
+  '/dashboard/admin/dashboard': ['/dashboard/admin/accounts', '/dashboard/admin/users'],
+  '/dashboard/admin/accounts': ['/dashboard/admin/dashboard', '/dashboard/admin/users'],
+  '/dashboard/admin/users': ['/dashboard/admin/groups', '/dashboard/admin/dashboard'],
+  '/dashboard/admin/groups': ['/dashboard/admin/subscriptions', '/dashboard/admin/users'],
+  '/dashboard/admin/subscriptions': ['/dashboard/admin/groups', '/dashboard/admin/redeem'],
   // User routes
-  '/dashboard': ['/keys', '/usage'],
-  '/keys': ['/dashboard', '/usage'],
-  '/usage': ['/keys', '/redeem'],
-  '/redeem': ['/usage', '/profile'],
-  '/profile': ['/dashboard', '/keys']
+  '/dashboard': ['/dashboard/keys', '/dashboard/usage'],
+  '/dashboard/keys': ['/dashboard', '/dashboard/usage'],
+  '/dashboard/usage': ['/dashboard/keys', '/dashboard/redeem'],
+  '/dashboard/redeem': ['/dashboard/usage', '/dashboard/profile'],
+  '/dashboard/profile': ['/dashboard', '/dashboard/keys']
 }
 
 /**
@@ -171,7 +171,7 @@ export function useRoutePrefetch(router?: Router) {
    * 判断是否为管理员路由
    */
   const isAdminRoute = (path: string): boolean => {
-    return path.startsWith('/admin')
+    return path.startsWith('/dashboard/admin')
   }
 
   /**

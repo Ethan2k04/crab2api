@@ -1,6 +1,8 @@
 /**
- * Vue Router configuration for Sub2API frontend
- * Defines all application routes with lazy loading and navigation guards
+ * Vue Router configuration for the Crab2API frontend.
+ *
+ * URL contract and the reasoning behind what may/may not move lives in
+ * ./paths.ts — read that first before relocating a route.
  */
 
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
@@ -13,6 +15,21 @@ import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
+import { getLocale, hasStoredLocalePreference, setLocale } from '@/i18n'
+import {
+  ADMIN_ROOT,
+  CONSOLE_ROOT,
+  LEGACY_CONSOLE_REDIRECTS,
+  homePathFor
+} from './paths'
+
+/**
+ * Legacy flat console paths -> /dashboard/**.
+ * Generated from the map so there is a single place to add one.
+ */
+const legacyConsoleRoutes: RouteRecordRaw[] = Object.entries(LEGACY_CONSOLE_REDIRECTS).map(
+  ([from, to]) => ({ path: from, redirect: to })
+)
 
 /**
  * Route definitions with lazy loading
@@ -29,16 +46,60 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
-  // ==================== Public Routes ====================
+  // ==================== Public Site (locale-prefixed) ====================
   {
-    path: '/home',
-    name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    path: '/',
+    name: 'Landing',
+    component: () => import('@/views/public/LandingView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Home'
+      publicSite: true,
+      locale: 'en',
+      titleKey: 'landing.meta.title'
     }
   },
+  {
+    path: '/zh',
+    name: 'LandingZh',
+    component: () => import('@/views/public/LandingView.vue'),
+    meta: {
+      requiresAuth: false,
+      publicSite: true,
+      locale: 'zh',
+      titleKey: 'landing.meta.title'
+    }
+  },
+  {
+    path: '/docs',
+    name: 'Docs',
+    component: () => import('@/views/public/DocsView.vue'),
+    meta: {
+      requiresAuth: false,
+      publicSite: true,
+      locale: 'en',
+      titleKey: 'docsPage.meta.title'
+    }
+  },
+  {
+    path: '/zh/docs',
+    name: 'DocsZh',
+    component: () => import('@/views/public/DocsView.vue'),
+    meta: {
+      requiresAuth: false,
+      publicSite: true,
+      locale: 'zh',
+      titleKey: 'docsPage.meta.title'
+    }
+  },
+  // Pre-rebrand home. Kept so old links keep resolving.
+  {
+    path: '/home',
+    redirect: '/'
+  },
+
+  // ==================== Auth Routes ====================
+  // NOTE: /auth/** callback paths are registered with upstream OAuth providers.
+  // They must stay exactly where they are.
   {
     path: '/login',
     name: 'Login',
@@ -157,13 +218,15 @@ const routes: RouteRecordRaw[] = [
       title: 'Reset Password'
     }
   },
+
+  // ==================== Other root-level public pages ====================
   {
     path: '/key-usage',
     name: 'KeyUsage',
     component: () => import('@/views/KeyUsageView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Key Usage',
+      title: 'Key Usage'
     }
   },
   {
@@ -186,13 +249,9 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
-  // ==================== User Routes ====================
+  // ==================== User Console (/dashboard) ====================
   {
-    path: '/',
-    redirect: '/home'
-  },
-  {
-    path: '/dashboard',
+    path: CONSOLE_ROOT,
     name: 'Dashboard',
     component: () => import('@/views/user/DashboardView.vue'),
     meta: {
@@ -204,7 +263,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/keys',
+    path: `${CONSOLE_ROOT}/keys`,
     name: 'Keys',
     component: () => import('@/views/user/KeysView.vue'),
     meta: {
@@ -216,9 +275,8 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/batch-image',
+    path: `${CONSOLE_ROOT}/batch-image`,
     name: 'BatchImageGuide',
-    alias: '/docs/batch-image',
     component: () => import('@/views/user/BatchImageGuideView.vue'),
     meta: {
       requiresAuth: true,
@@ -229,7 +287,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/usage',
+    path: `${CONSOLE_ROOT}/usage`,
     name: 'Usage',
     component: () => import('@/views/user/UsageView.vue'),
     meta: {
@@ -241,7 +299,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/redeem',
+    path: `${CONSOLE_ROOT}/redeem`,
     name: 'Redeem',
     component: () => import('@/views/user/RedeemView.vue'),
     meta: {
@@ -253,7 +311,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/affiliate',
+    path: `${CONSOLE_ROOT}/affiliate`,
     name: 'Affiliate',
     component: () => import('@/views/user/AffiliateView.vue'),
     meta: {
@@ -265,7 +323,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/available-channels',
+    path: `${CONSOLE_ROOT}/available-channels`,
     name: 'UserAvailableChannels',
     component: () => import('@/views/user/AvailableChannelsView.vue'),
     meta: {
@@ -277,7 +335,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/profile',
+    path: `${CONSOLE_ROOT}/monitor`,
+    name: 'ChannelStatus',
+    component: () => import('@/views/user/ChannelStatusView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Channel Status',
+      titleKey: 'nav.channelStatus'
+    }
+  },
+  {
+    path: `${CONSOLE_ROOT}/profile`,
     name: 'Profile',
     component: () => import('@/views/user/ProfileView.vue'),
     meta: {
@@ -289,7 +358,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/subscriptions',
+    path: `${CONSOLE_ROOT}/subscriptions`,
     name: 'Subscriptions',
     component: () => import('@/views/user/SubscriptionsView.vue'),
     meta: {
@@ -301,7 +370,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/purchase',
+    path: `${CONSOLE_ROOT}/purchase`,
     name: 'PurchaseSubscription',
     component: () => import('@/views/user/PaymentView.vue'),
     meta: {
@@ -314,7 +383,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/orders',
+    path: `${CONSOLE_ROOT}/orders`,
     name: 'OrderList',
     component: () => import('@/views/user/UserOrdersView.vue'),
     meta: {
@@ -325,6 +394,24 @@ const routes: RouteRecordRaw[] = [
       requiresPayment: true
     }
   },
+  {
+    path: `${CONSOLE_ROOT}/custom/:id`,
+    name: 'CustomPage',
+    component: () => import('@/views/user/CustomPageView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Custom Page',
+      titleKey: 'customPage.title'
+    }
+  },
+  { path: '/custom/:id', redirect: (to) => `${CONSOLE_ROOT}/custom/${to.params.id}` },
+  ...legacyConsoleRoutes,
+
+  // ==================== Payment pages (must stay at the root) ====================
+  // The backend only accepts a return_url whose path is exactly
+  // /payment/result (paymentResultReturnPath). The rest of the family is kept
+  // alongside it so the payment flow reads as one unit.
   {
     path: '/payment/qrcode',
     name: 'PaymentQRCode',
@@ -384,25 +471,14 @@ const routes: RouteRecordRaw[] = [
       requiresPayment: false
     }
   },
-  {
-    path: '/custom/:id',
-    name: 'CustomPage',
-    component: () => import('@/views/user/CustomPageView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Custom Page',
-      titleKey: 'customPage.title',
-    }
-  },
 
-  // ==================== Admin Routes ====================
+  // ==================== Admin Console (/dashboard/admin) ====================
   {
-    path: '/admin',
-    redirect: '/admin/dashboard'
+    path: ADMIN_ROOT,
+    redirect: `${ADMIN_ROOT}/dashboard`
   },
   {
-    path: '/admin/dashboard',
+    path: `${ADMIN_ROOT}/dashboard`,
     name: 'AdminDashboard',
     component: () => import('@/views/admin/DashboardView.vue'),
     meta: {
@@ -414,7 +490,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/ops',
+    path: `${ADMIN_ROOT}/ops`,
     name: 'AdminOps',
     component: () => import('@/views/admin/ops/OpsDashboard.vue'),
     meta: {
@@ -426,7 +502,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/audit-logs',
+    path: `${ADMIN_ROOT}/audit-logs`,
     name: 'AdminAuditLogs',
     component: () => import('@/views/admin/AuditLogView.vue'),
     meta: {
@@ -438,7 +514,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/users',
+    path: `${ADMIN_ROOT}/users`,
     name: 'AdminUsers',
     component: () => import('@/views/admin/UsersView.vue'),
     meta: {
@@ -450,7 +526,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/groups',
+    path: `${ADMIN_ROOT}/groups`,
     name: 'AdminGroups',
     component: () => import('@/views/admin/GroupsView.vue'),
     meta: {
@@ -462,11 +538,11 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/channels',
-    redirect: '/admin/channels/pricing'
+    path: `${ADMIN_ROOT}/channels`,
+    redirect: `${ADMIN_ROOT}/channels/pricing`
   },
   {
-    path: '/admin/channels/pricing',
+    path: `${ADMIN_ROOT}/channels/pricing`,
     name: 'AdminChannels',
     component: () => import('@/views/admin/ChannelsView.vue'),
     meta: {
@@ -478,7 +554,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/channels/monitor',
+    path: `${ADMIN_ROOT}/channels/monitor`,
     name: 'AdminChannelMonitor',
     component: () => import('@/views/admin/ChannelMonitorView.vue'),
     meta: {
@@ -490,18 +566,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/monitor',
-    name: 'ChannelStatus',
-    component: () => import('@/views/user/ChannelStatusView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Channel Status',
-      titleKey: 'nav.channelStatus'
-    }
-  },
-  {
-    path: '/admin/subscriptions',
+    path: `${ADMIN_ROOT}/subscriptions`,
     name: 'AdminSubscriptions',
     component: () => import('@/views/admin/SubscriptionsView.vue'),
     meta: {
@@ -513,7 +578,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/accounts',
+    path: `${ADMIN_ROOT}/accounts`,
     name: 'AdminAccounts',
     component: () => import('@/views/admin/AccountsView.vue'),
     meta: {
@@ -525,7 +590,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/announcements',
+    path: `${ADMIN_ROOT}/announcements`,
     name: 'AdminAnnouncements',
     component: () => import('@/views/admin/AnnouncementsView.vue'),
     meta: {
@@ -537,7 +602,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/proxies',
+    path: `${ADMIN_ROOT}/proxies`,
     name: 'AdminProxies',
     component: () => import('@/views/admin/ProxiesView.vue'),
     meta: {
@@ -549,7 +614,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/redeem',
+    path: `${ADMIN_ROOT}/redeem`,
     name: 'AdminRedeem',
     component: () => import('@/views/admin/RedeemView.vue'),
     meta: {
@@ -561,7 +626,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/promo-codes',
+    path: `${ADMIN_ROOT}/promo-codes`,
     name: 'AdminPromoCodes',
     component: () => import('@/views/admin/PromoCodesView.vue'),
     meta: {
@@ -573,7 +638,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/settings',
+    path: `${ADMIN_ROOT}/settings`,
     name: 'AdminSettings',
     component: () => import('@/views/admin/SettingsView.vue'),
     meta: {
@@ -585,7 +650,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/risk-control',
+    path: `${ADMIN_ROOT}/risk-control`,
     name: 'AdminRiskControl',
     component: () => import('@/views/admin/RiskControlView.vue'),
     meta: {
@@ -598,7 +663,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/prompt-audit',
+    path: `${ADMIN_ROOT}/prompt-audit`,
     name: 'AdminPromptAudit',
     component: () => import('@/features/prompt-audit/PromptAuditView.vue'),
     meta: {
@@ -611,7 +676,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/usage',
+    path: `${ADMIN_ROOT}/usage`,
     name: 'AdminUsage',
     component: () => import('@/views/admin/UsageView.vue'),
     meta: {
@@ -623,11 +688,11 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/affiliates',
-    redirect: '/admin/affiliates/invites'
+    path: `${ADMIN_ROOT}/affiliates`,
+    redirect: `${ADMIN_ROOT}/affiliates/invites`
   },
   {
-    path: '/admin/affiliates/invites',
+    path: `${ADMIN_ROOT}/affiliates/invites`,
     name: 'AdminAffiliateInvites',
     component: () => import('@/views/admin/affiliates/AdminAffiliateInvitesView.vue'),
     meta: {
@@ -639,7 +704,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/affiliates/rebates',
+    path: `${ADMIN_ROOT}/affiliates/rebates`,
     name: 'AdminAffiliateRebates',
     component: () => import('@/views/admin/affiliates/AdminAffiliateRebatesView.vue'),
     meta: {
@@ -651,7 +716,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/affiliates/transfers',
+    path: `${ADMIN_ROOT}/affiliates/transfers`,
     name: 'AdminAffiliateTransfers',
     component: () => import('@/views/admin/affiliates/AdminAffiliateTransfersView.vue'),
     meta: {
@@ -663,10 +728,9 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
-
   // ==================== Payment Admin Routes ====================
   {
-    path: '/admin/orders/dashboard',
+    path: `${ADMIN_ROOT}/orders/dashboard`,
     name: 'AdminPaymentDashboard',
     component: () => import('@/views/admin/orders/AdminPaymentDashboardView.vue'),
     meta: {
@@ -678,7 +742,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/orders',
+    path: `${ADMIN_ROOT}/orders`,
     name: 'AdminOrders',
     component: () => import('@/views/admin/orders/AdminOrdersView.vue'),
     meta: {
@@ -690,7 +754,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/orders/plans',
+    path: `${ADMIN_ROOT}/orders/plans`,
     name: 'AdminPaymentPlans',
     component: () => import('@/views/admin/orders/AdminPaymentPlansView.vue'),
     meta: {
@@ -699,6 +763,18 @@ const routes: RouteRecordRaw[] = [
       title: 'Subscription Plans',
       titleKey: 'nav.paymentPlans',
       requiresPayment: true
+    }
+  },
+
+  // Legacy flat admin paths -> /dashboard/admin/**. Declared after the real
+  // admin routes so it can never shadow one.
+  {
+    path: '/admin/:pathMatch(.*)*',
+    redirect: (to) => {
+      const rest = Array.isArray(to.params.pathMatch)
+        ? to.params.pathMatch.join('/')
+        : String(to.params.pathMatch || '')
+      return { path: rest ? `${ADMIN_ROOT}/${rest}` : ADMIN_ROOT, query: to.query, hash: to.hash }
     }
   },
 
@@ -719,10 +795,14 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     // Scroll to saved position when using browser back/forward
     if (savedPosition) {
       return savedPosition
+    }
+    // In-page anchors on the public site (e.g. /#pricing)
+    if (to.hash) {
+      return { el: to.hash, behavior: 'smooth', top: 80 }
     }
     // Scroll to top for new routes
     return { top: 0 }
@@ -738,7 +818,14 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal']
+const BACKEND_MODE_ALLOWED_PATHS = [
+  '/login',
+  '/key-usage',
+  '/setup',
+  '/payment/result',
+  '/payment/airwallex',
+  '/legal'
+]
 const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/callback',
   '/auth/linuxdo/callback',
@@ -746,12 +833,16 @@ const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/dingtalk/email-completion',
   '/auth/oidc/callback',
   '/auth/wechat/callback',
-  '/auth/wechat/payment/callback',
+  '/auth/wechat/payment/callback'
 ]
 const BACKEND_MODE_PENDING_AUTH_PATHS = ['/register', '/email-verify']
 
 function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: boolean): boolean {
-  if (BACKEND_MODE_ALLOWED_PATHS.some((allowedPath) => path === allowedPath || path.startsWith(allowedPath))) {
+  if (
+    BACKEND_MODE_ALLOWED_PATHS.some(
+      (allowedPath) => path === allowedPath || path.startsWith(allowedPath)
+    )
+  ) {
     return true
   }
 
@@ -759,7 +850,10 @@ function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: bo
     return true
   }
 
-  if (hasPendingAuthSession && BACKEND_MODE_PENDING_AUTH_PATHS.some((allowedPath) => path === allowedPath)) {
+  if (
+    hasPendingAuthSession &&
+    BACKEND_MODE_PENDING_AUTH_PATHS.some((allowedPath) => path === allowedPath)
+  ) {
     return true
   }
 
@@ -778,12 +872,25 @@ router.beforeEach(async (to, _from, next) => {
     authInitialized = true
   }
 
+  // Crab2API defaults to Chinese: a first-time visitor who lands on an English
+  // public URL without ever having picked a language is sent to the /zh twin.
+  // An explicit choice (stored preference) always wins over this.
+  if (to.meta.publicSite && to.meta.locale === 'en' && !hasStoredLocalePreference()) {
+    next({ path: to.path === '/' ? '/zh' : `/zh${to.path}`, query: to.query, hash: to.hash })
+    return
+  }
+
+  // Keep the rendered language in step with the URL on public pages.
+  if (to.meta.publicSite && to.meta.locale && to.meta.locale !== getLocale()) {
+    await setLocale(to.meta.locale)
+  }
+
   // Set page title
   const appStore = useAppStore()
   const adminSettingsStore = useAdminSettingsStore()
   const customMenuItems = [
     ...(appStore.cachedPublicSettings?.custom_menu_items ?? []),
-    ...(authStore.isAdmin ? adminSettingsStore.customMenuItems : []),
+    ...(authStore.isAdmin ? adminSettingsStore.customMenuItems : [])
   ]
   document.title = resolveRouteDocumentTitle(to, appStore.siteName, customMenuItems)
 
@@ -805,7 +912,7 @@ router.beforeEach(async (to, _from, next) => {
 
   // If route doesn't require auth, allow access
   if (!requiresAuth) {
-    // If already authenticated and trying to access login/register, redirect to appropriate dashboard
+    // If already authenticated and trying to access login/register, redirect to appropriate console
     if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
       // In backend mode, non-admin users should NOT be redirected away from login
       // (they are blocked from all protected routes, so redirecting would cause a loop)
@@ -813,8 +920,7 @@ router.beforeEach(async (to, _from, next) => {
         next()
         return
       }
-      // Admin users go to admin dashboard, regular users go to user dashboard
-      next(authStore.isAdmin ? '/admin/dashboard' : '/dashboard')
+      next(homePathFor(authStore.isAdmin))
       return
     }
     // Model Plaza:公开路由但受「启用开关 + 可选强制登录」双重控制(后端同口径 fail-closed)
@@ -829,13 +935,7 @@ router.beforeEach(async (to, _from, next) => {
       const plazaSettings = appStore.cachedPublicSettings
       // 仅在设置成功加载且明确为 false 时拦截(瞬时加载失败视为未知,由后端 404 兜底)
       if (appStore.publicSettingsLoaded && plazaSettings?.model_plaza_enabled === false) {
-        next(
-          authStore.isAuthenticated
-            ? authStore.isAdmin
-              ? '/admin/dashboard'
-              : '/dashboard'
-            : '/home'
-        )
+        next(authStore.isAuthenticated ? homePathFor(authStore.isAdmin) : '/')
         return
       }
       if (plazaSettings?.model_plaza_require_auth === true && !authStore.isAuthenticated) {
@@ -872,8 +972,8 @@ router.beforeEach(async (to, _from, next) => {
 
   // Check admin requirement
   if (requiresAdmin && !authStore.isAdmin) {
-    // User is authenticated but not admin, redirect to user dashboard
-    next('/dashboard')
+    // User is authenticated but not admin, redirect to user console
+    next(CONSOLE_ROOT)
     return
   }
 
@@ -890,7 +990,6 @@ router.beforeEach(async (to, _from, next) => {
       }
     }
   }
-
 
   // 公共设置可能尚未加载（App.vue 的 onMounted 异步拉取晚于首次导航，且纯静态部署
   // 无 __APP_CONFIG__ 注入）。此时 cachedPublicSettings 为空会把 payment/risk_control
@@ -910,7 +1009,7 @@ router.beforeEach(async (to, _from, next) => {
     appStore.publicSettingsLoaded &&
     appStore.cachedPublicSettings?.payment_enabled === false
   ) {
-    next(authStore.isAdmin ? '/admin/dashboard' : '/dashboard')
+    next(homePathFor(authStore.isAdmin))
     return
   }
 
@@ -919,23 +1018,23 @@ router.beforeEach(async (to, _from, next) => {
     appStore.publicSettingsLoaded &&
     appStore.cachedPublicSettings?.risk_control_enabled === false
   ) {
-    next(authStore.isAdmin ? '/admin/settings' : '/dashboard')
+    next(authStore.isAdmin ? `${ADMIN_ROOT}/settings` : CONSOLE_ROOT)
     return
   }
 
   // 简易模式下限制访问某些页面
   if (authStore.isSimpleMode) {
     const restrictedPaths = [
-      '/admin/groups',
-      '/admin/subscriptions',
-      '/admin/redeem',
-      '/subscriptions',
-      '/redeem'
+      `${ADMIN_ROOT}/groups`,
+      `${ADMIN_ROOT}/subscriptions`,
+      `${ADMIN_ROOT}/redeem`,
+      `${CONSOLE_ROOT}/subscriptions`,
+      `${CONSOLE_ROOT}/redeem`
     ]
 
     if (restrictedPaths.some((path) => to.path.startsWith(path))) {
       // 简易模式下访问受限页面,重定向到仪表板
-      next(authStore.isAdmin ? '/admin/dashboard' : '/dashboard')
+      next(homePathFor(authStore.isAdmin))
       return
     }
   }

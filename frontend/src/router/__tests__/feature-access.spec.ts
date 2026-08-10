@@ -19,7 +19,7 @@ const authStore = vi.hoisted(() => ({
 }))
 
 const appStore = vi.hoisted(() => ({
-  siteName: 'Sub2API',
+  siteName: 'Crab2API',
   backendModeEnabled: false,
   publicSettingsLoaded: false,
   cachedPublicSettings: null as null | {
@@ -140,8 +140,8 @@ describe('feature route guard', () => {
   })
 
   it.each([
-    ['payment', { requiresPayment: true }, '/purchase'],
-    ['risk control', { requiresRiskControl: true }, '/admin/risk-control'],
+    ['payment', { requiresPayment: true }, '/dashboard/purchase'],
+    ['risk control', { requiresRiskControl: true }, '/dashboard/admin/risk-control'],
   ])('does not treat a failed %s settings load as explicitly disabled', async (_name, meta, path) => {
     authStore.isAdmin = meta.requiresRiskControl === true
     appStore.fetchPublicSettings.mockResolvedValue(null)
@@ -160,7 +160,7 @@ describe('feature route guard', () => {
       'risk control',
       { requiresRiskControl: true },
       { risk_control_enabled: false },
-      '/admin/settings',
+      '/dashboard/admin/settings',
     ],
   ])('redirects when loaded settings explicitly disable %s', async (_name, meta, settings, target) => {
     authStore.isAdmin = meta.requiresRiskControl === true

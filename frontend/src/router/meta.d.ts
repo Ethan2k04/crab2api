@@ -64,5 +64,18 @@ declare module 'vue-router' {
      * i18n key for the page description
      */
     descriptionKey?: string
+
+    /**
+     * Marks a locale-prefixed public site route (landing, docs).
+     * The router guard keeps i18n in sync with these URLs, and the locale
+     * switcher rewrites the path instead of only flipping the language.
+     * @default false
+     */
+    publicSite?: boolean
+
+    /**
+     * The language a `publicSite` route renders in.
+     */
+    locale?: 'en' | 'zh'
   }
 }

@@ -81,7 +81,7 @@ function simulateGuard(
       if (authState.backendModeEnabled && !authState.isAdmin) {
         return null
       }
-      return authState.isAdmin ? '/admin/dashboard' : '/dashboard'
+      return authState.isAdmin ? '/dashboard/admin/dashboard' : '/dashboard'
     }
     if (authState.backendModeEnabled && !authState.isAuthenticated) {
       const allowed = ['/login', '/key-usage', '/setup', '/payment/result']
@@ -117,14 +117,14 @@ function simulateGuard(
   // 简易模式限制
   if (authState.isSimpleMode) {
     const restrictedPaths = [
-      '/admin/groups',
-      '/admin/subscriptions',
-      '/admin/redeem',
-      '/subscriptions',
-      '/redeem',
+      '/dashboard/admin/groups',
+      '/dashboard/admin/subscriptions',
+      '/dashboard/admin/redeem',
+      '/dashboard/subscriptions',
+      '/dashboard/redeem',
     ]
     if (restrictedPaths.some((path) => toPath.startsWith(path))) {
-      return authState.isAdmin ? '/admin/dashboard' : '/dashboard'
+      return authState.isAdmin ? '/dashboard/admin/dashboard' : '/dashboard'
     }
   }
 
@@ -176,7 +176,7 @@ describe('路由守卫逻辑', () => {
     })
 
     it('访问管理页面重定向到 /login', () => {
-      const redirect = simulateGuard('/admin/dashboard', { requiresAdmin: true }, authState)
+      const redirect = simulateGuard('/dashboard/admin/dashboard', { requiresAdmin: true }, authState)
       expect(redirect).toBe('/login')
     })
 
@@ -185,8 +185,8 @@ describe('路由守卫逻辑', () => {
       expect(redirect).toBeNull()
     })
 
-    it('访问 /home 公开页面允许通过', () => {
-      const redirect = simulateGuard('/home', { requiresAuth: false }, authState)
+    it('访问 / 落地页允许通过', () => {
+      const redirect = simulateGuard('/', { requiresAuth: false }, authState)
       expect(redirect).toBeNull()
     })
   })
@@ -218,12 +218,12 @@ describe('路由守卫逻辑', () => {
     })
 
     it('访问管理页面被拒绝，重定向到 /dashboard', () => {
-      const redirect = simulateGuard('/admin/dashboard', { requiresAdmin: true }, authState)
+      const redirect = simulateGuard('/dashboard/admin/dashboard', { requiresAdmin: true }, authState)
       expect(redirect).toBe('/dashboard')
     })
 
     it('访问 /admin/users 被拒绝', () => {
-      const redirect = simulateGuard('/admin/users', { requiresAdmin: true }, authState)
+      const redirect = simulateGuard('/dashboard/admin/users', { requiresAdmin: true }, authState)
       expect(redirect).toBe('/dashboard')
     })
   })
@@ -241,11 +241,11 @@ describe('路由守卫逻辑', () => {
 
     it('访问 /login 重定向到 /admin/dashboard', () => {
       const redirect = simulateGuard('/login', { requiresAuth: false }, authState)
-      expect(redirect).toBe('/admin/dashboard')
+      expect(redirect).toBe('/dashboard/admin/dashboard')
     })
 
     it('访问管理页面允许通过', () => {
-      const redirect = simulateGuard('/admin/dashboard', { requiresAdmin: true }, authState)
+      const redirect = simulateGuard('/dashboard/admin/dashboard', { requiresAdmin: true }, authState)
       expect(redirect).toBeNull()
     })
 
@@ -266,7 +266,7 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: false,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/subscriptions', {}, authState)
+      const redirect = simulateGuard('/dashboard/subscriptions', {}, authState)
       expect(redirect).toBe('/dashboard')
     })
 
@@ -278,7 +278,7 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: false,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/redeem', {}, authState)
+      const redirect = simulateGuard('/dashboard/redeem', {}, authState)
       expect(redirect).toBe('/dashboard')
     })
 
@@ -290,8 +290,8 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: false,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/admin/groups', { requiresAdmin: true }, authState)
-      expect(redirect).toBe('/admin/dashboard')
+      const redirect = simulateGuard('/dashboard/admin/groups', { requiresAdmin: true }, authState)
+      expect(redirect).toBe('/dashboard/admin/dashboard')
     })
 
     it('管理员简易模式访问 /admin/subscriptions 重定向', () => {
@@ -303,11 +303,11 @@ describe('路由守卫逻辑', () => {
         hasPendingAuthSession: false,
       }
       const redirect = simulateGuard(
-        '/admin/subscriptions',
+        '/dashboard/admin/subscriptions',
         { requiresAdmin: true },
         authState
       )
-      expect(redirect).toBe('/admin/dashboard')
+      expect(redirect).toBe('/dashboard/admin/dashboard')
     })
 
     it('简易模式下非受限页面正常访问', () => {
@@ -330,13 +330,13 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: false,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/keys', {}, authState)
+      const redirect = simulateGuard('/dashboard/keys', {}, authState)
       expect(redirect).toBeNull()
     })
   })
 
   describe('Backend Mode', () => {
-    it('unauthenticated: /home redirects to /login', () => {
+    it('unauthenticated: / redirects to /login', () => {
       const authState: MockAuthState = {
         isAuthenticated: false,
         isAdmin: false,
@@ -344,7 +344,7 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: true,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/home', { requiresAuth: false }, authState)
+      const redirect = simulateGuard('/', { requiresAuth: false }, authState)
       expect(redirect).toBe('/login')
     })
 
@@ -407,7 +407,7 @@ describe('路由守卫逻辑', () => {
         setupNeedsSetup: false,
       }
       const redirect = simulateGuard('/setup', { requiresAuth: false }, authState)
-      expect(redirect).toBe('/admin/dashboard')
+      expect(redirect).toBe('/dashboard/admin/dashboard')
     })
 
     it('admin: /admin/dashboard is allowed', () => {
@@ -418,7 +418,7 @@ describe('路由守卫逻辑', () => {
         backendModeEnabled: true,
         hasPendingAuthSession: false,
       }
-      const redirect = simulateGuard('/admin/dashboard', { requiresAdmin: true }, authState)
+      const redirect = simulateGuard('/dashboard/admin/dashboard', { requiresAdmin: true }, authState)
       expect(redirect).toBeNull()
     })
 
@@ -431,7 +431,7 @@ describe('路由守卫逻辑', () => {
         hasPendingAuthSession: false,
       }
       const redirect = simulateGuard('/login', { requiresAuth: false }, authState)
-      expect(redirect).toBe('/admin/dashboard')
+      expect(redirect).toBe('/dashboard/admin/dashboard')
     })
 
     it('non-admin authenticated: /dashboard redirects to /login', () => {
