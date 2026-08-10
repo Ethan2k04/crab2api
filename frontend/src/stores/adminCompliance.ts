@@ -3,6 +3,9 @@ import { computed, ref } from 'vue'
 import adminComplianceAPI, { type AdminComplianceStatus } from '@/api/admin/compliance'
 import { getLocale } from '@/i18n'
 
+// NOT rebranded on purpose: the backend compares the typed phrase byte-for-byte
+// against AdminComplianceAckPhraseZH/EN in internal/service/admin_compliance.go.
+// Changing it here alone would make the acknowledgement impossible to submit.
 const FALLBACK_ZH_PHRASE = '我已阅读、理解并同意 Sub2API 部署与运营合规承诺'
 const FALLBACK_EN_PHRASE = 'I have read, understood, and agree to the Sub2API Deployment and Operation Compliance Commitment'
 
