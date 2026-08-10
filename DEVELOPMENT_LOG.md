@@ -327,6 +327,60 @@ docker build -t crab2api:dev .
 
 ---
 
+## 2026-08-10 — 第四阶段:清除残留冷色调
+
+### 现象
+
+控制台表格的**第一列和最后一列**、以及表头,在暗色下明显偏藏蓝;系统设置页的 tab 栏也是藏蓝底。
+
+### 根因
+
+`tailwind.config.js` 的调色板覆盖只能作用于 **Tailwind 工具类**。而组件的 `<style>` 块里如果**硬编码颜色值**,覆盖就够不着 —— 而这些地方硬编码的恰好是 Tailwind **默认的冷灰**:
+
+| 硬编码值 | 实际是 | 出现位置 |
+|---|---|---|
+| `rgb(31 41 55)` | 默认 gray-800(带蓝) | DataTable 暗色表头 / 固定列 hover |
+| `rgb(17 24 39)` | 默认 gray-900(带蓝) | DataTable 暗色固定列背景 |
+| `rgb(249 250 251)` | 默认 gray-50 | DataTable 亮色表头 |
+
+DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景色才能在横向滚动时遮住下层内容,所以只能写死颜色 —— 这就是为什么每张后台表格的头尾两列看起来是蓝的。
+
+### 修复
+
+**引入 `--surface*` CSS 变量**(`style.css` 的 `@layer base`,亮/暗两套),把所有必须写死颜色的地方指过去,以后改表面色只有一个地方:
+
+```
+--surface / --surface-muted / --surface-sunken / --surface-raised
+--surface-border / --surface-border-strong
+--surface-text / --surface-text-muted
+```
+
+> 暗色用 `:root.dark` 而非 `.dark` —— `dark` 类挂在 `<html>` 上,裸 `.dark` 与 `:root` 特异性相同,会退化成依赖源码顺序。
+
+改造范围:`DataTable.vue`(表头 + 粘性列 + hover)、`AppSidebar.vue`(分组分隔线)、`RelayPulseMatrix.vue`(监控 tooltip)、`AliyunCaptchaWidget.vue`(验证码皮肤)。
+
+**另外回暖的部分**:
+
+| 位置 | 原来 | 现在 |
+|------|------|------|
+| 系统设置 tab 栏 | slate 渐变 + `rgb(15 23 42)` 阴影 + 藏蓝暗色底 | 暖灰渐变 + 暖黑底 |
+| 选中 tab 的下划线 | `linear-gradient(90deg, #14b8a6, #0ea5e9)` **旧品牌青→天蓝** | 陶土渐变 |
+| 新手引导浮层 | `#1e293b` / `#334155` / `#0f172a` / `#14b8a6` | 对应暖色 |
+| 公告铃 / 弹窗滚动条 | `#cbd5e1 → #94a3b8` | `#d4d1c8 → #b1ada1` |
+| Key 用量查询页 | 青色渐变 + slate 骨架屏 | 陶土 + 暖灰 |
+| 未读公告底色 | `bg-blue-50/30` | `bg-primary-50/40` |
+| `platformColors.ts` 默认强调色 | `#14b8a6`(注释写着 "primary-500 (teal)") | `#c15f3c` |
+
+### 刻意不改的部分
+
+**分类图表调色板**(`ModelDistributionChart` / `GroupDistributionChart` / `EndpointDistributionChart` / `DashboardView` / 监控与 Ops 趋势图)里的 `#14b8a6`、`#0ea5e9` 等:
+
+这些是**给不同数据系列编码用的 11 色轮**,不是品牌色。把青色换成陶土会和调色板里已有的 `#f97316` 橙撞色,两条系列线将难以区分。**数据编码色 ≠ 界面配色**,保持原样是正确的。
+
+同理保留的还有语义色:信息提示框的蓝、平台/类型徽章的蓝(平台身份色)、成功绿、警告黄、危险红。
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）
