@@ -15,6 +15,27 @@ import type {
 } from '@/types/payment'
 import type { BasePaginationResponse } from '@/types'
 
+/**
+ * Anonymous-readable plan projection returned by
+ * `GET /api/v1/payment/public/plans`.
+ *
+ * Intentionally narrower than {@link SubscriptionPlan}: the public endpoint
+ * omits group wiring and rate multipliers. `features` arrives as a
+ * newline-separated string, same as the authenticated endpoint.
+ */
+export interface PublicSubscriptionPlan {
+  id: number
+  name: string
+  description: string
+  price: number
+  original_price?: number
+  currency?: string
+  validity_days: number
+  validity_unit: string
+  features: string
+  sort_order: number
+}
+
 export interface PublicOrderVerifyResult {
   out_trade_no: string
   status: string
@@ -32,6 +53,14 @@ export const paymentAPI = {
   /** Get available subscription plans */
   getPlans() {
     return apiClient.get<SubscriptionPlan[]>('/payment/plans')
+  },
+
+  /**
+   * Get plans on sale without authentication (landing page pricing).
+   * Returns an empty list when the payment system is disabled.
+   */
+  getPublicPlans() {
+    return apiClient.get<PublicSubscriptionPlan[]>('/payment/public/plans')
   },
 
   /** Get all checkout page data in a single call */

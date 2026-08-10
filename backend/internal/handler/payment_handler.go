@@ -90,6 +90,70 @@ func (h *PaymentHandler) GetPlans(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// publicPlan is the anonymous-safe projection of a subscription plan.
+//
+// It deliberately omits every operational field the authenticated /payment/plans
+// response carries (group id/name/platform, rate multipliers, peak-rate windows,
+// product name, for_sale flag). Those describe how the gateway is wired
+// internally and have no business being on a marketing page.
+type publicPlan struct {
+	ID            int64    `json:"id"`
+	Name          string   `json:"name"`
+	Description   string   `json:"description"`
+	Price         float64  `json:"price"`
+	OriginalPrice *float64 `json:"original_price,omitempty"`
+	Currency      string   `json:"currency,omitempty"`
+	ValidityDays  int      `json:"validity_days"`
+	ValidityUnit  string   `json:"validity_unit"`
+	Features      string   `json:"features"`
+	SortOrder     int      `json:"sort_order"`
+}
+
+// GetPublicPlans returns the plans on sale to anonymous visitors so the landing
+// page can render real pricing without a login.
+//
+// GET /api/v1/payment/public/plans
+//
+// Returns an empty list (not an error) when the payment system is disabled, so
+// the landing page can fall back to its static pricing copy without special-
+// casing a failure status.
+func (h *PaymentHandler) GetPublicPlans(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	cfg, err := h.configService.GetPaymentConfig(ctx)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	if !cfg.Enabled {
+		response.Success(c, []publicPlan{})
+		return
+	}
+
+	plans, err := h.configService.ListPlansForSale(ctx)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	result := make([]publicPlan, 0, len(plans))
+	for _, p := range plans {
+		result = append(result, publicPlan{
+			ID:            int64(p.ID),
+			Name:          p.Name,
+			Description:   p.Description,
+			Price:         p.Price,
+			OriginalPrice: p.OriginalPrice,
+			Currency:      p.Currency,
+			ValidityDays:  p.ValidityDays,
+			ValidityUnit:  p.ValidityUnit,
+			Features:      p.Features,
+			SortOrder:     p.SortOrder,
+		})
+	}
+	response.Success(c, result)
+}
+
 // GetCheckoutInfo returns all data the payment page needs in a single call:
 // payment methods with limits, subscription plans, and configuration.
 // GET /api/v1/payment/checkout-info

@@ -54,6 +54,9 @@ func RegisterPaymentRoutes(
 	{
 		public.POST("/orders/verify", paymentHandler.VerifyOrderPublic)
 		public.POST("/orders/resolve", paymentHandler.ResolveOrderPublicByResumeToken)
+		// 落地页定价区块的数据源（匿名可读）。每次请求都会查 DB，
+		// 与 /settings/public 同口径按客户端 IP 兜底限流。
+		public.GET("/plans", panelRateLimiter.PublicIP(), paymentHandler.GetPublicPlans)
 	}
 
 	// --- Webhook endpoints (no auth) ---
