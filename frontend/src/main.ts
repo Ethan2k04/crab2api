@@ -23,11 +23,11 @@ function initIOSViewportZoomFix() {
 }
 
 function initThemeClass() {
+  // Crab2API defaults to day mode. The OS preference is deliberately ignored:
+  // the brand palette is designed light-first, and the header toggle persists
+  // an explicit choice for anyone who wants dark.
   const savedTheme = localStorage.getItem('theme')
-  const shouldUseDark =
-    savedTheme === 'dark' ||
-    (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  document.documentElement.classList.toggle('dark', shouldUseDark)
+  document.documentElement.classList.toggle('dark', savedTheme === 'dark')
 }
 
 async function bootstrap() {
@@ -45,8 +45,8 @@ async function bootstrap() {
   appStore.initFromInjectedConfig()
 
   // Set document title immediately after config is loaded
-  if (appStore.siteName && appStore.siteName !== 'Sub2API') {
-    document.title = `${appStore.siteName} - AI API Gateway`
+  if (appStore.siteName && appStore.siteName !== 'Crab2API') {
+    document.title = appStore.siteName
   }
   updateFavicon(appStore.siteLogo)
 

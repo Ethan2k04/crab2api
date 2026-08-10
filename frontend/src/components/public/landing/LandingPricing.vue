@@ -1,0 +1,209 @@
+<template>
+  <section id="pricing" class="border-b border-gray-200 bg-white dark:border-dark-800 dark:bg-dark-900/40">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <header class="max-w-2xl">
+        <p class="mono-label">03 / PRICING</p>
+        <h2 class="mt-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
+          {{ t('landing.pricing.title') }}
+        </h2>
+        <p class="mt-3 text-base text-gray-600 dark:text-dark-300">
+          {{ t('landing.pricing.subtitle') }}
+        </p>
+      </header>
+
+      <!-- Loading -->
+      <div v-if="loading" class="mt-12 grid gap-6 md:grid-cols-3">
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="h-80 animate-pulse rounded-2xl border border-gray-200 bg-gray-100 dark:border-dark-700 dark:bg-dark-800"
+        ></div>
+      </div>
+
+      <template v-else>
+        <!-- Source badge -->
+        <p class="mt-6 flex items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1.5 rounded-md bg-primary-50 px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+            {{ usingFallback ? '—' : t('landing.pricing.livePlans') }}
+          </span>
+          <span v-if="usingFallback" class="text-xs text-gray-500 dark:text-dark-400">
+            {{ t('landing.pricing.fallbackNotice') }}
+          </span>
+        </p>
+
+        <!-- Empty -->
+        <p
+          v-if="cards.length === 0"
+          class="mt-10 rounded-2xl border border-dashed border-gray-300 px-6 py-12 text-center text-sm text-gray-500 dark:border-dark-600 dark:text-dark-400"
+        >
+          {{ t('landing.pricing.empty') }}
+        </p>
+
+        <!-- Plan cards -->
+        <div v-else class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <article
+            v-for="card in cards"
+            :key="card.key"
+            class="relative flex flex-col rounded-2xl border bg-white p-6 transition-shadow hover:shadow-card-hover dark:bg-dark-900"
+            :class="
+              card.featured
+                ? 'border-primary-500 shadow-card'
+                : 'border-gray-200 dark:border-dark-700'
+            "
+          >
+            <span
+              v-if="card.featured"
+              class="absolute -top-3 left-6 rounded-md bg-primary-500 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-white"
+            >
+              {{ t('landing.pricing.mostPopular') }}
+            </span>
+
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ card.name }}</h3>
+            <p class="mt-1.5 min-h-[2.5rem] text-sm text-gray-600 dark:text-dark-400">
+              {{ card.description }}
+            </p>
+
+            <div class="mt-5 flex items-baseline gap-1.5">
+              <span class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                {{ card.priceDisplay }}
+              </span>
+              <span class="text-sm text-gray-500 dark:text-dark-400">/ {{ card.periodLabel }}</span>
+            </div>
+            <p
+              v-if="card.originalPriceDisplay"
+              class="mt-1 text-xs text-gray-400 line-through dark:text-dark-500"
+            >
+              {{ card.originalPriceDisplay }}
+            </p>
+
+            <ul class="mt-6 flex-1 space-y-2.5">
+              <li
+                v-for="(feature, idx) in card.features"
+                :key="idx"
+                class="flex items-start gap-2 text-sm text-gray-700 dark:text-dark-200"
+              >
+                <Icon name="check" size="xs" class="mt-1 shrink-0 text-primary-500" />
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+
+            <router-link
+              :to="card.href"
+              class="mt-7 inline-flex h-10 items-center justify-center rounded-xl text-sm font-medium transition-colors"
+              :class="
+                card.featured
+                  ? 'bg-primary-500 text-white hover:bg-primary-600'
+                  : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-dark-600 dark:text-dark-200 dark:hover:bg-dark-800'
+              "
+            >
+              {{ usingFallback ? t('landing.pricing.viewInConsole') : t('landing.pricing.choosePlan') }}
+            </router-link>
+          </article>
+        </div>
+      </template>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import Icon from '@/components/icons/Icon.vue'
+import { paymentAPI, type PublicSubscriptionPlan } from '@/api/payment'
+import { currencySymbol, formatPaymentAmount } from '@/components/payment/currency'
+import { FALLBACK_PLANS } from '@/config/brand'
+
+interface PlanCard {
+  key: string
+  name: string
+  description: string
+  priceDisplay: string
+  originalPriceDisplay: string
+  periodLabel: string
+  features: string[]
+  featured: boolean
+  href: string
+}
+
+const { t, locale } = useI18n()
+
+const livePlans = ref<PublicSubscriptionPlan[]>([])
+const loading = ref(true)
+/** True when the backend gave us nothing usable and we render brand defaults. */
+const usingFallback = ref(false)
+
+/**
+ * Period wording. The backend stores a unit that may be singular or plural
+ * ('day'/'days', 'month'/'months'); billing always resolves it to
+ * `validity_days`, so the label is derived from the day count.
+ */
+function periodLabel(days: number): string {
+  return days === 1 ? t('landing.pricing.perDay') : t('landing.pricing.perPeriodDays', { days })
+}
+
+const liveCards = computed<PlanCard[]>(() =>
+  livePlans.value.map((plan, index) => ({
+    key: `live-${plan.id}`,
+    name: plan.name,
+    description: plan.description,
+    priceDisplay: formatPaymentAmount(plan.price, plan.currency, locale.value),
+    originalPriceDisplay:
+      typeof plan.original_price === 'number' && plan.original_price > plan.price
+        ? formatPaymentAmount(plan.original_price, plan.currency, locale.value)
+        : '',
+    periodLabel: periodLabel(plan.validity_days),
+    features: String(plan.features || '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean),
+    // Highlight the middle card when there are three or more plans.
+    featured: livePlans.value.length >= 3 ? index === 1 : index === 0,
+    href: `/dashboard/purchase?plan=${plan.id}`
+  }))
+)
+
+const fallbackCards = computed<PlanCard[]>(() =>
+  FALLBACK_PLANS.map((plan) => {
+    // Chinese visitors see CNY, everyone else USD — these are indicative only.
+    const isCN = locale.value === 'zh'
+    const amount = isCN ? plan.priceCNY : plan.priceUSD
+    const currency = isCN ? 'CNY' : 'USD'
+    return {
+      key: `fallback-${plan.key}`,
+      name: t(`landing.pricing.plans.${plan.key}.name`),
+      description: t(`landing.pricing.plans.${plan.key}.desc`),
+      priceDisplay: `${currencySymbol(currency)}${amount}`,
+      originalPriceDisplay: '',
+      periodLabel: periodLabel(plan.periodDays),
+      features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
+      featured: plan.featured === true,
+      href: '/dashboard/purchase'
+    }
+  })
+)
+
+const cards = computed<PlanCard[]>(() => (usingFallback.value ? fallbackCards.value : liveCards.value))
+
+onMounted(async () => {
+  try {
+    const { data } = await paymentAPI.getPublicPlans()
+    const plans = Array.isArray(data) ? data : []
+    if (plans.length > 0) {
+      livePlans.value = plans
+      usingFallback.value = false
+    } else {
+      // Payment disabled or nothing on sale — show the brand's indicative tiers
+      // rather than an empty pricing section.
+      usingFallback.value = true
+    }
+  } catch {
+    // Older backend without the public endpoint, or a transient failure.
+    usingFallback.value = true
+  } finally {
+    loading.value = false
+  }
+})
+</script>

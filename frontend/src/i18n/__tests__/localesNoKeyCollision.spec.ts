@@ -7,6 +7,7 @@ import enAdminOverview from '../locales/en/admin/overview'
 import enAdminResources from '../locales/en/admin/resources'
 import enAdminSettings from '../locales/en/admin/settings'
 import enCommon from '../locales/en/common'
+import enCrab from '../locales/en/crab'
 import enDashboard from '../locales/en/dashboard'
 import enLanding from '../locales/en/landing'
 import enMisc from '../locales/en/misc'
@@ -17,6 +18,7 @@ import zhAdminOverview from '../locales/zh/admin/overview'
 import zhAdminResources from '../locales/zh/admin/resources'
 import zhAdminSettings from '../locales/zh/admin/settings'
 import zhCommon from '../locales/zh/common'
+import zhCrab from '../locales/zh/crab'
 import zhDashboard from '../locales/zh/dashboard'
 import zhLanding from '../locales/zh/landing'
 import zhMisc from '../locales/zh/misc'
@@ -42,8 +44,8 @@ function collisions(modules: Modules): string[] {
 }
 
 const roots: Record<string, Modules> = {
-  zh: { landing: zhLanding, common: zhCommon, dashboard: zhDashboard, misc: zhMisc },
-  en: { landing: enLanding, common: enCommon, dashboard: enDashboard, misc: enMisc }
+  zh: { landing: zhLanding, crab: zhCrab, common: zhCommon, dashboard: zhDashboard, misc: zhMisc },
+  en: { landing: enLanding, crab: enCrab, common: enCommon, dashboard: enDashboard, misc: enMisc }
 }
 
 const admins: Record<string, Modules> = {
