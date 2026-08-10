@@ -13,6 +13,7 @@ import {
   type ReleaseInfo
 } from '@/api/admin/system'
 import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/auth'
+import { normalizeSiteName } from '@/config/brand'
 
 export const useAppStore = defineStore('app', () => {
   // ==================== State ====================
@@ -290,11 +291,15 @@ export const useAppStore = defineStore('app', () => {
    * Apply settings to store state (internal helper to avoid code duplication)
    */
   function applySettings(config: PublicSettings): void {
+    // Normalise once, here, so every consumer sees the branded name — some read
+    // `siteName`, others reach into `cachedPublicSettings.site_name` directly.
+    const normalized: PublicSettings = { ...config, site_name: normalizeSiteName(config.site_name) }
+
     if (typeof window !== 'undefined') {
-      window.__APP_CONFIG__ = { ...config }
+      window.__APP_CONFIG__ = { ...normalized }
     }
-    cachedPublicSettings.value = config
-    siteName.value = config.site_name || 'Crab2API'
+    cachedPublicSettings.value = normalized
+    siteName.value = normalized.site_name
     siteLogo.value = config.site_logo || ''
     siteVersion.value = config.version || ''
     contactInfo.value = config.contact_info || ''

@@ -1119,6 +1119,7 @@
 <script setup lang="ts">
 	import { ref, reactive, computed, onMounted, onUnmounted, type ComponentPublicInstance } from 'vue'
 	import { useI18n } from 'vue-i18n'
+import { normalizeSiteName } from '@/config/brand'
 	import { useAppStore } from '@/stores/app'
 	import { useOnboardingStore } from '@/stores/onboarding'
 	import { useClipboard } from '@/composables/useClipboard'
@@ -1903,7 +1904,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
       };
     }
   })`
-  const providerName = (publicSettings.value?.site_name || 'crab2api').trim() || 'crab2api'
+  const providerName = normalizeSiteName(publicSettings.value?.site_name)
   const deeplink = buildCcSwitchImportDeeplink({
     baseUrl,
     platform,

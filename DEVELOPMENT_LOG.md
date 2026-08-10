@@ -216,6 +216,67 @@ docker build -t crab2api:dev .
 
 ---
 
+## 2026-08-10 — 第二阶段:品牌残留清理
+
+### 现象
+
+首次部署后,落地页 Header 和 Hero 仍显示 **Sub2API**。
+
+### 根因
+
+**不是前端漏改**。Header/Hero 显示的是后端 `site_name` 设置项,它作为一行数据存在 settings 表里,值是上游种下的 `Sub2API`。**数据库里的值优先级高于前端任何默认值**,所以我写的 `BRAND_NAME` 兜底永远轮不到。
+
+### 修复
+
+1. **新增 `normalizeSiteName()`**(`frontend/src/config/brand.ts`)
+   把继承自上游的站点名(`sub2api` / `sub2api-bmai` / `sub2api-frontend`,大小写不敏感)视为「从未自定义」,回落到 `Crab2API`。运营方真正自定义的名字原样透传。
+   在 `stores/app.ts` 的 `applySettings()` 里统一归一化 —— 同时改写 `siteName` 和 `cachedPublicSettings.site_name`,因为有些组件读前者、有些直接读后者。另外 5 个绕过 store 直接调 `getPublicSettings()` 的页面(PlazaNavBar / LegalDocumentView / EmailVerifyView / RegisterView / KeysView)也逐个接上。
+   → **无需手动改数据库,重新构建即生效。**
+
+2. **后端 `"Sub2API"` 显示默认值全部改为 `"Crab2API"`**(11 个文件)
+   覆盖:settings 默认种子、公开设置回落、邮件模板站点名、余额通知、内容审核通知、TOTP issuer、WebAuthn RP display name。
+   - TOTP issuer:只影响**新绑定**的二次验证在验证器 App 里显示的标签;已绑定用户的密钥不变,验证照常通过。
+   - WebAuthn:只改 display name,**RP ID(域名)未动**,已注册的 Passkey 不受影响。
+   - 相关 Go 测试用的都是显式 fixture,不断言默认值,无需改动。
+
+### 同批清理的前端残留
+
+| 项 | 处理 |
+|----|------|
+| `SUB2API_API_KEY` 环境变量名(密钥使用引导的复制片段) | → `CRAB2API_API_KEY`(含 en/zh 文案与测试) |
+| 控制台用户菜单里的 GitHub 链接(指向 Wei-Shaw/sub2api) | 移除 |
+| KeyUsage 页脚 GitHub 链接 | 移除 |
+| `ProxyAdBanner` 组件(指向 `sub2api.io/proxyip` 的第三方代理广告) | **整个组件删除**,3 处引用一并移除 |
+| 导出文件名 `sub2api-account-*.json` / `sub2api-proxy-*.json` | → `crab2api-*` |
+| 备份桶命名示例 `sub2api-backups` | → `crab2api-backups` |
+| 批量图片任务名 / 客户端请求 ID 前缀 `sub2api-ui-` | → `crab2api-ui-`(后端无对应匹配,安全) |
+| 安装向导数据库名占位符 + 默认值 | → `crab2api`,同步改 `deploy/.env.example` 的 `POSTGRES_USER` / `POSTGRES_DB` |
+| `package.json` 包名 | → `crab2api-frontend` |
+| onboarding.css / SettingsView / opsFormatters 里的注释 | 改写 |
+| 「上游指向另一个 sub2api 兼容实例」文案 | → 「另一个同类网关实例」 |
+
+新增 `frontend/src/config/__tests__/brand.spec.ts` 锁住 `normalizeSiteName` 的行为。
+
+### 仍然保留 `sub2api` 的地方(全部有理由)
+
+**协议 / 存储 / 后端契约**(改了直接坏功能,清单见第一阶段第 7 节):
+合规承诺短语、`sub2api-admin` WS 子协议、`sub2api-data`/`sub2api-bundle`、`sub2api.key_billing`、各 localStorage / IndexedDB 键。
+
+**指向上游的真实外部资源**(是可用的服务和文档,不是品牌残留):
+
+| 位置 | 内容 |
+|------|------|
+| `VersionBadge.vue` | `Wei-Shaw/sub2api` + `weishaw/sub2api` —— 在线更新检查就是从这个仓库/镜像拉版本信息,改了更新功能就废了 |
+| `AdminComplianceDialog.vue` | 合规文档 URL 兜底 |
+| `SettingsView.vue` | 支付配置文档 URL |
+| `TLSFingerprintProfilesModal.vue` | `tls.sub2api.org` 指纹采集工具 |
+
+**代码注释**:若干说明「上游是 sub2api 时如何应答」的注释,不渲染到界面。
+
+> ⚠️ **数据库名变更提醒**:`deploy/.env.example` 的 `POSTGRES_USER` / `POSTGRES_DB` 默认值已改为 `crab2api`。**如果你的 `.env` 是在这次改动之前创建的,里面写的还是 `sub2api`,请保持不动** —— 数据已经在那个库里了。只有全新部署才用新默认值。
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）

@@ -75,6 +75,28 @@ export const FALLBACK_PLANS: FallbackPlan[] = [
   { key: 'max', priceCNY: 399, priceUSD: 56, periodDays: 30 }
 ]
 
+/**
+ * Site names inherited from the upstream project.
+ *
+ * A deployment forked from Sub2API already has `site_name` seeded in its
+ * settings table, and that stored value outranks any frontend default — which
+ * is why the header and hero kept rendering "Sub2API" after the rebrand.
+ * Treat those values as "never customised" so the Crab2API brand shows through
+ * without an operator having to edit the setting by hand.
+ *
+ * An operator who genuinely wants a different name just sets it in admin
+ * settings; anything not on this list is passed through untouched.
+ */
+const LEGACY_SITE_NAMES = new Set(['sub2api', 'sub2api-bmai', 'sub2api-frontend'])
+
+/** Resolve the brand name to display for a stored `site_name` setting. */
+export function normalizeSiteName(raw?: string | null): string {
+  const trimmed = String(raw ?? '').trim()
+  if (!trimmed) return BRAND_NAME
+  if (LEGACY_SITE_NAMES.has(trimmed.toLowerCase())) return BRAND_NAME
+  return trimmed
+}
+
 /** External links surfaced in the footer. */
 export const BRAND_LINKS = {
   status: '',

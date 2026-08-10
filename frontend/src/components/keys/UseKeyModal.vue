@@ -918,16 +918,16 @@ function generateGrokCodexFiles(baseUrl: string, apiKey: string): FileConfig[] {
   switch (shell) {
     case 'cmd':
       envPath = 'Command Prompt'
-      envContent = `set SUB2API_API_KEY=${apiKey}`
+      envContent = `set CRAB2API_API_KEY=${apiKey}`
       break
     case 'powershell':
     case 'windows':
       envPath = 'PowerShell'
-      envContent = `$env:SUB2API_API_KEY="${apiKey}"`
+      envContent = `$env:CRAB2API_API_KEY="${apiKey}"`
       break
     default:
       envPath = 'Terminal'
-      envContent = `export SUB2API_API_KEY="${apiKey}"`
+      envContent = `export CRAB2API_API_KEY="${apiKey}"`
   }
 
   const configContent = `# Codex CLI → Crab2API Grok group
@@ -950,7 +950,7 @@ model = "grok-4.5"
 name = "Crab2API Grok"
 base_url = "${baseUrl}"
 # Prefer env_key (variable NAME). Do not combine with experimental_bearer_token.
-env_key = "SUB2API_API_KEY"
+env_key = "CRAB2API_API_KEY"
 # Fallback only if you cannot set env (discouraged — keeps secret on disk):
 # experimental_bearer_token = "${apiKey}"
 wire_api = "responses"
