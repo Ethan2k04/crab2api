@@ -85,7 +85,7 @@
                   v-for="item in announcements"
                   :key="item.id"
                   class="group relative flex items-center gap-4 border-b border-gray-100 px-6 py-4 transition-all hover:bg-gray-50 dark:border-dark-700 dark:hover:bg-dark-700/30"
-                  :class="{ 'bg-blue-50/30 dark:bg-blue-900/5': !item.read_at }"
+                  :class="{ 'bg-primary-50/40 dark:bg-primary-900/10': !item.read_at }"
                   style="min-height: 72px"
                   @click="openDetail(item)"
                 >
@@ -456,7 +456,7 @@ watch(
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+  background: linear-gradient(to bottom, #d4d1c8, #b1ada1);
   border-radius: 4px;
 }
 
@@ -465,7 +465,7 @@ watch(
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #94a3b8, #64748b);
+  background: linear-gradient(to bottom, #b1ada1, #8a8679);
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {

@@ -3,6 +3,39 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Surface tokens.
+   *
+   * Component <style> blocks that need a real background colour (sticky table
+   * headers and pinned columns, popovers, overlays) cannot use Tailwind
+   * utilities and used to hardcode Tailwind's DEFAULT cool grays — which is why
+   * the console kept a blue cast after the rebrand. Point them at these
+   * variables instead so the warm palette applies everywhere.
+   */
+  :root {
+    --surface: #ffffff;
+    --surface-muted: #faf9f7; /* gray-50  */
+    --surface-sunken: #f4f3ee; /* gray-100 */
+    --surface-raised: #ffffff;
+    --surface-border: #e7e5de; /* gray-200 */
+    --surface-border-strong: #d4d1c8; /* gray-300 */
+    --surface-text: #24221f; /* gray-900 */
+    --surface-text-muted: #6b6760; /* gray-600 */
+  }
+
+  /* `:root.dark` rather than `.dark` — the class sits on <html>, so a bare
+     `.dark` would tie with `:root` on specificity and depend on source order. */
+  :root.dark {
+    --surface: #201f1d; /* dark-900 */
+    --surface-muted: #2b2a27; /* dark-800 */
+    --surface-sunken: #171614; /* dark-950 */
+    --surface-raised: #2b2a27; /* dark-800 */
+    --surface-border: #3e3c37; /* dark-700 */
+    --surface-border-strong: #55524b; /* dark-600 */
+    --surface-text: #f4f3ee; /* dark-50  */
+    --surface-text-muted: #b1ada1; /* dark-300 */
+  }
+
   * {
     @apply border-gray-200 dark:border-dark-700;
   }

@@ -60,7 +60,7 @@ const ACCENT: Record<Platform, string> = {
   grok: '#71717a', // zinc-500
   composite: '#06b6d4', // cyan-500
 }
-const ACCENT_DEFAULT = '#14b8a6' // primary-500 (teal)
+const ACCENT_DEFAULT = '#c15f3c' // primary-500 (Claude clay)
 
 // ── Accent bar (gradient) ───────────────────────────────────────────
 const ACCENT_BAR: Record<Platform, string> = {

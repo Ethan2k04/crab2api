@@ -101,7 +101,7 @@
         class="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-primary-400/10 blur-3xl"
       ></div>
       <div
-        class="absolute inset-0 bg-[linear-gradient(rgba(20,184,166,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"
+        class="absolute inset-0 bg-[linear-gradient(rgba(36,34,31,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(36,34,31,0.045)_1px,transparent_1px)] bg-[size:64px_64px]"
       ></div>
     </div>
 
@@ -562,7 +562,7 @@ onMounted(() => {
 /* Terminal Window */
 .terminal-window {
   width: 420px;
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(145deg, #2b2a27 0%, #171614 100%);
   border-radius: 14px;
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.4),
@@ -612,7 +612,7 @@ onMounted(() => {
   text-align: center;
   font-size: 12px;
   font-family: ui-monospace, monospace;
-  color: #64748b;
+  color: #8a8679;
   margin-right: 52px;
 }
 
@@ -668,10 +668,10 @@ onMounted(() => {
   color: #a78bfa;
 }
 .code-url {
-  color: #14b8a6;
+  color: #c15f3c;
 }
 .code-comment {
-  color: #64748b;
+  color: #8a8679;
   font-style: italic;
 }
 .code-success {
@@ -709,8 +709,8 @@ onMounted(() => {
 :deep(.dark) .terminal-window {
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(20, 184, 166, 0.2),
-    0 0 40px rgba(20, 184, 166, 0.1),
+    0 0 0 1px rgba(193, 95, 60, 0.22),
+    0 0 40px rgba(193, 95, 60, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 </style>

@@ -570,8 +570,8 @@ function formatBucketRange(value: string) {
   max-width: 16rem;
   transform: translateX(-50%) translateY(4px);
   border-radius: 0.75rem;
-  border: 1px solid rgb(229 231 235);
-  background: rgb(255 255 255);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
   padding: 0.5rem 0.625rem;
   box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.15);
   opacity: 0;
@@ -580,9 +580,9 @@ function formatBucketRange(value: string) {
   white-space: nowrap;
 }
 :global(.dark) .pulse-tooltip {
-  border-color: rgb(55 65 81);
-  background: rgb(17 24 39);
-  color: rgb(229 231 235);
+  border-color: var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--surface-text);
 }
 .pulse-tooltip-line {
   display: block;
@@ -596,7 +596,7 @@ function formatBucketRange(value: string) {
 .pulse-tooltip-title {
   margin-bottom: 0.2rem;
   font-weight: 600;
-  color: rgb(17 24 39);
+  color: var(--surface-text);
 }
 :global(.dark) .pulse-tooltip-title {
   color: rgb(243 244 246);
@@ -620,16 +620,16 @@ function formatBucketRange(value: string) {
   max-width: min(18rem, calc(100vw - 1.5rem));
   transform: translate(-50%, -100%);
   border-radius: 0.75rem;
-  border: 1px solid rgb(229 231 235);
-  background: rgb(255 255 255);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
   padding: 0.5rem 0.625rem;
   box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.28);
   white-space: nowrap;
 }
 :global(.dark) .matrix-floating-tooltip {
-  border-color: rgb(55 65 81);
-  background: rgb(17 24 39);
-  color: rgb(229 231 235);
+  border-color: var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--surface-text);
 }
 .matrix-floating-tooltip-line {
   display: block;
@@ -643,7 +643,7 @@ function formatBucketRange(value: string) {
 .matrix-floating-tooltip-title {
   margin-bottom: 0.2rem;
   font-weight: 600;
-  color: rgb(17 24 39);
+  color: var(--surface-text);
 }
 :global(.dark) .matrix-floating-tooltip-title {
   color: rgb(243 244 246);
