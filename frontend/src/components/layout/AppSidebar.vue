@@ -149,6 +149,41 @@
 
     <!-- Bottom Section -->
     <div class="mt-auto border-t border-gray-100 p-3 dark:border-dark-800">
+      <!--
+        Public site links. The header carries the same two entries, but that
+        nav is hidden below md — this is how small screens (and the collapsed
+        rail) get back out to the landing page and the docs.
+      -->
+      <router-link
+        :to="publicHomePath"
+        class="sidebar-link mb-1"
+        :class="{ 'sidebar-link-collapsed': sidebarCollapsed }"
+        :title="sidebarCollapsed ? t('siteNav.mainPage') : undefined"
+        @click="handleMenuItemClick(publicHomePath)"
+      >
+        <HomeIcon class="h-5 w-5 flex-shrink-0" />
+        <span
+          class="sidebar-label"
+          :class="{ 'sidebar-label-collapsed': sidebarCollapsed }"
+          :aria-hidden="sidebarCollapsed ? 'true' : 'false'"
+        >{{ t('siteNav.mainPage') }}</span>
+      </router-link>
+
+      <router-link
+        :to="publicDocsPath"
+        class="sidebar-link mb-2"
+        :class="{ 'sidebar-link-collapsed': sidebarCollapsed }"
+        :title="sidebarCollapsed ? t('siteNav.docs') : undefined"
+        @click="handleMenuItemClick(publicDocsPath)"
+      >
+        <BookIcon class="h-5 w-5 flex-shrink-0" />
+        <span
+          class="sidebar-label"
+          :class="{ 'sidebar-label-collapsed': sidebarCollapsed }"
+          :aria-hidden="sidebarCollapsed ? 'true' : 'false'"
+        >{{ t('siteNav.docs') }}</span>
+      </router-link>
+
       <!-- Theme Toggle -->
       <button
         @click="toggleTheme"
@@ -197,6 +232,7 @@ import { sanitizeSvg } from '@/utils/sanitize'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
+import { usePublicLocale } from '@/composables/usePublicLocale'
 
 interface NavItem {
   path: string
@@ -251,6 +287,11 @@ const sidebarNavRef = ref<HTMLElement | null>(null)
 const isDark = ref(document.documentElement.classList.contains('dark'))
 
 const homePath = computed(() => (isAdmin.value ? '/dashboard/admin/dashboard' : '/dashboard'))
+
+// Public site, in the visitor's current language.
+const { publicPath } = usePublicLocale()
+const publicHomePath = computed(() => publicPath('/'))
+const publicDocsPath = computed(() => publicPath('/docs'))
 
 // Track which parent nav groups are expanded
 const expandedGroups = ref<Set<string>>(new Set())
@@ -517,6 +558,36 @@ const CogIcon = {
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round',
           d: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+        })
+      ]
+    )
+}
+
+const HomeIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75'
+        })
+      ]
+    )
+}
+
+const BookIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25'
         })
       ]
     )

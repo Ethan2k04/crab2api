@@ -18,7 +18,20 @@ export default {
     darkMode: 'Dark mode',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
-    skipToContent: 'Skip to content'
+    skipToContent: 'Skip to content',
+    backToHome: 'Back to home',
+    roleAdmin: 'Admin',
+    roleUser: 'User'
+  },
+
+  notFound: {
+    code: '404',
+    title: 'Page not found',
+    description: "The page you are looking for doesn't exist, or has moved.",
+    backToHome: 'Back to home',
+    goBack: 'Go back',
+    goToConsole: 'Open console',
+    readDocs: 'Read the docs'
   },
 
   siteFooter: {

@@ -44,46 +44,70 @@
       <!-- Text Content -->
       <div class="mb-8">
         <h1 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('errors.pageNotFound') }}
+          {{ t('notFound.title') }}
         </h1>
         <p class="text-gray-500 dark:text-dark-400">
-          The page you are looking for doesn't exist or has been moved.
+          {{ t('notFound.description') }}
         </p>
       </div>
 
-      <!-- Action Buttons -->
+      <!--
+        Exits for every visitor state. "Home" is always offered — the console
+        link would bounce an anonymous visitor to /login, which is not an exit.
+      -->
       <div class="flex flex-col justify-center gap-3 sm:flex-row">
         <button @click="goBack" class="btn btn-secondary">
           <Icon name="arrowLeft" size="md" class="mr-2" />
-          Go Back
+          {{ t('notFound.goBack') }}
         </button>
-        <router-link to="/dashboard" class="btn btn-primary">
+        <router-link :to="homePath" class="btn btn-primary">
           <Icon name="home" size="md" class="mr-2" />
-          Go to Dashboard
+          {{ t('notFound.backToHome') }}
         </router-link>
       </div>
 
-      <!-- Help Link -->
-      <p class="mt-8 text-sm text-gray-400 dark:text-dark-500">
-        Need help?
-        <a
-          href="#"
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
+        <router-link
+          v-if="isAuthenticated"
+          :to="consolePath"
           class="text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
         >
-          Contact support
-        </a>
+          {{ t('notFound.goToConsole') }}
+        </router-link>
+        <router-link
+          :to="docsPath"
+          class="text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          {{ t('notFound.readDocs') }}
+        </router-link>
+      </div>
+
+      <p v-if="contactInfo" class="mt-8 text-sm text-gray-400 dark:text-dark-500">
+        {{ t('common.contactSupport') }}: {{ contactInfo }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Icon from '@/components/icons/Icon.vue'
+import { useAppStore, useAuthStore } from '@/stores'
+import { usePublicLocale } from '@/composables/usePublicLocale'
 
 const { t } = useI18n()
 const router = useRouter()
+const appStore = useAppStore()
+const authStore = useAuthStore()
+const { publicPath } = usePublicLocale()
+
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const contactInfo = computed(() => appStore.contactInfo)
+const homePath = computed(() => publicPath('/'))
+const docsPath = computed(() => publicPath('/docs'))
+const consolePath = computed(() => (authStore.isAdmin ? '/dashboard/admin' : '/dashboard'))
 
 function goBack(): void {
   router.back()

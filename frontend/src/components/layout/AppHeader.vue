@@ -21,21 +21,49 @@
         </div>
       </div>
 
+      <!--
+        Site navigation, mirroring the public header. Without it the console is
+        a one-way door: once signed in there was no route back to the landing
+        page or the docs. Small screens reach the same links from the sidebar.
+      -->
+      <nav class="hidden md:flex" :aria-label="t('siteNav.mainPage')">
+        <div
+          class="flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-dark-700 dark:bg-dark-900/70"
+        >
+          <router-link
+            v-for="item in siteNavItems"
+            :key="item.key"
+            :to="item.to"
+            class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            :class="
+              item.active
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-dark-300 dark:hover:bg-dark-800 dark:hover:text-white'
+            "
+          >
+            {{ item.label }}
+          </router-link>
+        </div>
+      </nav>
+
       <!-- Right: Announcements + Docs + Language + Subscriptions + Balance + User Dropdown -->
       <div class="flex min-w-0 items-center gap-1 sm:gap-3">
         <!-- Announcement Bell -->
         <AnnouncementBell v-if="user" />
 
-        <!-- Docs Link -->
+        <!--
+          Operator-configured external documentation, if any. The built-in
+          Crab2API docs live in the site nav above; this stays for deployments
+          that point at their own knowledge base.
+        -->
         <a
           v-if="docUrl"
           :href="docUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white sm:flex"
+          class="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white xl:flex"
         >
-          <Icon name="book" size="sm" />
-          <span class="hidden sm:inline">{{ t('nav.docs') }}</span>
+          <Icon name="externalLink" size="sm" />
         </a>
 
         <!-- Model Plaza Entry -->
@@ -250,6 +278,7 @@ import AnnouncementBell from '@/components/common/AnnouncementBell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
+import { usePublicLocale } from '@/composables/usePublicLocale'
 
 const router = useRouter()
 const route = useRoute()
@@ -258,6 +287,7 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const adminSettingsStore = useAdminSettingsStore()
 const onboardingStore = useOnboardingStore()
+const { publicPath } = usePublicLocale()
 
 const user = computed(() => authStore.user)
 const dropdownOpen = ref(false)
@@ -265,6 +295,14 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const contactInfo = computed(() => appStore.contactInfo)
 const docUrl = computed(() => sanitizeUrl(appStore.docUrl))
 const modelPlazaEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
+
+/** Landing / console / docs, same three entries as the public header. */
+const consolePath = computed(() => (authStore.isAdmin ? '/dashboard/admin' : '/dashboard'))
+const siteNavItems = computed(() => [
+  { key: 'main', label: t('siteNav.mainPage'), to: publicPath('/'), active: false },
+  { key: 'console', label: t('siteNav.console'), to: consolePath.value, active: true },
+  { key: 'docs', label: t('siteNav.docs'), to: publicPath('/docs'), active: false }
+])
 const avatarUrl = computed(() => user.value?.avatar_url?.trim() || '')
 const availableBalance = computed(() => Number(user.value?.balance || 0))
 const frozenBalance = computed(() => Number(user.value?.frozen_balance || 0))

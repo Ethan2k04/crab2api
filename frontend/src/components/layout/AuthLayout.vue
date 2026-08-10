@@ -19,10 +19,22 @@
       ></div>
 
       <!-- Grid Pattern -->
-      <div
-        class="absolute inset-0 bg-[linear-gradient(rgba(20,184,166,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"
-      ></div>
+      <div class="absolute inset-0 bg-grid"></div>
     </div>
+
+    <!--
+      Escape hatch: without this the auth pages are a dead end — a visitor who
+      lands on /login has no way back to the public site short of editing the
+      URL. Present on every page that uses this layout (login, register,
+      forgot/reset password, email verification).
+    -->
+    <router-link
+      :to="homePath"
+      class="absolute left-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-lg border border-gray-200/80 bg-white/70 px-3 py-2 text-sm font-medium text-gray-600 backdrop-blur transition-colors hover:border-gray-300 hover:text-gray-900 sm:left-6 sm:top-6 dark:border-dark-700/80 dark:bg-dark-900/70 dark:text-dark-300 dark:hover:text-white"
+    >
+      <Icon name="arrowLeft" size="sm" />
+      <span class="hidden sm:inline">{{ t('siteNav.backToHome') }}</span>
+    </router-link>
 
     <!-- Content Container -->
     <div class="relative z-10 w-full max-w-md">
@@ -64,10 +76,18 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
+import Icon from '@/components/icons/Icon.vue'
+import { usePublicLocale } from '@/composables/usePublicLocale'
 
+const { t } = useI18n()
 const appStore = useAppStore()
+const { publicPath } = usePublicLocale()
+
+/** Landing page in the visitor's current language. */
+const homePath = computed(() => publicPath('/'))
 
 const siteName = computed(() => appStore.siteName || 'Crab2API')
 const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))

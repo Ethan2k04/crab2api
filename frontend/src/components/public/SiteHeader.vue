@@ -100,12 +100,14 @@
           <Icon :name="isDark ? 'sun' : 'moon'" size="sm" />
         </button>
 
-        <!-- Login / console -->
+        <!-- Signed in: avatar menu. Signed out: login button. -->
+        <UserMenu v-if="isAuthenticated" />
         <router-link
-          :to="loginTarget"
+          v-else
+          to="/login"
           class="hidden h-9 items-center rounded-lg bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 sm:inline-flex"
         >
-          {{ isAuthenticated ? t('siteNav.dashboard') : t('siteNav.login') }}
+          {{ t('siteNav.login') }}
         </router-link>
 
         <!-- Mobile menu -->
@@ -142,12 +144,30 @@
           {{ item.label }}
         </router-link>
         <router-link
-          :to="loginTarget"
+          v-if="!isAuthenticated"
+          to="/login"
           class="mt-2 block rounded-lg bg-primary-500 px-3 py-2.5 text-center text-sm font-medium text-white sm:hidden"
           @click="mobileOpen = false"
         >
-          {{ isAuthenticated ? t('siteNav.dashboard') : t('siteNav.login') }}
+          {{ t('siteNav.login') }}
         </router-link>
+        <template v-else>
+          <router-link
+            to="/dashboard/profile"
+            class="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-dark-200 dark:hover:bg-dark-800"
+            @click="mobileOpen = false"
+          >
+            {{ t('nav.profile') }}
+          </router-link>
+          <router-link
+            v-if="paymentEnabled"
+            to="/dashboard/purchase"
+            class="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-dark-200 dark:hover:bg-dark-800"
+            @click="mobileOpen = false"
+          >
+            {{ t('nav.buySubscription') }}
+          </router-link>
+        </template>
       </div>
     </transition>
   </header>
@@ -159,6 +179,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import BrandLogo from '@/components/brand/BrandLogo.vue'
 import Icon from '@/components/icons/Icon.vue'
+import UserMenu from '@/components/common/UserMenu.vue'
 import { useTheme } from '@/composables/useTheme'
 import { usePublicLocale, stripLocalePrefix, type PublicLocale } from '@/composables/usePublicLocale'
 import { availableLocales } from '@/i18n'
@@ -186,7 +207,7 @@ const activeLocaleName = computed(
 
 /** Admins land on the admin dashboard, everyone else on the user console. */
 const consolePath = computed(() => (authStore.isAdmin ? '/dashboard/admin' : '/dashboard'))
-const loginTarget = computed(() => (isAuthenticated.value ? consolePath.value : '/login'))
+const paymentEnabled = computed(() => appStore.cachedPublicSettings?.payment_enabled === true)
 
 const neutralPath = computed(() => stripLocalePrefix(route.path))
 

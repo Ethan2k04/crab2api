@@ -18,7 +18,20 @@ export default {
     darkMode: '夜间模式',
     openMenu: '打开菜单',
     closeMenu: '关闭菜单',
-    skipToContent: '跳到正文'
+    skipToContent: '跳到正文',
+    backToHome: '返回主页',
+    roleAdmin: '管理员',
+    roleUser: '用户'
+  },
+
+  notFound: {
+    code: '404',
+    title: '页面不存在',
+    description: '你访问的页面不存在,或者已经被移动了。',
+    backToHome: '返回主页',
+    goBack: '返回上一页',
+    goToConsole: '进入控制台',
+    readDocs: '查看文档'
   },
 
   siteFooter: {
