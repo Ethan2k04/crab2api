@@ -104,6 +104,31 @@ func (h *PaymentHandler) CancelOrder(c *gin.Context) {
 
 // RetryFulfillment retries fulfillment for a paid order.
 // POST /api/v1/admin/payment/orders/:id/retry
+type markPaidRequest struct {
+	Note string `json:"note"`
+}
+
+// MarkPaid manually settles an unpaid order.
+// POST /api/v1/admin/payment/orders/:id/mark-paid
+//
+// Stand-in for a real payment channel: the customer transfers out of band and
+// an admin confirms receipt here, which runs the normal fulfillment path.
+func (h *PaymentHandler) MarkPaid(c *gin.Context) {
+	orderID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	var req markPaidRequest
+	// Body is optional — an empty request is a settlement with no note.
+	_ = c.ShouldBindJSON(&req)
+
+	if err := h.paymentService.AdminMarkOrderPaid(c.Request.Context(), orderID, req.Note); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"message": "order settled manually"})
+}
+
 func (h *PaymentHandler) RetryFulfillment(c *gin.Context) {
 	orderID, ok := parseIDParam(c, "id")
 	if !ok {

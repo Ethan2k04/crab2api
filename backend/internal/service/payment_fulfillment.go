@@ -823,6 +823,40 @@ func (s *PaymentService) markFailed(ctx context.Context, oid int64, lease *payme
 	}
 }
 
+// AdminMarkOrderPaid settles an order manually, without a payment provider.
+//
+// This is the stand-in while no real payment channel is wired up: the customer
+// places the order, pays out of band, and an admin confirms receipt here. It
+// deliberately funnels through toPaid so the order walks exactly the same state
+// machine, audit trail and fulfillment path a provider webhook would drive —
+// there is no second, weaker way to grant a subscription.
+//
+// The recorded trade number is prefixed MANUAL- so these settlements stay
+// distinguishable from provider-confirmed ones in the order list and exports.
+func (s *PaymentService) AdminMarkOrderPaid(ctx context.Context, oid int64, note string) error {
+	o, err := s.entClient.PaymentOrder.Get(ctx, oid)
+	if err != nil {
+		return infraerrors.NotFound("NOT_FOUND", "order not found")
+	}
+	if o.PaidAt != nil {
+		return infraerrors.BadRequest("INVALID_STATUS", "order is already paid")
+	}
+	if psIsRefundStatus(o.Status) {
+		return infraerrors.BadRequest("INVALID_STATUS", "refund-related order cannot be settled manually")
+	}
+	if o.Status != OrderStatusPending && o.Status != OrderStatusCancelled && o.Status != OrderStatusExpired {
+		return infraerrors.BadRequest("INVALID_STATUS", "only pending, cancelled or expired orders can be settled manually")
+	}
+
+	tradeNo := "MANUAL-" + strconv.FormatInt(oid, 10) + "-" + strconv.FormatInt(time.Now().Unix(), 10)
+	s.writeAuditLog(ctx, oid, "ORDER_MANUAL_SETTLE", "admin", map[string]any{
+		"note":    strings.TrimSpace(note),
+		"tradeNo": tradeNo,
+		"reason":  "manual settlement while no payment provider is configured",
+	})
+	return s.toPaid(ctx, o, tradeNo, o.Amount, "manual")
+}
+
 func (s *PaymentService) RetryFulfillment(ctx context.Context, oid int64) error {
 	o, err := s.entClient.PaymentOrder.Get(ctx, oid)
 	if err != nil {

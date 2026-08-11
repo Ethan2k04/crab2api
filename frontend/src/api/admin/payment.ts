@@ -110,6 +110,15 @@ export const adminPaymentAPI = {
     return apiClient.post(`/admin/payment/orders/${id}/cancel`)
   },
 
+  /**
+   * Settle an unpaid order manually.
+   * Stand-in while no payment provider is configured: the customer pays out of
+   * band and an admin confirms receipt, which triggers normal fulfillment.
+   */
+  markOrderPaid(id: number, note?: string) {
+    return apiClient.post(`/admin/payment/orders/${id}/mark-paid`, { note: note ?? '' })
+  },
+
   /** Retry recharge for a failed order */
   retryRecharge(id: number) {
     return apiClient.post(`/admin/payment/orders/${id}/retry`)

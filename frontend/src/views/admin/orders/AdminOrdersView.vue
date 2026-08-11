@@ -26,6 +26,15 @@
               <Icon name="eye" size="sm" />
               {{ t('common.view') }}
             </button>
+            <!--
+              Manual settlement stand-in: no payment provider is wired up yet,
+              so the customer pays out of band and an admin confirms receipt.
+              This runs the same fulfillment path a provider webhook would.
+            -->
+            <button v-if="row.status === 'PENDING'" @click="handleMarkPaid(row)" class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20">
+              <Icon name="checkCircle" size="sm" />
+              {{ t('payment.admin.markPaid') }}
+            </button>
             <button v-if="row.status === 'PENDING'" @click="handleCancelOrder(row)" class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
               <Icon name="x" size="sm" />
               {{ t('payment.orders.cancel') }}
@@ -229,6 +238,12 @@ async function showOrderDetail(order: PaymentOrder) {
 
 async function handleCancelOrder(order: PaymentOrder) {
   try { await adminPaymentAPI.cancelOrder(order.id); appStore.showSuccess(t('payment.admin.orderCancelled')); loadOrders() }
+  catch (err: unknown) { appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error'))) }
+}
+
+async function handleMarkPaid(order: PaymentOrder) {
+  if (!window.confirm(t('payment.admin.markPaidConfirm', { no: order.out_trade_no }))) return
+  try { await adminPaymentAPI.markOrderPaid(order.id); appStore.showSuccess(t('payment.admin.markPaidSuccess')); loadOrders() }
   catch (err: unknown) { appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error'))) }
 }
 

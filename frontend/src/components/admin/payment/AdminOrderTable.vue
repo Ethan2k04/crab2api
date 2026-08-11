@@ -102,6 +102,19 @@
             <Icon name="x" size="sm" />
             <span class="text-xs">{{ t('payment.orders.cancel') }}</span>
           </button>
+          <!--
+            Manual settlement stand-in while no payment provider is wired up:
+            the customer pays out of band and an admin confirms receipt, which
+            runs the same fulfillment path a provider webhook would.
+          -->
+          <button
+            v-if="row.status === 'PENDING'"
+            @click="emit('markPaid', row)"
+            class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
+          >
+            <Icon name="checkCircle" size="sm" />
+            <span class="text-xs">{{ t('payment.admin.markPaid') }}</span>
+          </button>
           <button
             v-if="row.status === 'FAILED'"
             @click="emit('retry', row)"
@@ -159,6 +172,7 @@ const emit = defineEmits<{
   (e: 'detail', order: PaymentOrder): void
   (e: 'cancel', order: PaymentOrder): void
   (e: 'retry', order: PaymentOrder): void
+  (e: 'markPaid', order: PaymentOrder): void
   (e: 'refund', order: PaymentOrder): void
   (e: 'refresh'): void
   (e: 'update:page', page: number): void

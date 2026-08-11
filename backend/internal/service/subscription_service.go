@@ -312,8 +312,22 @@ func (s *SubscriptionService) updateExistingSubscriptionTerm(
 			isExpired = existingSub.Status == SubscriptionStatusExpired ||
 				(existingSub.Status != SubscriptionStatusSuspended && !existingSub.ExpiresAt.After(now))
 		}
+		// Purchase semantics (assignmentSemantics=false): every purchase starts a
+		// fresh term — usage is zeroed and the expiry is recomputed from now.
+		//
+		// This is what a day/week/month pass means: burn the whole allowance in an
+		// hour, buy another pass, and you are immediately usable again. Extending
+		// the old term instead would carry the exhausted usage counter forward, so
+		// the second purchase would buy nothing but a later expiry date. Any unused
+		// allowance on the old term is forfeited, which matches "没用完到期也作废".
+		//
+		// Admin assignment semantics (assignmentSemantics=true) keep the original
+		// behaviour: top up the expiry of a live subscription, and only reset once
+		// it has actually expired.
+		startsNewTerm := !assignmentSemantics || isExpired
+
 		newExpiresAt := existingSub.ExpiresAt.AddDate(0, 0, validityDays)
-		if isExpired {
+		if startsNewTerm {
 			newExpiresAt = now.AddDate(0, 0, validityDays)
 		}
 		if newExpiresAt.After(MaxExpiresAt) {
@@ -323,10 +337,10 @@ func (s *SubscriptionService) updateExistingSubscriptionTerm(
 			notes = ""
 		}
 
-		if isExpired {
+		if startsNewTerm {
 			renewed := renewedSubscriptionTerm(existingSub, notes, now, newExpiresAt)
 			if err := s.userSubRepo.Update(txCtx, renewed); err != nil {
-				return fmt.Errorf("renew expired subscription: %w", err)
+				return fmt.Errorf("renew subscription term: %w", err)
 			}
 			return nil
 		}
