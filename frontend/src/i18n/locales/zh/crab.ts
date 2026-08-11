@@ -138,8 +138,8 @@ export default {
       subtitle: '选好额度，拿到 Key，直接开用。没有隐藏的按人头收费。',
       livePlans: '实时价格',
       fallbackNotice: '此处为参考价格，请登录控制台查看当前账号可购买的套餐。',
-      perPeriodDays: '每 {days} 天',
-      perDay: '每天',
+      perPeriodDays: '{days} 天',
+      per24h: '24 小时',
       mostPopular: '最受欢迎',
       choosePlan: '选择套餐',
       viewInConsole: '在控制台查看',
@@ -150,35 +150,36 @@ export default {
       allClaudeModels: '全部 Claude 模型',
       unlimited: '不限量',
       currencyNote: '价格以 {currency} 计。',
+      forfeitNotice: '额度在有效期内一次性使用，到期未用完不结转、不退款；用完可立即再买一张。',
       plans: {
-        starter: {
-          name: '入门版',
-          desc: '适合先试用服务、日常轻度使用。',
+        day: {
+          name: '日卡',
+          desc: '按天试水，或临时赶工时补一针。',
           features: {
-            f1: '可用 Claude Haiku 与 Sonnet',
-            f2: '标准并发',
-            f3: '完整用量记录',
-            f4: '社区支持'
+            f1: '$5 额度，按官方计价扣减',
+            f2: '有效期 24 小时，从下单时刻起算',
+            f3: '全部纯血 Claude 模型',
+            f4: '用完可立即再买一张'
           }
         },
-        pro: {
-          name: '专业版',
-          desc: '适合每天用 Claude Code 写代码、跑 Agent 工作流。',
+        week: {
+          name: '周卡',
+          desc: '一周的日常编码量，最常见的选择。',
           features: {
-            f1: '全部 Claude 模型，含 Opus',
-            f2: '更高并发与优先路由',
-            f3: '会话保持 + 提示词缓存',
-            f4: '用量导出与费用明细'
+            f1: '$20 额度，按官方计价扣减',
+            f2: '有效期 7 天，从下单时刻起算',
+            f3: '全部纯血 Claude 模型',
+            f4: '用完可立即再买一张'
           }
         },
-        max: {
-          name: '旗舰版',
-          desc: '适合团队长期跑高强度负载。',
+        month: {
+          name: '月卡',
+          desc: '长期跑 Agent、高强度使用，单位额度最划算。',
           features: {
-            f1: '全部 Claude 模型，最高优先级',
-            f2: '最大并发，专属账号池',
-            f3: '多把 API Key，可分别设额度',
-            f4: '优先支持通道'
+            f1: '$60 额度，按官方计价扣减',
+            f2: '有效期 30 天，从下单时刻起算',
+            f3: '全部纯血 Claude 模型',
+            f4: '用完可立即再买一张'
           }
         }
       }

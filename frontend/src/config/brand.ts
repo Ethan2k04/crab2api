@@ -55,24 +55,28 @@ export const ADVERTISED_MODELS: AdvertisedModel[] = [
  * Fallback plan cards.
  *
  * The landing page prefers live plans from `GET /api/v1/payment/public/plans`.
- * These are rendered only when payment is disabled or the endpoint is
- * unreachable, so the pricing section never collapses into an empty state.
+ * These render only when payment is disabled or the endpoint is unreachable, so
+ * the pricing section never collapses into an empty state.
  *
- * `nameKey` / `featureKeys` point at i18n entries under `landing.pricing.*`
+ * Keep these in step with `backend/migrations/221_crab2api_subscription_tiers.sql`,
+ * which seeds the real plans. Copy lives in i18n under `landing.pricing.plans.*`
  * so the fallback stays bilingual.
  */
 export interface FallbackPlan {
   key: string
+  /** Charged in CNY — the only currency these tiers are priced in. */
   priceCNY: number
-  priceUSD: number
+  /** Included allowance, in USD of upstream API usage. */
+  quotaUSD: number
+  /** Term length in days; the allowance is forfeited when it lapses. */
   periodDays: number
   featured?: boolean
 }
 
 export const FALLBACK_PLANS: FallbackPlan[] = [
-  { key: 'starter', priceCNY: 49, priceUSD: 7, periodDays: 30 },
-  { key: 'pro', priceCNY: 149, priceUSD: 21, periodDays: 30, featured: true },
-  { key: 'max', priceCNY: 399, priceUSD: 56, periodDays: 30 }
+  { key: 'day', priceCNY: 4.99, quotaUSD: 5, periodDays: 1 },
+  { key: 'week', priceCNY: 19.99, quotaUSD: 20, periodDays: 7, featured: true },
+  { key: 'month', priceCNY: 59.99, quotaUSD: 60, periodDays: 30 }
 ]
 
 /**

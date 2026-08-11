@@ -99,10 +99,15 @@
                   : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-dark-600 dark:text-dark-200 dark:hover:bg-dark-800'
               "
             >
-              {{ usingFallback ? t('landing.pricing.viewInConsole') : t('landing.pricing.choosePlan') }}
+              {{ t('landing.pricing.choosePlan') }}
             </router-link>
           </article>
         </div>
+
+        <!-- The "spend it or lose it" rule belongs next to the price, not buried in the FAQ. -->
+        <p v-if="cards.length > 0" class="mt-8 max-w-3xl text-xs leading-relaxed text-gray-500 dark:text-dark-400">
+          {{ t('landing.pricing.forfeitNotice') }}
+        </p>
       </template>
     </div>
   </section>
@@ -130,6 +135,9 @@ interface PlanCard {
 
 const { t, locale } = useI18n()
 
+/** Console purchase page, opened straight onto the subscription tab. */
+const PURCHASE_PATH = '/dashboard/purchase?tab=subscription'
+
 const livePlans = ref<PublicSubscriptionPlan[]>([])
 const loading = ref(true)
 /** True when the backend gave us nothing usable and we render brand defaults. */
@@ -139,9 +147,12 @@ const usingFallback = ref(false)
  * Period wording. The backend stores a unit that may be singular or plural
  * ('day'/'days', 'month'/'months'); billing always resolves it to
  * `validity_days`, so the label is derived from the day count.
+ *
+ * A one-day term is worded as 24 hours because that is literally how it is
+ * measured — the term runs from the moment of purchase, not to midnight.
  */
 function periodLabel(days: number): string {
-  return days === 1 ? t('landing.pricing.perDay') : t('landing.pricing.perPeriodDays', { days })
+  return days === 1 ? t('landing.pricing.per24h') : t('landing.pricing.perPeriodDays', { days })
 }
 
 const liveCards = computed<PlanCard[]>(() =>
@@ -161,28 +172,27 @@ const liveCards = computed<PlanCard[]>(() =>
       .filter(Boolean),
     // Highlight the middle card when there are three or more plans.
     featured: livePlans.value.length >= 3 ? index === 1 : index === 0,
-    href: `/dashboard/purchase?plan=${plan.id}`
+    // The purchase page opens on the balance tab by default; ?tab=subscription
+    // is the param it already understands. Deep-linking a single plan would
+    // need its group id, which the public endpoint deliberately withholds.
+    href: PURCHASE_PATH
   }))
 )
 
 const fallbackCards = computed<PlanCard[]>(() =>
-  FALLBACK_PLANS.map((plan) => {
-    // Chinese visitors see CNY, everyone else USD — these are indicative only.
-    const isCN = locale.value === 'zh'
-    const amount = isCN ? plan.priceCNY : plan.priceUSD
-    const currency = isCN ? 'CNY' : 'USD'
-    return {
-      key: `fallback-${plan.key}`,
-      name: t(`landing.pricing.plans.${plan.key}.name`),
-      description: t(`landing.pricing.plans.${plan.key}.desc`),
-      priceDisplay: `${currencySymbol(currency)}${amount}`,
-      originalPriceDisplay: '',
-      periodLabel: periodLabel(plan.periodDays),
-      features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
-      featured: plan.featured === true,
-      href: '/dashboard/purchase'
-    }
-  })
+  FALLBACK_PLANS.map((plan) => ({
+    key: `fallback-${plan.key}`,
+    name: t(`landing.pricing.plans.${plan.key}.name`),
+    description: t(`landing.pricing.plans.${plan.key}.desc`),
+    // Always CNY: these tiers are charged in CNY, so quoting a converted USD
+    // figure to English visitors would misstate what they actually pay.
+    priceDisplay: `${currencySymbol('CNY')}${plan.priceCNY}`,
+    originalPriceDisplay: '',
+    periodLabel: periodLabel(plan.periodDays),
+    features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
+    featured: plan.featured === true,
+    href: PURCHASE_PATH
+  }))
 )
 
 const cards = computed<PlanCard[]>(() => (usingFallback.value ? fallbackCards.value : liveCards.value))

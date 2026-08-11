@@ -139,8 +139,8 @@ export default {
       livePlans: 'Live pricing',
       fallbackNotice:
         'Indicative pricing — sign in to the console for the current plans available to your account.',
-      perPeriodDays: 'per {days} days',
-      perDay: 'per day',
+      perPeriodDays: '{days} days',
+      per24h: '24 hours',
       mostPopular: 'Most popular',
       choosePlan: 'Choose plan',
       viewInConsole: 'View in console',
@@ -151,35 +151,37 @@ export default {
       allClaudeModels: 'All Claude models',
       unlimited: 'Unlimited',
       currencyNote: 'Prices shown in {currency}.',
+      forfeitNotice:
+        'The allowance is a single pool spent within the term. Anything left when it lapses is forfeited, not carried over or refunded — buy another pass to continue immediately.',
       plans: {
-        starter: {
-          name: 'Starter',
-          desc: 'For evaluating the service and light personal use.',
+        day: {
+          name: 'Day Pass',
+          desc: 'Try the service, or top up mid-crunch.',
           features: {
-            f1: 'Claude Haiku & Sonnet access',
-            f2: 'Standard concurrency',
-            f3: 'Full usage records',
-            f4: 'Community support'
+            f1: '$5 allowance, billed at upstream rates',
+            f2: 'Valid 24 hours from purchase',
+            f3: 'Every pure-blood Claude model',
+            f4: 'Buy another the moment it runs out'
           }
         },
-        pro: {
-          name: 'Pro',
-          desc: 'For daily coding with Claude Code and agent workflows.',
+        week: {
+          name: 'Week Pass',
+          desc: "A week of everyday coding — the usual pick.",
           features: {
-            f1: 'All Claude models, including Opus',
-            f2: 'Higher concurrency & priority routing',
-            f3: 'Session stickiness + prompt caching',
-            f4: 'Usage export & cost breakdown'
+            f1: '$20 allowance, billed at upstream rates',
+            f2: 'Valid 7 days from purchase',
+            f3: 'Every pure-blood Claude model',
+            f4: 'Buy another the moment it runs out'
           }
         },
-        max: {
-          name: 'Max',
-          desc: 'For teams running sustained, high-volume workloads.',
+        month: {
+          name: 'Month Pass',
+          desc: 'Sustained agent workloads; best value per dollar of allowance.',
           features: {
-            f1: 'All Claude models, highest priority',
-            f2: 'Maximum concurrency, dedicated account pool',
-            f3: 'Multiple API keys with per-key quotas',
-            f4: 'Priority support channel'
+            f1: '$60 allowance, billed at upstream rates',
+            f2: 'Valid 30 days from purchase',
+            f3: 'Every pure-blood Claude model',
+            f4: 'Buy another the moment it runs out'
           }
         }
       }
