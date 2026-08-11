@@ -25,8 +25,8 @@
     <!-- Right: rate pill + checkmark (vertically centered to first row) -->
     <div class="flex shrink-0 items-center gap-2 pt-0.5">
       <div class="flex shrink-0 flex-col items-end gap-1">
-        <!-- Rate pill (platform color) -->
-        <span v-if="rateMultiplier !== undefined" :class="['inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold', ratePillClass]">
+        <!-- Rate pill (platform color). Admin-only: 倍率是运营侧计价旋钮。 -->
+        <span v-if="canSeeRate && rateMultiplier !== undefined" :class="['inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold', ratePillClass]">
           <template v-if="hasCustomRate">
             <span class="mr-1 line-through opacity-50">{{ rateMultiplier }}x</span>
             <span class="font-bold">{{ userRateMultiplier }}x</span>
@@ -36,7 +36,7 @@
           </template>
         </span>
         <span
-          v-if="hasPeakRate"
+          v-if="canSeeRate && hasPeakRate"
           class="inline-flex items-center whitespace-nowrap rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
           :title="peakRateTitle"
         >
@@ -64,9 +64,14 @@ import { useI18n } from 'vue-i18n'
 import GroupBadge from './GroupBadge.vue'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 
 const { t } = useI18n()
+
+const authStore = useAuthStore()
+/** 倍率只对管理员可见 —— 与 GroupBadge 保持同一条规则。 */
+const canSeeRate = computed(() => authStore.isAdmin)
 
 interface Props {
   name: string

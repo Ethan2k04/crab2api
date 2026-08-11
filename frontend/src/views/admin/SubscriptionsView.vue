@@ -216,7 +216,7 @@
               <!-- Daily Usage -->
               <div v-if="row.group?.daily_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
-                  <span class="usage-label">{{ t('admin.subscriptions.daily') }}</span>
+                  <span class="usage-label">{{ quotaLabel(row, 'daily') }}</span>
                   <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
@@ -246,14 +246,14 @@
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>{{ formatDailyUsageWindow(row) }}</span>
+                  <span>{{ formatUsageWindow(row, 'daily') }}</span>
                 </div>
               </div>
 
               <!-- Weekly Usage -->
               <div v-if="row.group?.weekly_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
-                  <span class="usage-label">{{ t('admin.subscriptions.weekly') }}</span>
+                  <span class="usage-label">{{ quotaLabel(row, 'weekly') }}</span>
                   <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
@@ -283,14 +283,14 @@
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>{{ formatResetTime(row.weekly_window_start, 'weekly') }}</span>
+                  <span>{{ formatUsageWindow(row, 'weekly') }}</span>
                 </div>
               </div>
 
               <!-- Monthly Usage -->
               <div v-if="row.group?.monthly_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
-                  <span class="usage-label">{{ t('admin.subscriptions.monthly') }}</span>
+                  <span class="usage-label">{{ quotaLabel(row, 'monthly') }}</span>
                   <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
@@ -320,7 +320,7 @@
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>{{ formatResetTime(row.monthly_window_start, 'monthly') }}</span>
+                  <span>{{ formatUsageWindow(row, 'monthly') }}</span>
                 </div>
               </div>
 
@@ -785,7 +785,9 @@ import Icon from '@/components/icons/Icon.vue'
 import {
   getRemainingDurationParts,
   getRemainingExpiryDuration,
-  isOneTimeDailyQuota,
+  isOneShotQuota,
+  QUOTA_WINDOW_MS,
+  type QuotaPeriod,
   type RemainingDurationParts
 } from '@/utils/subscriptionQuota'
 
@@ -1404,37 +1406,34 @@ const formatQuotaEndDuration = (parts: RemainingDurationParts): string => {
   return t('admin.subscriptions.quotaEndsInMinutes', { minutes: parts.minutes })
 }
 
-const formatDailyUsageWindow = (subscription: UserSubscription): string => {
-  if (isOneTimeDailyQuota(subscription) && subscription.expires_at) {
+const WINDOW_START_KEY: Record<QuotaPeriod, keyof UserSubscription> = {
+  daily: 'daily_window_start',
+  weekly: 'weekly_window_start',
+  monthly: 'monthly_window_start'
+}
+
+/**
+ * A limit whose rolling window is longer than the term itself never resets — it
+ * is the term's total allowance. Crab2API's day/week/month passes all park their
+ * allowance in the 30-day counter for exactly that reason, so labelling those
+ * rows "Monthly" would tell the operator the opposite of what happens.
+ */
+const quotaLabel = (subscription: UserSubscription, period: QuotaPeriod): string => {
+  if (isOneShotQuota(subscription, period)) return t('admin.subscriptions.termQuota')
+  return t(`admin.subscriptions.${period}`)
+}
+
+const formatUsageWindow = (subscription: UserSubscription, period: QuotaPeriod): string => {
+  if (isOneShotQuota(subscription, period) && subscription.expires_at) {
     const parts = getRemainingDurationParts(subscription.expires_at)
     return parts ? formatQuotaEndDuration(parts) : t('admin.subscriptions.windowNotActive')
   }
 
-  return formatResetTime(subscription.daily_window_start, 'daily')
-}
-
-// Format reset time based on window start and period type
-const formatResetTime = (windowStart: string | null, period: 'daily' | 'weekly' | 'monthly'): string => {
+  const windowStart = subscription[WINDOW_START_KEY[period]] as string | null | undefined
   if (!windowStart) return t('admin.subscriptions.windowNotActive')
 
-  const start = new Date(windowStart)
-  const now = new Date()
-
-  // Calculate reset time based on period
-  let resetTime: Date
-  switch (period) {
-    case 'daily':
-      resetTime = new Date(start.getTime() + 24 * 60 * 60 * 1000)
-      break
-    case 'weekly':
-      resetTime = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000)
-      break
-    case 'monthly':
-      resetTime = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000)
-      break
-  }
-
-  const parts = getRemainingDurationParts(resetTime, now)
+  const resetTime = new Date(new Date(windowStart).getTime() + QUOTA_WINDOW_MS[period])
+  const parts = getRemainingDurationParts(resetTime, new Date())
 
   return parts ? formatResetDuration(parts) : t('admin.subscriptions.windowNotActive')
 }

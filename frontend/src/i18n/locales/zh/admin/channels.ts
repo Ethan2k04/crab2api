@@ -615,6 +615,8 @@ export default {
       daily: '每日',
       weekly: '每周',
       monthly: '每月',
+      // 窗口长于订阅期限时额度永不重置，是「一次性总额度」而非周期额度
+      termQuota: '本期额度',
       noLimits: '未配置限额',
       unlimited: '无限制',
       resetNow: '即将重置',

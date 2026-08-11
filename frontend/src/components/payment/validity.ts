@@ -30,3 +30,34 @@ export function planValiditySuffix(
   // 其余单位（含数据库默认的 day 与未知值）后端一律按天计费，展示保持一致。
   return `${days}${t('payment.days')}`
 }
+
+/** 分组用量窗口长度（天），与后端滚动窗口一致。 */
+export const QUOTA_WINDOW_DAYS = { daily: 1, weekly: 7, monthly: 30 } as const
+
+export type PlanQuotaPeriod = keyof typeof QUOTA_WINDOW_DAYS
+
+/**
+ * 套餐实际生效天数，镜像后端 psComputeValidityDays 的换算。
+ */
+export function planTermDays(
+  plan: Pick<SubscriptionPlan, 'validity_days' | 'validity_unit'>,
+): number {
+  const unit = String(plan.validity_unit || 'day').trim().toLowerCase()
+  const base = unit.endsWith('s') ? unit.slice(0, -1) : unit
+  const days = Number(plan.validity_days) || 0
+  if (base === 'month') return days * 30
+  if (base === 'week') return days * 7
+  return days
+}
+
+/**
+ * 套餐期限不长于该额度窗口时，窗口在有效期内不会重置 —— 这条限额实际是
+ * 「一次性总额度，到期作废」，不是周期额度。日卡/周卡/月卡都属于这种。
+ */
+export function isPlanOneShotQuota(
+  plan: Pick<SubscriptionPlan, 'validity_days' | 'validity_unit'>,
+  period: PlanQuotaPeriod,
+): boolean {
+  const term = planTermDays(plan)
+  return term > 0 && term <= QUOTA_WINDOW_DAYS[period]
+}

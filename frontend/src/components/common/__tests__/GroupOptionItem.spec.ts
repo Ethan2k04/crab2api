@@ -15,6 +15,11 @@ vi.mock('@/stores/app', () => ({
   useAppStore: () => ({ cachedPublicSettings: null }),
 }))
 
+// 倍率角标只对管理员渲染；这里的用例只关心布局，按普通用户挂载即可。
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({ isAdmin: false }),
+}))
+
 describe('GroupOptionItem description layout', () => {
   it('applies multiline and overflow-safe text styles', () => {
     const description = 'First section\nvery-long-unbroken-description-value-that-must-not-overflow'

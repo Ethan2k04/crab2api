@@ -130,6 +130,8 @@ export default {
     daily: 'Daily',
     weekly: 'Weekly',
     monthly: 'Monthly',
+    // Shown when the window outlives the term, so the allowance never resets.
+    termQuota: 'Term allowance',
     daysRemaining: '{days} days remaining',
     expiresOn: 'Expires on {date}',
     resetIn: 'Resets in {time}',
@@ -462,6 +464,8 @@ export default {
       dailyLimit: 'Daily',
       weeklyLimit: 'Weekly',
       monthlyLimit: 'Monthly',
+      // The window outlives the term, so the allowance never resets.
+      totalQuota: 'Allowance',
       quota: 'Quota',
       unlimited: 'Unlimited',
       models: 'Models',

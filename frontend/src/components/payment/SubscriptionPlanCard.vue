@@ -2,6 +2,9 @@
   <div
     :class="[
       'group relative flex flex-col overflow-hidden rounded-2xl border transition-all',
+      // Tall enough that a three-tier row reads as a pricing table rather than
+      // three stubs floating above an empty page.
+      'min-h-[26rem]',
       'hover:shadow-xl hover:-translate-y-0.5',
       borderClass,
       'bg-white dark:bg-dark-800',
@@ -10,7 +13,7 @@
     <!-- Colored top accent bar -->
     <div :class="['h-1.5', accentClass]" />
 
-    <div class="flex flex-1 flex-col p-4">
+    <div class="flex flex-1 flex-col p-5">
       <!-- Header: name + badge + price -->
       <div class="mb-3 flex items-start justify-between gap-2">
         <div class="min-w-0 flex-1">
@@ -45,24 +48,27 @@
 
       <!-- Group quota info (compact) -->
       <div class="mb-3 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-gray-50 px-3 py-2 text-xs dark:bg-dark-700/50">
-        <div class="flex items-center justify-between">
+        <!-- Rate multipliers are an operator-side pricing knob. Customers are
+             billed in dollars of usage and never need to see the multiplier,
+             so both rate rows are admin-only. -->
+        <div v-if="canSeeRateMultiplier" class="flex items-center justify-between">
           <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.rate') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">{{ rateDisplay }}</span>
         </div>
-        <div v-if="hasPeakRate" class="col-span-2 flex items-center justify-between gap-2">
+        <div v-if="canSeeRateMultiplier && hasPeakRate" class="col-span-2 flex items-center justify-between gap-2">
           <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.peakRate') }}</span>
           <span class="text-right font-medium text-amber-700 dark:text-amber-300">{{ peakRateDisplay }}</span>
         </div>
         <div v-if="plan.daily_limit_usd != null" class="flex items-center justify-between">
-          <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.dailyLimit') }}</span>
+          <span class="text-gray-400 dark:text-dark-500">{{ quotaLabel('daily') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">${{ plan.daily_limit_usd }}</span>
         </div>
         <div v-if="plan.weekly_limit_usd != null" class="flex items-center justify-between">
-          <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.weeklyLimit') }}</span>
+          <span class="text-gray-400 dark:text-dark-500">{{ quotaLabel('weekly') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">${{ plan.weekly_limit_usd }}</span>
         </div>
         <div v-if="plan.monthly_limit_usd != null" class="flex items-center justify-between">
-          <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.monthlyLimit') }}</span>
+          <span class="text-gray-400 dark:text-dark-500">{{ quotaLabel('monthly') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">${{ plan.monthly_limit_usd }}</span>
         </div>
         <div v-if="plan.daily_limit_usd == null && plan.weekly_limit_usd == null && plan.monthly_limit_usd == null" class="flex items-center justify-between">
@@ -80,8 +86,9 @@
         </div>
       </div>
 
-      <!-- Features list (compact) -->
-      <div v-if="plan.features.length > 0" class="mb-3 space-y-1">
+      <!-- Features list. Spacing grows with the card so a short feature list
+           doesn't leave a block of dead space above the button. -->
+      <div v-if="plan.features.length > 0" class="mb-3 flex flex-1 flex-col justify-evenly gap-1 py-1">
         <div v-for="feature in plan.features" :key="feature" class="flex items-start gap-1.5">
           <svg :class="['mt-0.5 h-3.5 w-3.5 flex-shrink-0', iconClass]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -89,8 +96,7 @@
           <span class="text-xs text-gray-600 dark:text-gray-300">{{ feature }}</span>
         </div>
       </div>
-
-      <div class="flex-1" />
+      <div v-else class="flex-1" />
 
       <!-- Subscribe Button -->
       <button
@@ -110,8 +116,9 @@ import { useI18n } from 'vue-i18n'
 import type { SubscriptionPlan } from '@/types/payment'
 import type { UserSubscription } from '@/types'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { planValiditySuffix } from './validity'
+import { isPlanOneShotQuota, planValiditySuffix, type PlanQuotaPeriod } from './validity'
 import { currencySymbol } from '@/components/payment/currency'
 import {
   platformAccentBarClass,
@@ -155,7 +162,19 @@ const rateDisplay = computed(() => {
 })
 
 const appStore = useAppStore()
+const authStore = useAuthStore()
+const canSeeRateMultiplier = computed(() => authStore.isAdmin)
 const planCurrencySymbol = computed(() => currencySymbol(props.plan.currency || 'USD'))
+
+/**
+ * A limit whose window is longer than the plan's term never resets inside that
+ * term — it is the total allowance, not a recurring one. Calling a day pass's
+ * $5 a "monthly limit" implies a renewal the pass will never reach.
+ */
+function quotaLabel(period: PlanQuotaPeriod): string {
+  if (isPlanOneShotQuota(props.plan, period)) return t('payment.planCard.totalQuota')
+  return t(`payment.planCard.${period}Limit`)
+}
 
 const hasPeakRate = computed(() => groupHasPeakRate(props.plan))
 

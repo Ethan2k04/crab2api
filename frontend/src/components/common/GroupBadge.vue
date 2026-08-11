@@ -31,6 +31,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import PlatformIcon from './PlatformIcon.vue'
 
@@ -67,9 +68,20 @@ const { t } = useI18n()
 
 const isSubscription = computed(() => props.subscriptionType === 'subscription')
 
+const authStore = useAuthStore()
+
+/**
+ * 倍率是运营侧的计价旋钮：只有管理员配置、也只有管理员该看到。
+ * 普通用户看到的应该是实际扣减的美元用量，而不是换算系数。
+ * 这里在共用组件里统一收口，所有引用它的页面（API 密钥、模型广场、
+ * 账号分组等）一次生效。
+ */
+const canSeeRate = computed(() => authStore.isAdmin)
+
 // 是否有专属倍率（且与默认倍率不同）
 const hasCustomRate = computed(() => {
   return (
+    canSeeRate.value &&
     props.userRateMultiplier !== null &&
     props.userRateMultiplier !== undefined &&
     props.rateMultiplier !== undefined &&
@@ -80,7 +92,7 @@ const hasCustomRate = computed(() => {
 const appStore = useAppStore()
 
 const hasPeakRate = computed(() => {
-  return Boolean(props.showRate && props.peakRateEnabled && props.peakStart && props.peakEnd)
+  return Boolean(canSeeRate.value && props.showRate && props.peakRateEnabled && props.peakStart && props.peakEnd)
 })
 
 const peakRateText = computed(() => {
@@ -102,16 +114,18 @@ const peakRateTitle = computed(() => {
 // 是否显示右侧标签
 const showLabel = computed(() => {
   if (!props.showRate) return false
-  // 订阅类型：显示天数或"订阅"
-  if (isSubscription.value) return true
-  // 标准类型：显示倍率（包括专属倍率）
+  // 订阅类型：显示天数或"订阅"。alwaysShowRate 会把它改成倍率，
+  // 对普通用户来说那就是空标签，所以退回默认的订阅/天数展示。
+  if (isSubscription.value) return canSeeRate.value || !props.alwaysShowRate
+  // 标准类型：标签内容只有倍率，普通用户直接不显示
+  if (!canSeeRate.value) return false
   return props.rateMultiplier !== undefined || hasCustomRate.value
 })
 
 // Label text
 const labelText = computed(() => {
-  const rateLabel = props.rateMultiplier !== undefined ? `${props.rateMultiplier}x` : ''
-  if (isSubscription.value && !props.alwaysShowRate) {
+  const rateLabel = canSeeRate.value && props.rateMultiplier !== undefined ? `${props.rateMultiplier}x` : ''
+  if (isSubscription.value && (!props.alwaysShowRate || !canSeeRate.value)) {
     // 如果有剩余天数，显示天数
     if (props.daysRemaining !== null && props.daysRemaining !== undefined) {
       if (props.daysRemaining <= 0) {

@@ -615,6 +615,8 @@ export default {
       daily: 'Daily',
       weekly: 'Weekly',
       monthly: 'Monthly',
+      // Shown when the window outlives the term, so the limit never resets.
+      termQuota: 'Term allowance',
       noLimits: 'No limits configured',
       unlimited: 'Unlimited',
       resetNow: 'Resetting soon',

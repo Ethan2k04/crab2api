@@ -484,6 +484,68 @@ DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景�
 
 ---
 
+## 阶段十一：订阅展示语义修正与倍率收口
+
+### 一、「每月」标签是错的
+
+订阅管理表格里,日卡/周卡的用量行都显示「每月 $0.00 / $5.00」。**后端计费没问题,是标签错了。**
+
+三档额度都写在 `monthly_limit_usd`,这是迁移 221 的刻意选择:30 天滚动窗口比任何一档的期限都长,窗口在有效期内永远不会重置,等价于「一次性总额度,到期作废」。但前端把 `monthly_limit_usd` 无条件渲染成「每月」,还按 720 小时算了个「29 天 23 小时后重置」的倒计时 —— 日卡 24 小时就作废,那个重置永远走不到。
+
+**修法**:把判断条件从「是不是日窗口」推广成「窗口是不是长于订阅期限」。
+
+- `utils/subscriptionQuota.ts` 新增 `QUOTA_WINDOW_MS` 与 `isOneShotQuota(sub, period)`;原来只覆盖日窗口的 `isOneTimeDailyQuota` 已无引用,删除。
+- 命中一次性额度时,标签改为「本期额度 / Term allowance」,倒计时改为已有的「额度将在 X 后结束」。
+- 用户端 `views/user/SubscriptionsView.vue` 与管理端 `views/admin/SubscriptionsView.vue` 三个周期块统一走 `quotaLabel()` / `formatUsageWindow()`。
+- 套餐卡片没有订阅记录,改用套餐期限判断:`components/payment/validity.ts` 新增 `planTermDays()`(镜像后端 `psComputeValidityDays` 的 week×7 / month×30 换算)与 `isPlanOneShotQuota()`,命中时标签显示「总额度 / Allowance」。
+
+真正的周期性分组(期限长于窗口,比如 90 天期限配月度配额)不受影响,仍显示「每月」和重置倒计时。
+
+### 二、充值/订阅顺序反了
+
+`PaymentView` 的默认 tab 从 `recharge` 改为 `subscription`,tabs 数组也把订阅排到第一位。Crab2API 卖的是套餐,而且没有订阅就拿不到可用的 API Key,充值是次要路径。
+
+`?tab=recharge` 现在是进入充值 tab 的显式入口(余额充值被关闭时忽略该参数)。
+
+### 三、套餐卡片竖向拉长
+
+- 卡片根节点加 `min-h-[26rem]`,内边距 `p-4` → `p-5`。
+- 特性列表由 `space-y-1` 改为 `flex-1 + justify-evenly`,卡片变高时行距跟着撑开,而不是在按钮上方留一块死白。
+- 网格加 `auto-rows-fr`,保证同一行卡片等高(某档描述更长时不会参差)。
+
+### 四、倍率对普通用户全部隐藏
+
+倍率是运营侧的计价旋钮:管理员配置,用户只需要看到实际扣减的美元。逐处收口:
+
+| 位置 | 处理 |
+|---|---|
+| `components/common/GroupBadge.vue` | 统一收口。倍率标签/专属倍率/高峰倍率一律 admin-only;订阅分组的 `alwaysShowRate` 对普通用户退回「订阅/剩余天数」而不是变成空标签 |
+| `components/common/GroupOptionItem.vue` | 倍率药丸 + 高峰倍率药丸 admin-only |
+| `components/payment/SubscriptionPlanCard.vue` | 移除倍率与高峰倍率两行 |
+| `views/user/PaymentView.vue` | 确认面板与「当前订阅」列表的倍率字段 admin-only |
+| `views/user/SubscriptionsView.vue` | 卡片头部的「倍率: ×1」admin-only |
+| `views/user/UsageView.vue` | CSV 导出的 `Rate Multiplier` 列 admin-only |
+| `components/admin/usage/UsageTable.vue` | 费用明细浮层的倍率行改为 `showRateMultiplier` prop(默认 true 保持管理端不变),用户端用量页传 false |
+
+前两项在共用组件里收口,所以 API 密钥页、模型广场、渠道状态、账号分组等所有引用点一次生效。
+
+`UsageTable` 走 prop 而不是 store,是因为它是纯展示组件、其单测不装 Pinia;`GroupOptionItem` 的单测补了 `@/stores/auth` mock。
+
+**注意**:这是前端隐藏。后端 `/api/v1/payment/plans` 等接口仍然返回 `rate_multiplier`,打开浏览器开发者工具能看到。要做成真正不可见,需要在后端按角色裁剪响应字段 —— 尚未做。
+
+### 五、顺带确认:购买后的期限是自动的
+
+用户购买不需要填有效期,链路是:
+
+1. `payment_order.go:210` 建单时把 `psComputeValidityDays(plan.ValidityDays, plan.ValidityUnit)` 写进订单的 `subscription_days`
+2. 支付成功后 `payment_fulfillment.go:500` 取出该值,以 `AssignSubscriptionInput{ValidityDays: days}` 开通订阅
+
+所以日卡固定 1 天、周卡 7 天、月卡 30 天,来自套餐配置。
+
+管理端「分配订阅」弹窗里的「有效期(天)」输入框只对**管理员手动分配**生效,与用户购买无关。两条路径的续期语义也不同:购买是重置(用量清零 + 到期时间从此刻重算),管理员分配是叠加(未过期时延长到期时间)—— 见 `subscription_service.go:315` 的注释。
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）
@@ -493,3 +555,5 @@ DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景�
 - [ ] 按真实定价录入订阅套餐（录入后落地页会自动切换到实时价格）
 - [ ] 品牌化登录/注册页视觉
 - [ ] 补充 `docs` 页的进阶章节（流式、工具调用、提示词缓存）
+- [ ] 后端按角色裁剪 `rate_multiplier` 等运营字段（目前只在前端隐藏）
+- [ ] 接入真实支付渠道（优先易支付：无需企业资质、CNY 原生、支付宝+微信一次覆盖）

@@ -49,7 +49,12 @@
                 <p v-if="subscription.group?.description" class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
                   {{ subscription.group.description }}
                 </p>
-                <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
+                <!-- Rate multipliers are gateway internals: admins configure them,
+                     customers only ever see the resulting usage in dollars. -->
+                <div
+                  v-if="canSeeRateMultiplier"
+                  class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500"
+                >
                   <span>{{ t('payment.planCard.rate') }}: ×{{ subscription.group?.rate_multiplier ?? 1 }}</span>
                   <span v-if="subscriptionHasPeakRate(subscription)" class="text-amber-700 dark:text-amber-300">
                     {{ t('payment.planCard.peakRate') }}: {{ subscriptionPeakRateLabel(subscription) }}
@@ -104,7 +109,7 @@
             <div v-if="subscription.group?.daily_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.daily') }}
+                  {{ quotaLabel(subscription, 'daily') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
                   ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
@@ -133,7 +138,7 @@
                 v-if="subscription.daily_window_start"
                 class="text-xs text-gray-500 dark:text-dark-400"
               >
-                {{ formatDailyUsageWindow(subscription) }}
+                {{ formatUsageWindow(subscription, 'daily') }}
               </p>
             </div>
 
@@ -141,7 +146,7 @@
             <div v-if="subscription.group?.weekly_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.weekly') }}
+                  {{ quotaLabel(subscription, 'weekly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
                   ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
@@ -170,11 +175,7 @@
                 v-if="subscription.weekly_window_start"
                 class="text-xs text-gray-500 dark:text-dark-400"
               >
-                {{
-                  t('userSubscriptions.resetIn', {
-                    time: formatResetTime(subscription.weekly_window_start, 168)
-                  })
-                }}
+                {{ formatUsageWindow(subscription, 'weekly') }}
               </p>
             </div>
 
@@ -182,7 +183,7 @@
             <div v-if="subscription.group?.monthly_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.monthly') }}
+                  {{ quotaLabel(subscription, 'monthly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
                   ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
@@ -211,11 +212,7 @@
                 v-if="subscription.monthly_window_start"
                 class="text-xs text-gray-500 dark:text-dark-400"
               >
-                {{
-                  t('userSubscriptions.resetIn', {
-                    time: formatResetTime(subscription.monthly_window_start, 720)
-                  })
-                }}
+                {{ formatUsageWindow(subscription, 'monthly') }}
               </p>
             </div>
 
@@ -248,10 +245,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import subscriptionsAPI from '@/api/subscriptions'
 import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -262,7 +260,9 @@ import { platformBorderClass, platformBadgeClass, platformButtonClass, platformL
 import {
   getExpirationDateRelation,
   getRemainingDurationParts,
-  isOneTimeDailyQuota,
+  isOneShotQuota,
+  QUOTA_WINDOW_MS,
+  type QuotaPeriod,
   type RemainingDurationParts
 } from '@/utils/subscriptionQuota'
 
@@ -279,6 +279,10 @@ function platformAccentDotClass(p: string): string {
 const { t } = useI18n()
 const router = useRouter()
 const appStore = useAppStore()
+const authStore = useAuthStore()
+
+/** Rate multipliers are an operator-side pricing knob, not customer-facing. */
+const canSeeRateMultiplier = computed(() => authStore.isAdmin)
 
 const subscriptions = ref<UserSubscription[]>([])
 const loading = ref(true)
@@ -366,26 +370,39 @@ function formatDurationParts(parts: RemainingDurationParts): string {
   return `${parts.minutes}m`
 }
 
-function formatDailyUsageWindow(subscription: UserSubscription): string {
-  if (isOneTimeDailyQuota(subscription) && subscription.expires_at) {
+const WINDOW_START_KEY: Record<QuotaPeriod, keyof UserSubscription> = {
+  daily: 'daily_window_start',
+  weekly: 'weekly_window_start',
+  monthly: 'monthly_window_start'
+}
+
+/**
+ * A limit whose window outlives the term never resets — it is the term's total
+ * allowance. Calling it "Monthly" on a 24-hour day pass reads as "renews every
+ * month", the opposite of what happens.
+ */
+function quotaLabel(subscription: UserSubscription, period: QuotaPeriod): string {
+  if (isOneShotQuota(subscription, period)) return t('userSubscriptions.termQuota')
+  return t(`userSubscriptions.${period}`)
+}
+
+function formatUsageWindow(subscription: UserSubscription, period: QuotaPeriod): string {
+  // One-shot allowance: count down to the term's end, not to a reset that the
+  // subscription will never live to see.
+  if (isOneShotQuota(subscription, period) && subscription.expires_at) {
     const parts = getRemainingDurationParts(subscription.expires_at)
     if (!parts) return t('userSubscriptions.windowNotActive')
     return t('userSubscriptions.quotaEndsIn', { time: formatDurationParts(parts) })
   }
 
-  return t('userSubscriptions.resetIn', {
-    time: formatResetTime(subscription.daily_window_start, 24)
-  })
-}
-
-function formatResetTime(windowStart: string | null, windowHours: number): string {
+  const windowStart = subscription[WINDOW_START_KEY[period]] as string | null | undefined
   if (!windowStart) return t('userSubscriptions.windowNotActive')
 
-  const start = new Date(windowStart)
-  const end = new Date(start.getTime() + windowHours * 60 * 60 * 1000)
+  const end = new Date(new Date(windowStart).getTime() + QUOTA_WINDOW_MS[period])
   const parts = getRemainingDurationParts(end)
+  if (!parts) return t('userSubscriptions.windowNotActive')
 
-  return parts ? formatDurationParts(parts) : t('userSubscriptions.windowNotActive')
+  return t('userSubscriptions.resetIn', { time: formatDurationParts(parts) })
 }
 
 onMounted(() => {

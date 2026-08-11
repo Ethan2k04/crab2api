@@ -442,7 +442,10 @@
             <span class="text-gray-400">{{ t('usage.serviceTier') }}</span>
             <span class="font-semibold text-cyan-300">{{ getUsageServiceTierLabel(tooltipData?.service_tier, t) }}</span>
           </div>
-          <div class="flex items-center justify-between gap-6">
+          <!-- Rate multiplier is an operator-side pricing knob; customers see
+               the original and billed cost, which is what they can reconcile.
+               This table is shared with the user-facing usage page. -->
+          <div v-if="canSeeRateMultiplier" class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ t('usage.rate') }}</span>
             <span class="font-semibold text-blue-400">{{ formatMultiplier(tooltipData?.rate_multiplier || 1) }}x</span>
           </div>
@@ -541,6 +544,11 @@ interface Props {
   defaultSortOrder?: 'asc' | 'desc'
   showAccountBilling?: boolean
   showUpstreamEndpoint?: boolean
+  /**
+   * 费用明细中是否展示倍率。倍率是运营侧的计价旋钮，只有管理端该看到；
+   * 用户侧用量页面传 false（默认 true 保持管理端行为不变）。
+   */
+  showRateMultiplier?: boolean
   /** 嵌入统一卡片内使用：去掉自身卡片外观 */
   flat?: boolean
 }
@@ -552,6 +560,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSortOrder: 'asc',
   showAccountBilling: true,
   showUpstreamEndpoint: true,
+  showRateMultiplier: true,
   flat: false
 })
 const emit = defineEmits<{
@@ -560,6 +569,7 @@ const emit = defineEmits<{
   ipGeoBatchFailed: []
 }>()
 const { t } = useI18n()
+const canSeeRateMultiplier = props.showRateMultiplier
 const showAccountBilling = props.showAccountBilling
 const showUpstreamEndpoint = props.showUpstreamEndpoint
 const ipGeoBatchLoading = ref(false)

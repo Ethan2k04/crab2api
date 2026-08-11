@@ -127,6 +127,8 @@ export default {
     daily: '每日',
     weekly: '每周',
     monthly: '每月',
+    // 额度窗口长于订阅期限时永不重置，实际是「一次性总额度，到期作废」
+    termQuota: '本期额度',
     daysRemaining: '剩余 {days} 天',
     expiresOn: '{date} 到期',
     resetIn: '{time} 后重置',
@@ -486,6 +488,8 @@ export default {
       dailyLimit: '日限额',
       weeklyLimit: '周限额',
       monthlyLimit: '月限额',
+      // 套餐期限不长于额度窗口时，额度在有效期内不会重置，是一次性总额度
+      totalQuota: '总额度',
       quota: '配额',
       unlimited: '无限制',
       models: '模型',

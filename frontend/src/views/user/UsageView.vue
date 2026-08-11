@@ -178,6 +178,7 @@
           :server-side-sort="true"
           :show-account-billing="false"
           :show-upstream-endpoint="false"
+          :show-rate-multiplier="canSeeRateMultiplier"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"
@@ -216,6 +217,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 import { keysAPI, usageAPI, userGroupsAPI } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -250,6 +252,9 @@ import { COMMON_ERROR_STATUS_CODES } from '@/utils/errorBadges'
 
 const { t } = useI18n()
 const appStore = useAppStore()
+const authStore = useAuthStore()
+/** 倍率只对管理员可见 —— 与 GroupBadge / 套餐卡片保持同一条规则。 */
+const canSeeRateMultiplier = computed(() => authStore.isAdmin)
 
 type DistributionMetric = 'tokens' | 'actual_cost'
 type EndpointSource = 'inbound' | 'upstream' | 'path'
@@ -635,6 +640,8 @@ const exportToCSV = async () => {
       appStore.showWarning(t('usage.noDataToExport'))
       return
     }
+    // The rate multiplier is an operator-side pricing knob. Customers get the
+    // billed and original cost, which is what they can actually reconcile.
     const headers = [
       'Time',
       'API Key Name',
@@ -648,7 +655,7 @@ const exportToCSV = async () => {
       'Output Tokens',
       'Cache Read Tokens',
       'Cache Creation Tokens',
-      'Rate Multiplier',
+      ...(canSeeRateMultiplier.value ? ['Rate Multiplier'] : []),
       'Billed Cost',
       'Original Cost',
       'First Token (ms)',
@@ -667,7 +674,7 @@ const exportToCSV = async () => {
       log.output_tokens,
       log.cache_read_tokens,
       log.cache_creation_tokens,
-      log.rate_multiplier,
+      ...(canSeeRateMultiplier.value ? [log.rate_multiplier] : []),
       log.actual_cost.toFixed(8),
       log.total_cost.toFixed(8),
       log.first_token_ms ?? '',
