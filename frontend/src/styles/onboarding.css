@@ -31,12 +31,12 @@
   position: fixed !important;
   z-index: 100000000 !important;
   background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid #e7e5de !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
   border-radius: 12px !important;
   padding: 0 !important;
   max-width: min(440px, 90vw) !important; /* Responsive on small screens */
-  color: #1f2937 !important;
+  color: #37352f !important;
   font-family: ui-sans-serif, system-ui, sans-serif !important;
   overflow: hidden !important;
 }
@@ -44,7 +44,7 @@
 .dark .driver-popover.theme-tour-popover {
   background-color: #2b2a27 !important;
   border-color: #3e3c37 !important;
-  color: #f3f4f6 !important;
+  color: #f4f3ee !important;
 }
 
 /* 3. Header Area */
@@ -60,7 +60,7 @@
 .driver-popover-title-text {
   font-size: 18px !important;
   font-weight: 700 !important;
-  color: #111827 !important;
+  color: #24221f !important;
   line-height: 1.3 !important;
   padding-right: 100px !important; /* Ensure title doesn't overlap Skip/Close */
 }
@@ -74,7 +74,7 @@
   width: 28px !important;
   height: 28px !important;
   padding: 0 !important;
-  color: #9ca3af !important;
+  color: #8a8679 !important;
   background-color: transparent !important;
   border: none !important;
   z-index: 20 !important;
@@ -83,7 +83,7 @@
   align-items: center !important;
   justify-content: center !important;
 }
-.theme-tour-popover .driver-popover-close-btn:hover { background-color: #f3f4f6 !important; color: #4b5563 !important; }
+.theme-tour-popover .driver-popover-close-btn:hover { background-color: #f4f3ee !important; color: #52504a !important; }
 .dark .theme-tour-popover .driver-popover-close-btn:hover { background-color: #3e3c37 !important; }
 
 /* 4. Body Content */
@@ -91,7 +91,7 @@
   display: block !important;
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #4b5563 !important;
+  color: #52504a !important;
   padding: 0 24px 24px 24px !important;
   margin: 0 !important;
   line-height: 1.6 !important;
@@ -105,8 +105,8 @@
   align-items: center !important;
   justify-content: space-between !important; /* Push Left and Right apart */
   padding: 16px 24px !important;
-  background-color: #f9fafb !important;
-  border-top: 1px solid #f3f4f6 !important;
+  background-color: #faf9f7 !important;
+  border-top: 1px solid #f4f3ee !important;
   margin: 0 !important;
 }
 .dark .theme-tour-popover .driver-popover-footer {
@@ -131,12 +131,12 @@
 /* Progress */
 .theme-tour-popover .driver-popover-progress-text {
   font-size: 13px !important;
-  color: #6b7280 !important;
+  color: #6b6760 !important;
   margin: 0 !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
 }
-.dark .theme-tour-popover .driver-popover-progress-text { color: #9ca3af !important; }
+.dark .theme-tour-popover .driver-popover-progress-text { color: #8a8679 !important; }
 
 /* Shortcuts (Divider + Keys) */
 .footer-shortcuts {
@@ -144,7 +144,7 @@
   align-items: center !important;
   gap: 12px !important;
   padding-left: 16px !important;
-  border-left: 1px solid #e5e7eb !important;
+  border-left: 1px solid #e7e5de !important;
   height: 20px !important;
 }
 .dark .footer-shortcuts { border-left-color: #3e3c37 !important; }
@@ -154,7 +154,7 @@
   align-items: center !important;
   gap: 4px !important;
   font-size: 12px !important;
-  color: #6b7280 !important;
+  color: #6b6760 !important;
   white-space: nowrap !important;
 }
 .dark .shortcut-item { color: #b1ada1 !important; }
@@ -162,12 +162,12 @@
 .shortcut-item kbd {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace !important;
   background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid #e7e5de !important;
   border-radius: 4px !important;
   padding: 1px 6px !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: #4b5563 !important;
+  color: #52504a !important;
   box-shadow: 0 1px 0 rgba(0,0,0,0.05) !important;
   min-width: 20px !important;
   text-align: center !important;
@@ -204,15 +204,15 @@
 
 .theme-tour-popover .driver-popover-prev-btn {
   background-color: white !important;
-  color: #6b7280 !important;
-  border: 1px solid #e5e7eb !important;
+  color: #6b6760 !important;
+  border: 1px solid #e7e5de !important;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
 }
-.theme-tour-popover .driver-popover-prev-btn:hover { background-color: #f9fafb !important; color: #374151 !important; }
+.theme-tour-popover .driver-popover-prev-btn:hover { background-color: #faf9f7 !important; color: #37352f !important; }
 .dark .theme-tour-popover .driver-popover-prev-btn { 
   background-color: #2b2a27 !important; 
   border-color: #55524b !important; 
-  color: #9ca3af !important; 
+  color: #8a8679 !important; 
 }
 
 /* Arrows */
@@ -226,3 +226,91 @@
 .dark .driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: #2b2a27 !important; }
 .dark .driver-popover-arrow-side-top.driver-popover-arrow { border-top-color: #2b2a27 !important; }
 .dark .driver-popover-arrow-side-bottom.driver-popover-arrow { border-bottom-color: #2b2a27 !important; }
+
+/* ---------------------------------------------------------------------------
+ * 9. Tour content blocks
+ *
+ * 步骤正文是 i18n 里的 HTML 片段。原来每个提示框都把颜色写成内联样式
+ * （#f0fdf4 / #10b981 这类 Tailwind 默认绿蓝），既跳出了 Claude 配色，
+ * 也没有暗色模式版本——在暗色弹窗上是浅底浅字，几乎看不清。
+ *
+ * 现在正文只写语义类名，配色统一在这里定义，暗色模式一并给出。
+ * ------------------------------------------------------------------------- */
+
+.theme-tour-popover .tour-note {
+  padding: 10px 12px !important;
+  border-radius: 6px !important;
+  border-left: 3px solid !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+
+.theme-tour-popover .tour-note ul {
+  margin: 8px 0 0 16px !important;
+}
+
+/* 提示 / 示例：品牌陶土色 */
+.theme-tour-popover .tour-note--tip {
+  background-color: #f7ece7 !important;
+  border-left-color: #c15f3c !important;
+  color: #6d3520 !important;
+}
+.dark .theme-tour-popover .tour-note--tip {
+  background-color: rgba(193, 95, 60, 0.14) !important;
+  border-left-color: #c15f3c !important;
+  color: #e8b7a2 !important;
+}
+
+/* 说明 / 参考：中性暖灰，弱于品牌色，不与 CTA 抢注意力 */
+.theme-tour-popover .tour-note--info {
+  background-color: #f4f3ee !important;
+  border-left-color: #b1ada1 !important;
+  color: #52504a !important;
+}
+.dark .theme-tour-popover .tour-note--info {
+  background-color: #24221f !important;
+  border-left-color: #55524b !important;
+  color: #d4d1c8 !important;
+}
+
+/* 注意事项：琥珀色，保留警示语义但压低饱和度以贴合暖色系 */
+.theme-tour-popover .tour-note--warn {
+  background-color: #f8efdc !important;
+  border-left-color: #c08a3e !important;
+  color: #6b4a17 !important;
+}
+.dark .theme-tour-popover .tour-note--warn {
+  background-color: rgba(192, 138, 62, 0.14) !important;
+  border-left-color: #c08a3e !important;
+  color: #e2c48c !important;
+}
+
+/* 危险操作：唯一保留冷暖之外的红色——警告语义不应为了配色被削弱 */
+.theme-tour-popover .tour-note--danger {
+  background-color: #f9e6e3 !important;
+  border-left-color: #b4462f !important;
+  color: #7a2a1b !important;
+}
+.dark .theme-tour-popover .tour-note--danger {
+  background-color: rgba(180, 70, 47, 0.16) !important;
+  border-left-color: #b4462f !important;
+  color: #eaa899 !important;
+}
+
+/* 行动指引（"👉 点击左侧的…"）：品牌色，是每一步真正要看的那行 */
+.theme-tour-popover .tour-cta {
+  color: #a94f31 !important;
+  font-weight: 600 !important;
+}
+.dark .theme-tour-popover .tour-cta {
+  color: #d98a68 !important;
+}
+
+/* 次要说明文字 */
+.theme-tour-popover .tour-muted {
+  font-size: 13px !important;
+  color: #6b6760 !important;
+}
+.dark .theme-tour-popover .tour-muted {
+  color: #b1ada1 !important;
+}

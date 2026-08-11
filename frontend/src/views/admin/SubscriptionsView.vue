@@ -217,7 +217,7 @@
               <div v-if="row.group?.daily_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
                   <span class="usage-label">{{ quotaLabel(row, 'daily') }}</span>
-                  <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
+                  <div class="h-1.5 max-w-[180px] flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
                       :class="getProgressClass(row.daily_usage_usd, row.group?.daily_limit_usd)"
@@ -254,7 +254,7 @@
               <div v-if="row.group?.weekly_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
                   <span class="usage-label">{{ quotaLabel(row, 'weekly') }}</span>
-                  <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
+                  <div class="h-1.5 max-w-[180px] flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
                       :class="getProgressClass(row.weekly_usage_usd, row.group?.weekly_limit_usd)"
@@ -291,7 +291,7 @@
               <div v-if="row.group?.monthly_limit_usd" class="usage-row">
                 <div class="flex items-center gap-2">
                   <span class="usage-label">{{ quotaLabel(row, 'monthly') }}</span>
-                  <div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
+                  <div class="h-1.5 max-w-[180px] flex-1 rounded-full bg-gray-200 dark:bg-dark-600">
                     <div
                       class="h-1.5 rounded-full transition-all"
                       :class="getProgressClass(row.monthly_usage_usd, row.group?.monthly_limit_usd)"
@@ -1472,15 +1472,20 @@ onUnmounted(() => {
   @apply space-y-1;
 }
 
+/*
+ * Wide enough for the longest label. "每日"/"每月" fit the old w-10, but
+ * "本期额度" (and "Term allowance") overran it and ran into the progress bar.
+ */
 .usage-label {
-  @apply w-10 flex-shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400;
+  @apply w-20 flex-shrink-0 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400;
 }
 
 .usage-amount {
   @apply whitespace-nowrap text-xs tabular-nums text-gray-600 dark:text-gray-300;
 }
 
+/* Indent past the label column (w-20) plus the row's gap-2. */
 .reset-info {
-  @apply flex items-center gap-1 pl-12 text-[10px] text-blue-600 dark:text-blue-400;
+  @apply flex items-center gap-1 pl-[5.5rem] text-[10px] text-primary-600 dark:text-primary-400;
 }
 </style>

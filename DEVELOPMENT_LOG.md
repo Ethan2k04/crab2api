@@ -546,6 +546,63 @@ DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景�
 
 ---
 
+## 阶段十二：版本号自持、引导配色、文档补全
+
+### 一、移除上游的在线更新面板，版本号改为自己管
+
+侧边栏显示 `vdev` 且提示「有新版本可用 v0.1.173」,两个问题各有来源。
+
+**`vdev`**:`deploy/docker-compose.crab2api.yml` 把 `VERSION` build arg 默认写成了 `dev`。Dockerfile 的版本优先级是 **build arg > git tag > `backend/cmd/server/VERSION`**,而 `.git` 被 `.dockerignore` 排除,所以 git tag 那一档在 Docker 构建里永远不会命中。
+
+改成:build arg 默认留空 → 回落到 `backend/cmd/server/VERSION`,该文件即**唯一版本来源**,已从上游继承的 `0.1.173` 重置为 `0.1.0`。
+
+发版流程:改 `backend/cmd/server/VERSION` → 重新构建。要临时覆盖就在 `.env` 里设 `CRAB2API_VERSION`。
+
+**「有新版本可用」**:`VersionBadge.vue` 里的在线更新/回退面板解析的是 `Wei-Shaw/sub2api` 的 GitHub 发布,拿上游的发布号跟本分支比,必然一直提示有更新;更糟的是它的「立即更新」「版本回退」按钮会把**上游的构建覆盖到本部署上**。
+
+整块删掉,徽标退化为纯版本展示。理由不只是「Web 端不需要用户点更新」——这套机制对 fork 本身就是错的。`api/admin/system.ts` 里的 `performUpdate` / `rollback` 等函数保留(后端接口仍在,其单测也仍然通过),只是前端不再有入口。
+
+`version` i18n 命名空间随之从 38 个 key 缩到 2 个。
+
+### 二、新手引导配色统一到 Claude 色系
+
+两层问题:
+
+1. **弹窗外壳**沿用 Tailwind 默认冷灰(`#e5e7eb` `#1f2937` `#9ca3af` …),与暖色品牌不搭 → 逐一替换为 `tailwind.config.js` 里的暖中性色。
+2. **正文提示框**的颜色写死在 i18n 的 HTML 片段里(`background: #f0fdf4; border-left: 3px solid #10b981`,共 54 处 × 中英),既是 Tailwind 默认绿/蓝,**也没有暗色模式版本** —— 暗色弹窗上是浅底浅字,几乎读不出来。截图里那个绿框就是这个。
+
+正文改为只写语义类名,配色收口到 `styles/onboarding.css`,并补齐暗色:
+
+| 类名 | 用途 | 配色 |
+|---|---|---|
+| `.tour-note--tip` | 提示 / 示例 | 品牌陶土色 `#c15f3c` |
+| `.tour-note--info` | 说明 / 参考 | 暖中性灰,弱于品牌色,不与行动指引抢注意力 |
+| `.tour-note--warn` | 注意事项 | 压低饱和度的琥珀 `#c08a3e` |
+| `.tour-note--danger` | 危险操作 | 保留红色 `#b4462f` —— 警告语义不该为配色让路 |
+| `.tour-cta` | 「👉 点击左侧的…」 | 品牌色,是每一步真正要看的那行 |
+| `.tour-muted` | 次要说明 | 暖灰 |
+
+### 三、文档:快速开始不再说「免费档」
+
+`docsPage.quickstart.step1` 原文是「新账号默认进入免费档」,与本站「必须订阅才能拿到可用 Key」的设计直接矛盾。改为「注册并订阅」,并在 step2 补上「分组选择你已订阅的那一档」。
+
+### 四、文档:客户端配置补齐三个平台 × 两种作用域
+
+原来只有一段 `export`,Windows 用户照抄会失败。现在与「使用密钥」弹窗对齐,拆成两块:
+
+- **会话级**(仅当前终端):macOS/Linux `export`、CMD `set`(不能带引号,否则引号会进值里)、PowerShell `$env:`
+- **用户级持久**:`~/.zshrc` + `source`、`setx`、`[Environment]::SetEnvironmentVariable(..., 'User')`
+
+每条持久化命令都带一句提醒:`setx` 和 `SetEnvironmentVariable` **都不会刷新当前窗口**,必须重开终端 —— 这是最常见的「照做了但不生效」。
+
+### 五、订阅管理用量条与标签重叠
+
+`.usage-label` 是 `w-10`(40px),够放「每日」「每月」两个汉字;换成「本期额度」四个字就撑破了,压到进度条上。
+
+改为 `w-20` + `whitespace-nowrap`,进度条加 `max-w-[180px]`(标签变宽本身就会挤短 `flex-1` 的条),`.reset-info` 的缩进同步跟到 `pl-[5.5rem]` 对齐新的标签列。顺带把该行残留的 `text-blue-600` 换成品牌色。
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）

@@ -35,7 +35,14 @@ services:
       dockerfile: Dockerfile
       args:
         # Stamped into the binary and shown in the console's version badge.
-        VERSION: ${CRAB2API_VERSION:-dev}
+        #
+        # Left empty on purpose: the Dockerfile then falls back to
+        # backend/scripts/resolve-version.sh, which reads
+        # backend/cmd/server/VERSION. That file is the single source of truth —
+        # bump it and rebuild to cut a version. (.git is excluded from the build
+        # context, so the script's git-tag branch never fires here.)
+        # Set CRAB2API_VERSION in .env only for one-off builds.
+        VERSION: ${CRAB2API_VERSION:-}
         COMMIT: ${CRAB2API_COMMIT:-local}
         # Mainland-China friendly defaults; override in .env if you are outside.
         GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}

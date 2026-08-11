@@ -82,7 +82,27 @@
 
             <h3 class="doc-h3">{{ t('docsPage.clients.claudeCode.title') }}</h3>
             <p class="doc-p">{{ t('docsPage.clients.claudeCode.desc') }}</p>
-            <CodeBlock class="mt-3" label="bash" :code="snippets.claudeCode" />
+
+            <!-- Session-scoped: the variables live only in the current shell. -->
+            <h4 class="doc-h4">{{ t('docsPage.clients.claudeCode.sessionTitle') }}</h4>
+            <p class="doc-p">{{ t('docsPage.clients.claudeCode.sessionDesc') }}</p>
+            <div class="mt-3 space-y-4">
+              <div v-for="s in sessionShells" :key="s.key">
+                <p class="mono-label mb-1.5">{{ s.label }}</p>
+                <CodeBlock :label="s.lang" :code="s.code" />
+              </div>
+            </div>
+
+            <!-- Persistent: survives a new terminal / reboot. -->
+            <h4 class="doc-h4">{{ t('docsPage.clients.claudeCode.persistTitle') }}</h4>
+            <p class="doc-p">{{ t('docsPage.clients.claudeCode.persistDesc') }}</p>
+            <div class="mt-3 space-y-4">
+              <div v-for="s in persistShells" :key="s.key">
+                <p class="mono-label mb-1.5">{{ s.label }}</p>
+                <CodeBlock :label="s.lang" :code="s.code" />
+                <p v-if="s.note" class="mt-1.5 text-xs text-gray-500 dark:text-dark-400">{{ s.note }}</p>
+              </div>
+            </div>
 
             <h3 class="doc-h3">{{ t('docsPage.clients.curl.title') }}</h3>
             <p class="doc-p">{{ t('docsPage.clients.curl.desc') }}</p>
@@ -238,11 +258,82 @@ const errorRows = computed(() => [
   { code: '5xx', desc: t('docsPage.errors.col5xx') }
 ])
 
-const snippets = computed(() => ({
-  claudeCode: `export ANTHROPIC_BASE_URL="${baseUrl.value}"
-export ANTHROPIC_AUTH_TOKEN="sk-crab-xxxxxxxxxxxx"
+const SAMPLE_KEY = 'sk-crab-xxxxxxxxxxxx'
 
-claude`,
+/**
+ * Session-scoped setup: the variables exist only in the shell you typed them
+ * into. Closing the terminal discards them — that is the point, and it is why
+ * this is the safer default for trying a key out.
+ */
+const sessionShells = computed(() => [
+  {
+    key: 'unix',
+    label: 'macOS / Linux (bash · zsh)',
+    lang: 'bash',
+    code: `export ANTHROPIC_BASE_URL="${baseUrl.value}"
+export ANTHROPIC_AUTH_TOKEN="${SAMPLE_KEY}"
+
+claude`
+  },
+  {
+    key: 'cmd',
+    label: 'Windows CMD',
+    lang: 'bat',
+    // No quotes: cmd would take them as part of the value.
+    code: `set ANTHROPIC_BASE_URL=${baseUrl.value}
+set ANTHROPIC_AUTH_TOKEN=${SAMPLE_KEY}
+
+claude`
+  },
+  {
+    key: 'powershell',
+    label: 'Windows PowerShell',
+    lang: 'powershell',
+    code: `$env:ANTHROPIC_BASE_URL = "${baseUrl.value}"
+$env:ANTHROPIC_AUTH_TOKEN = "${SAMPLE_KEY}"
+
+claude`
+  }
+])
+
+/**
+ * Persistent setup: survives new terminals and reboots. Each snippet writes to
+ * the place that shell actually reads at startup, then reloads it so the
+ * current session picks the values up without reopening the terminal.
+ */
+const persistShells = computed(() => [
+  {
+    key: 'unix',
+    label: 'macOS / Linux (bash · zsh)',
+    lang: 'bash',
+    code: `# bash: ~/.bashrc  |  zsh: ~/.zshrc  |  macOS default shell is zsh
+cat >> ~/.zshrc <<'EOF'
+export ANTHROPIC_BASE_URL="${baseUrl.value}"
+export ANTHROPIC_AUTH_TOKEN="${SAMPLE_KEY}"
+EOF
+
+source ~/.zshrc`,
+    note: t('docsPage.clients.claudeCode.noteUnix')
+  },
+  {
+    key: 'cmd',
+    label: 'Windows CMD',
+    lang: 'bat',
+    code: `setx ANTHROPIC_BASE_URL "${baseUrl.value}"
+setx ANTHROPIC_AUTH_TOKEN "${SAMPLE_KEY}"`,
+    note: t('docsPage.clients.claudeCode.noteSetx')
+  },
+  {
+    key: 'powershell',
+    label: 'Windows PowerShell',
+    lang: 'powershell',
+    code: `[Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', '${baseUrl.value}', 'User')
+[Environment]::SetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', '${SAMPLE_KEY}', 'User')`,
+    note: t('docsPage.clients.claudeCode.notePwsh')
+  }
+])
+
+const snippets = computed(() => ({
 
   curl: `curl ${baseUrl.value}${ANTHROPIC_ENDPOINT} \\
   -H "x-api-key: sk-crab-xxxxxxxxxxxx" \\
@@ -296,6 +387,9 @@ onMounted(() => {
 }
 .doc-h3 {
   @apply mt-8 text-base font-semibold text-gray-900 dark:text-white;
+}
+.doc-h4 {
+  @apply mt-6 text-sm font-semibold text-gray-800 dark:text-dark-100;
 }
 .doc-p {
   @apply mt-2 max-w-3xl text-sm leading-relaxed text-gray-600 dark:text-dark-300;

@@ -242,12 +242,12 @@ export default {
     quickstart: {
       title: 'Quickstart',
       step1: {
-        title: 'Create an account',
-        desc: 'Register and sign in to the console. New accounts start on the free tier.'
+        title: 'Register and subscribe',
+        desc: 'Register, sign in to the console, then pick a pass (day / week / month) on the Subscription page. There is no free tier here — an active subscription is what makes an API key usable.'
       },
       step2: {
         title: 'Get an API key',
-        desc: 'Open API Keys in the console and create a key. Copy it once — it is only shown in full at creation time.'
+        desc: 'Open API Keys in the console and create one against the group you subscribed to. Copy it once — the full key is only shown at creation time.'
       },
       step3: {
         title: 'Point your client at Crab2API',
@@ -274,7 +274,18 @@ export default {
       title: 'Client setup',
       claudeCode: {
         title: 'Claude Code',
-        desc: 'Set two environment variables, then run `claude` as usual.'
+        desc: 'Claude Code finds the relay through two environment variables: `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`. Set them, then run `claude` as usual.',
+        sessionTitle: 'Session-scoped (current terminal only)',
+        sessionDesc:
+          'The variables live only in the terminal you typed them into and vanish when you close it. Best for a first run, or for switching relays temporarily.',
+        persistTitle: 'Persistent, per user (survives new terminals)',
+        persistDesc:
+          'Writes to your user environment, so new terminals and reboots keep the settings.',
+        noteUnix: 'On bash, use `~/.bashrc` instead of `~/.zshrc`. macOS has defaulted to zsh since Catalina.',
+        noteSetx:
+          '`setx` only affects windows opened afterwards — the CMD window you ran it in keeps the old values. Open a new terminal.',
+        notePwsh:
+          'Writes to the User scope, so no admin rights are needed. The current PowerShell window is not refreshed; open a new terminal.'
       },
       curl: {
         title: 'curl',
