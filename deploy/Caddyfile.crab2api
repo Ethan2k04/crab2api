@@ -1,0 +1,118 @@
+# =============================================================================
+# Crab2API — Caddy 反向代理配置
+# =============================================================================
+# 安装在 Lightsail 宿主机上（不是容器里）：
+#
+#   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+#   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+#     | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+#   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+#     | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+#   sudo apt update && sudo apt install -y caddy
+#
+#   sudo cp Caddyfile.crab2api /etc/caddy/Caddyfile
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# 前置条件：
+#   - Cloudflare DNS 里 crab2api.com / www 的 A 记录指向 Lightsail 静态 IP
+#   - 这两条记录必须是 **灰云（DNS only）**，否则 Caddy 拿不到 Let's Encrypt 证书
+#   - Lightsail 防火墙放开 80 / 443，关闭 8080
+#   - deploy/.env 里设 BIND_HOST=127.0.0.1（应用只监听本机，由 Caddy 对外）
+# =============================================================================
+
+{
+	# 证书申请失败时的联系邮箱（Let's Encrypt 会发到期提醒）
+	email tengjiao001@e.ntu.edu.sg
+
+	servers {
+		max_header_size 64KB
+		timeouts {
+			read_header 10s
+			idle 2m
+		}
+	}
+}
+
+# -----------------------------------------------------------------------------
+# www 跳到裸域（想反过来就把两个域名对调）
+# -----------------------------------------------------------------------------
+www.crab2api.com {
+	redir https://crab2api.com{uri} permanent
+}
+
+# -----------------------------------------------------------------------------
+# 主站 + API
+# -----------------------------------------------------------------------------
+crab2api.com {
+	tls {
+		protocols tls1.2 tls1.3
+		ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	}
+
+	reverse_proxy 127.0.0.1:8080 {
+		# 关闭响应缓冲。Claude 的流式回包（text/event-stream）必须逐块下发，
+		# 缓冲会让 Claude Code 那边看起来"卡住"直到整段生成完。
+		flush_interval -1
+
+		health_uri /health
+		health_interval 30s
+		health_timeout 10s
+		health_status 200
+
+		# 只从实际 TCP 对端生成转发头，避免透传客户端伪造值。
+		# 若日后在 Cloudflare 橙云后面运行，改成 {http.request.header.CF-Connecting-IP}
+		# 并在下方 servers 块里声明 trusted_proxies（见 EDGE_SECURITY.md）。
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+
+		transport http {
+			keepalive 120s
+			keepalive_idle_conns 256
+			read_buffer 16KB
+			write_buffer 16KB
+			compression off
+			# 上游一次生成可能跑很久（extended thinking），不设响应超时。
+		}
+
+		fail_duration 30s
+		max_fails 3
+		unhealthy_status 500 502 503 504
+	}
+
+	encode {
+		zstd
+		gzip 6
+		minimum_length 256
+		match {
+			# 刻意不用 text/*：否则 text/event-stream 会被压缩并缓冲到流结束
+			header Content-Type text/css*
+			header Content-Type text/html*
+			header Content-Type text/javascript*
+			header Content-Type text/plain*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+			header Content-Type image/svg+xml*
+		}
+	}
+
+	request_body {
+		max_size 256MB
+	}
+
+	log {
+		output file /var/log/caddy/crab2api.log {
+			roll_size 50mb
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+		level INFO
+	}
+
+	handle_errors {
+		respond "{err.status_code} {err.status_text}"
+	}
+}
