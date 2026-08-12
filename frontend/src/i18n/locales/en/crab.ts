@@ -243,7 +243,7 @@ export default {
       title: 'Quickstart',
       step1: {
         title: 'Register and subscribe',
-        desc: 'Register, sign in to the console, then pick a pass (day / week / month) on the Subscription page. There is no free tier here — an active subscription is what makes an API key usable.'
+        desc: 'Register, sign in to the console, then pick a pass (day / week / month) on the Subscription page.'
       },
       step2: {
         title: 'Get an API key',
@@ -251,11 +251,11 @@ export default {
       },
       step3: {
         title: 'Point your client at Crab2API',
-        desc: 'Replace the Anthropic base URL with the Crab2API base URL and use your Crab2API key as the credential.'
+        desc: 'Replace the Claude Code base URL with the Crab2API base URL and use your Crab2API key as the credential.'
       },
       step4: {
         title: 'Send a request',
-        desc: 'Any Anthropic Messages API call works unchanged from here.'
+        desc: 'Any upstream Messages API call works unchanged from here.'
       }
     },
 

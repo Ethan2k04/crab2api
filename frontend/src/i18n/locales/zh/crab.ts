@@ -241,7 +241,7 @@ export default {
       title: '快速开始',
       step1: {
         title: '注册并订阅',
-        desc: '注册并登录控制台，然后在「充值/订阅」页面选择一档套餐（日卡 / 周卡 / 月卡）。本站没有免费档——必须先有生效中的订阅，才能创建可用的 API Key。'
+        desc: '注册并登录控制台，然后在「充值/订阅」页面选择一档套餐（日卡 / 周卡 / 月卡）。'
       },
       step2: {
         title: '创建 API Key',
@@ -249,11 +249,11 @@ export default {
       },
       step3: {
         title: '把客户端指向 Crab2API',
-        desc: '把 Anthropic 的 Base URL 换成 Crab2API 的 Base URL，凭据改用你的 Crab2API Key。'
+        desc: '把 Claude Code 或者其他第三方客户端的 Base URL 换成 Crab2API 的 Base URL，凭据改用你的 Crab2API Key。'
       },
       step4: {
         title: '发出请求',
-        desc: '此后任何 Anthropic Messages 接口调用都无需改动。'
+        desc: '此后任何发送给上游的 Messages 接口调用都无需改动。'
       }
     },
 
