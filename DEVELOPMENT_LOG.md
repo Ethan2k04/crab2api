@@ -163,7 +163,7 @@
 
 | 标识符 | 位置 | 原因 |
 |--------|------|------|
-| `我已阅读、理解并同意 Sub2API 部署与运营合规承诺` | `stores/adminCompliance.ts` | 后端 `AdminComplianceAckPhraseZH/EN` **逐字节比对**，前端单方面改会导致合规确认永远提交不了 |
+| ~~`我已阅读、理解并同意 Sub2API 部署与运营合规承诺`~~ | `stores/adminCompliance.ts` | 后端 `AdminComplianceAckPhraseZH/EN` **逐字节比对**，前端单方面改会导致合规确认永远提交不了。**阶段十三已连同后端常量一起改为 Crab2API 并升版本，此条不再适用** |
 | `sub2api-admin` | `api/admin/ops.ts` | Ops WebSocket 子协议，后端 `ops_ws_handler.go` 按此名握手 |
 | `sub2api-data` / `sub2api-bundle` | 数据导入导出 | 后端 `account_data.go` 的数据格式标识 |
 | `sub2api.key_billing` | `types/index.ts` | 后端响应体的类型判别字段 |
@@ -603,13 +603,52 @@ DataTable 的**粘性列**(左侧首列 + 右侧操作列)必须有实体背景�
 
 ---
 
+## 阶段十三：合规文档换主体、调价、官方定价对比
+
+### 一、合规确认文档全量换主体
+
+`docs/legal/admin-compliance.{zh,en}.md` 里的 `Sub2API` 全部换成 `Crab2API`，条款一字未改。同步跟着换的还有三处代码常量：
+
+- `backend/internal/service/admin_compliance.go` — 两条 `AckPhrase`（管理员要逐字敲的短语）、两条 `DocumentURL`（原来指向 `Wei-Shaw/sub2api`，现在指向 `Ethan2k04/crab2api`）
+- `frontend/src/stores/adminCompliance.ts` — 后端不可达时的兜底短语与兜底 URL
+- `frontend/src/components/admin/AdminComplianceDialog.vue` — 「在 GitHub 查看协议文件」的兜底链接
+
+**协议版本从 `v2026.06.10` 升到 `v2026.08.13`。** 这是必须的：`GetAdminComplianceStatus` 用 `ack.Version == AdminComplianceVersion` 精确比对，不升版本的话，已存的确认记录（内容是「同意 Sub2API 承诺」）会被判定为对新文档仍然有效——留痕就失真了。升版本的代价是每个管理员重新确认一次，这正是文档第六条自己写的规则。
+
+注意文档正文是 **构建期**通过 `?raw` 打进前端包的（`Dockerfile` 有专门一行 `COPY docs/legal/`），不是运行时读盘，所以改完必须重新构建镜像才生效。
+
+### 二、三档调价
+
+日卡 4.99→6.99、周卡 19.99→29.99、月卡 59.99→69.99，额度（$5/$20/$60）不动。
+
+**改价必须新开 migration，不能改 221。** 两个独立原因：
+
+1. `applyMigrationsFS` 对每个迁移文件做 SHA256 校验并把 checksum 存进 `schema_migrations`。221 已在生产库留过记录，改文件内容会让服务**启动即报错拒绝启动**。
+2. 就算绕过校验也没用——221 的 INSERT 全带 `WHERE NOT EXISTS`，行已存在时 INSERT 是空操作。改价只能靠 UPDATE。
+
+于是有了 `222_crab2api_tier_price_bump.sql`，三条 `UPDATE ... WHERE price <> 新值`，按 `groups.name` 定位。
+
+前端 `FALLBACK_PLANS` 的价格同步跟上——那是支付关闭或公开套餐接口不可达时的兜底展示，跟数据库是两套数据，必须手动保持一致。
+
+### 三、落地页：拿官方订阅价做对比
+
+原来那个「实时价格」徽章只说明数据来源，对访客毫无信息量，删掉了。换成一条对比条：Claude Pro `$20/月`、Max 5× `$100/月`、Max 20× `$200/月`，各自跟一个约等于的人民币数，末格高亮本站月卡并算出「比官方 Pro 便宜 N%」。
+
+**官方价格是写死的静态配置，不是运行时抓取。** Anthropic 没有公开定价 API，`claude.com` 也不带允许浏览器跨域读取的 CORS 头；爬营销页则会在对方改版时静默失效——而定价数字错了不会报错，只会变成一句错误的宣传。所以放在 `brand.ts` 里，带 `OFFICIAL_PLAN_PRICING_CHECKED_ON` 时间戳，前端把核对日期直接印在免责声明里。数字于 2026-08-13 对照 `claude.com/pricing` 与 Max 帮助文档核实。
+
+对比条只在页面上真有 30 天套餐时渲染（按 `periodDays === 30` 匹配，不认套餐名，管理员改名不影响），否则整块隐藏——宁可不显示，也不引用一个访客买不到的价格。
+
+免责声明写清楚了两件事：汇率是约算（`USD_TO_CNY_DISPLAY_RATE = 7.2`，只用于展示，不参与任何计费），以及官方按会话窗口限流、本站按 API 用量扣额度，**计费方式不同，此处只比较每月支出**。这句不能省——否则就是拿两种不可比的东西作价格宣传。
+
+---
+
 ## 待办 / Next
 
 - [ ] 首次完整构建验证（前端 typecheck / build / test，后端 build / test）
 - [ ] 为 `GetPublicPlans` 补一个 Go 单元测试（覆盖「支付关闭返回空数组」与「字段收窄」两条）
-- [ ] 购买 `crab2api.com` 并配置 DNS + TLS
+- [x] 购买 `crab2api.com` 并配置 DNS + TLS（Cloudflare DNS + Lightsail + 宿主机 Caddy，见 `deploy/Caddyfile.crab2api`）
 - [ ] 在管理后台把站点名设为 `Crab2API`、上传 Logo、配置 `api_base_url`
-- [ ] 按真实定价录入订阅套餐（录入后落地页会自动切换到实时价格）
+- [x] 按真实定价录入订阅套餐（migration 221 播种、222 调价）
 - [ ] 品牌化登录/注册页视觉
 - [ ] 补充 `docs` 页的进阶章节（流式、工具调用、提示词缓存）
 - [ ] 后端按角色裁剪 `rate_multiplier` 等运营字段（目前只在前端隐藏）

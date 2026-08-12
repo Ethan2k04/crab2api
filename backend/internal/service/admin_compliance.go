@@ -14,13 +14,18 @@ import (
 )
 
 const (
-	AdminComplianceVersion        = "v2026.06.10"
+	// Bumped from v2026.06.10 when the document was rebranded to Crab2API. The
+	// phrase an admin types is part of the agreement, so a stored v2026.06.10
+	// acknowledgement (which named Sub2API) no longer matches what the current
+	// document says — GetAdminComplianceStatus compares versions exactly, so
+	// every admin re-confirms once against the Crab2API text.
+	AdminComplianceVersion        = "v2026.08.13"
 	AdminComplianceDocumentPathZH = "docs/legal/admin-compliance.zh.md"
 	AdminComplianceDocumentPathEN = "docs/legal/admin-compliance.en.md"
-	AdminComplianceDocumentURLZH  = "https://github.com/Wei-Shaw/sub2api/blob/main/docs/legal/admin-compliance.zh.md"
-	AdminComplianceDocumentURLEN  = "https://github.com/Wei-Shaw/sub2api/blob/main/docs/legal/admin-compliance.en.md"
-	AdminComplianceAckPhraseZH    = "我已阅读、理解并同意 Sub2API 部署与运营合规承诺"
-	AdminComplianceAckPhraseEN    = "I have read, understood, and agree to the Sub2API Deployment and Operation Compliance Commitment"
+	AdminComplianceDocumentURLZH  = "https://github.com/Ethan2k04/crab2api/blob/main/docs/legal/admin-compliance.zh.md"
+	AdminComplianceDocumentURLEN  = "https://github.com/Ethan2k04/crab2api/blob/main/docs/legal/admin-compliance.en.md"
+	AdminComplianceAckPhraseZH    = "我已阅读、理解并同意 Crab2API 部署与运营合规承诺"
+	AdminComplianceAckPhraseEN    = "I have read, understood, and agree to the Crab2API Deployment and Operation Compliance Commitment"
 
 	settingKeyAdminComplianceAcknowledgement = "admin_compliance_acknowledgement"
 )

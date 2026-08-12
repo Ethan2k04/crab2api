@@ -21,17 +21,53 @@
       </div>
 
       <template v-else>
-        <!-- Source badge -->
-        <p class="mt-6 flex items-center gap-2">
-          <span
-            class="inline-flex items-center gap-1.5 rounded-md bg-primary-50 px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-          >
-            <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
-            {{ usingFallback ? '—' : t('landing.pricing.livePlans') }}
-          </span>
-          <span v-if="usingFallback" class="text-xs text-gray-500 dark:text-dark-400">
+        <!-- Comparison against Anthropic's own consumer plans. Our 30-day tier
+             is the only like-for-like: theirs are all monthly subscriptions. -->
+        <div
+          v-if="comparison"
+          class="mt-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-dark-700"
+        >
+          <div class="flex flex-wrap items-stretch divide-x divide-gray-200 dark:divide-dark-700">
+            <div
+              v-for="plan in comparison.official"
+              :key="plan.key"
+              class="min-w-[9rem] flex-1 px-5 py-4"
+            >
+              <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500 dark:text-dark-400">
+                {{ t(`landing.pricing.compare.plans.${plan.key}`) }}
+              </p>
+              <p class="mt-1.5 text-xl font-semibold text-gray-700 dark:text-dark-200">
+                ${{ plan.priceUSD }}<span class="text-xs font-normal text-gray-500 dark:text-dark-400">{{ t('landing.pricing.compare.perMonth') }}</span>
+              </p>
+              <p class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
+                {{ t('landing.pricing.compare.approx', { cny: plan.priceCNY }) }}
+              </p>
+            </div>
+
+            <div class="min-w-[11rem] flex-1 bg-primary-50 px-5 py-4 dark:bg-primary-900/20">
+              <p class="font-mono text-[11px] uppercase tracking-wider text-primary-700 dark:text-primary-300">
+                {{ t('landing.pricing.compare.ours') }}
+              </p>
+              <p class="mt-1.5 text-xl font-semibold text-primary-700 dark:text-primary-300">
+                {{ comparison.oursDisplay }}<span class="text-xs font-normal">{{ t('landing.pricing.compare.perMonth') }}</span>
+              </p>
+              <p class="mt-0.5 text-xs font-medium text-primary-600 dark:text-primary-400">
+                {{ t('landing.pricing.compare.cheaperThanPro', { percent: comparison.cheaperThanProPercent }) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p
+          v-if="comparison || usingFallback"
+          class="mt-3 max-w-4xl text-xs leading-relaxed text-gray-500 dark:text-dark-400"
+        >
+          <template v-if="comparison">
+            {{ t('landing.pricing.compare.note', { rate: USD_TO_CNY_DISPLAY_RATE, date: OFFICIAL_PLAN_PRICING_CHECKED_ON }) }}
+          </template>
+          <template v-if="usingFallback">
             {{ t('landing.pricing.fallbackNotice') }}
-          </span>
+          </template>
         </p>
 
         <!-- Empty -->
@@ -119,7 +155,12 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { paymentAPI, type PublicSubscriptionPlan } from '@/api/payment'
 import { currencySymbol, formatPaymentAmount } from '@/components/payment/currency'
-import { FALLBACK_PLANS } from '@/config/brand'
+import {
+  FALLBACK_PLANS,
+  OFFICIAL_PLANS,
+  OFFICIAL_PLAN_PRICING_CHECKED_ON,
+  USD_TO_CNY_DISPLAY_RATE
+} from '@/config/brand'
 
 interface PlanCard {
   key: string
@@ -131,6 +172,10 @@ interface PlanCard {
   features: string[]
   featured: boolean
   href: string
+  /** Term length in days — drives the like-for-like official comparison. */
+  periodDays: number
+  /** Numeric price in CNY, for arithmetic the display string can't do. */
+  priceCNY: number
 }
 
 const { t, locale } = useI18n()
@@ -175,7 +220,9 @@ const liveCards = computed<PlanCard[]>(() =>
     // The purchase page opens on the balance tab by default; ?tab=subscription
     // is the param it already understands. Deep-linking a single plan would
     // need its group id, which the public endpoint deliberately withholds.
-    href: PURCHASE_PATH
+    href: PURCHASE_PATH,
+    periodDays: plan.validity_days,
+    priceCNY: plan.currency === 'CNY' ? plan.price : 0
   }))
 )
 
@@ -191,11 +238,44 @@ const fallbackCards = computed<PlanCard[]>(() =>
     periodLabel: periodLabel(plan.periodDays),
     features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
     featured: plan.featured === true,
-    href: PURCHASE_PATH
+    href: PURCHASE_PATH,
+    periodDays: plan.periodDays,
+    priceCNY: plan.priceCNY
   }))
 )
 
 const cards = computed<PlanCard[]>(() => (usingFallback.value ? fallbackCards.value : liveCards.value))
+
+/**
+ * Anthropic's plans are all 30-day subscriptions, so the only honest comparison
+ * is against our 30-day tier. Matching on the term rather than the plan name
+ * keeps this working if the plan is renamed in admin.
+ *
+ * Returns null — hiding the whole strip — when there is no 30-day CNY plan to
+ * compare against, rather than quoting a number we cannot substantiate.
+ */
+const comparison = computed(() => {
+  // Only ever compare against a tier that is actually on the page. Reaching for
+  // a fallback price while live plans are showing would quote something the
+  // visitor cannot buy.
+  const monthly = cards.value.find((card) => card.periodDays === 30 && card.priceCNY > 0)
+  if (!monthly) return null
+
+  const official = OFFICIAL_PLANS.map((plan) => ({
+    key: plan.key,
+    priceUSD: plan.priceUSD,
+    priceCNY: Math.round(plan.priceUSD * USD_TO_CNY_DISPLAY_RATE)
+  }))
+
+  const pro = official.find((plan) => plan.key === 'pro')
+  if (!pro) return null
+
+  return {
+    official,
+    oursDisplay: `${currencySymbol('CNY')}${monthly.priceCNY}`,
+    cheaperThanProPercent: Math.round((1 - monthly.priceCNY / pro.priceCNY) * 100)
+  }
+})
 
 onMounted(async () => {
   try {

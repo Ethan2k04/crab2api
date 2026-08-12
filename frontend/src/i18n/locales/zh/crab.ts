@@ -136,8 +136,19 @@ export default {
     pricing: {
       title: '订阅套餐',
       subtitle: '选好额度，拿到 Key，直接开用。没有隐藏的按人头收费。',
-      livePlans: '实时价格',
       fallbackNotice: '此处为参考价格，请登录控制台查看当前账号可购买的套餐。',
+      compare: {
+        ours: '本站月卡',
+        perMonth: ' / 月',
+        approx: '≈ ¥{cny}',
+        cheaperThanPro: '比官方 Pro 便宜 {percent}%',
+        plans: {
+          pro: 'Claude Pro',
+          max5: 'Claude Max 5×',
+          max20: 'Claude Max 20×'
+        },
+        note: '官方价格为 Anthropic 按月订阅的美元标价，于 {date} 核对；人民币金额按 1 美元 ≈ {rate} 元折算，仅供参考，实际汇率以支付时为准。官方订阅按会话窗口限流，本站按官方 API 计价扣减额度，两者计费方式不同，此处仅比较每月支出。'
+      },
       perPeriodDays: '{days} 天',
       per24h: '24 小时',
       mostPopular: '最受欢迎',

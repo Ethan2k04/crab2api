@@ -136,9 +136,20 @@ export default {
     pricing: {
       title: 'Subscription plans',
       subtitle: 'Pick a quota, get a key, start calling. No hidden per-seat fees.',
-      livePlans: 'Live pricing',
       fallbackNotice:
         'Indicative pricing — sign in to the console for the current plans available to your account.',
+      compare: {
+        ours: 'Our Month Pass',
+        perMonth: ' / mo',
+        approx: '≈ ¥{cny}',
+        cheaperThanPro: '{percent}% below official Pro',
+        plans: {
+          pro: 'Claude Pro',
+          max5: 'Claude Max 5×',
+          max20: 'Claude Max 20×'
+        },
+        note: "Official prices are Anthropic's monthly USD list prices, checked {date}. CNY figures convert at 1 USD ≈ {rate} CNY and are indicative only. Official subscriptions are rate-limited per session window while this site draws down an allowance at upstream API rates — the two meter differently; only monthly outlay is compared here."
+      },
       perPeriodDays: '{days} days',
       per24h: '24 hours',
       mostPopular: 'Most popular',

@@ -74,9 +74,42 @@ export interface FallbackPlan {
 }
 
 export const FALLBACK_PLANS: FallbackPlan[] = [
-  { key: 'day', priceCNY: 4.99, quotaUSD: 5, periodDays: 1 },
-  { key: 'week', priceCNY: 19.99, quotaUSD: 20, periodDays: 7, featured: true },
-  { key: 'month', priceCNY: 59.99, quotaUSD: 60, periodDays: 30 }
+  { key: 'day', priceCNY: 6.99, quotaUSD: 5, periodDays: 1 },
+  { key: 'week', priceCNY: 29.99, quotaUSD: 20, periodDays: 7, featured: true },
+  { key: 'month', priceCNY: 69.99, quotaUSD: 60, periodDays: 30 }
+]
+
+/**
+ * Anthropic's own consumer plan prices, for the landing-page comparison strip.
+ *
+ * These are typed in by hand on purpose. Anthropic publishes no pricing API,
+ * claude.com sends no CORS headers a browser fetch could use, and scraping the
+ * marketing page would break on the next redesign — so a wrong number would
+ * surface as a silently wrong comparison rather than a visible error. Static
+ * values with a stamped date keep the claim auditable.
+ *
+ * Verified 2026-08-13 against claude.com/pricing and the Max plan help article.
+ * Re-check before quoting these in any campaign.
+ */
+export const OFFICIAL_PLAN_PRICING_CHECKED_ON = '2026-08-13'
+
+/**
+ * USD -> CNY rate used only to render an indicative "≈ ¥N" next to the official
+ * USD prices. Nothing is charged in USD, so this never touches billing — it
+ * exists so a CNY-paying visitor can compare like with like.
+ */
+export const USD_TO_CNY_DISPLAY_RATE = 7.2
+
+export interface OfficialPlan {
+  key: string
+  /** Anthropic's list price, USD per month, billed monthly. */
+  priceUSD: number
+}
+
+export const OFFICIAL_PLANS: OfficialPlan[] = [
+  { key: 'pro', priceUSD: 20 },
+  { key: 'max5', priceUSD: 100 },
+  { key: 'max20', priceUSD: 200 }
 ]
 
 /**
