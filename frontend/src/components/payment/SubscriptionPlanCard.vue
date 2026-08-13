@@ -18,13 +18,13 @@
       <div class="mb-3 flex items-start justify-between gap-2">
         <div class="min-w-0 flex-1">
           <h3
-            :title="plan.name"
+            :title="planName"
             class="h-12 min-w-0 break-words [overflow-wrap:anywhere] text-base font-bold leading-6 text-gray-900 dark:text-white line-clamp-2"
           >
-            {{ plan.name }}
+            {{ planName }}
           </h3>
-          <p v-if="plan.description" class="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-dark-400 line-clamp-2">
-            {{ plan.description }}
+          <p v-if="planDescription" class="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-dark-400 line-clamp-2">
+            {{ planDescription }}
           </p>
         </div>
         <div class="shrink-0 text-right">
@@ -88,8 +88,8 @@
 
       <!-- Features list. Spacing grows with the card so a short feature list
            doesn't leave a block of dead space above the button. -->
-      <div v-if="plan.features.length > 0" class="mb-3 flex flex-1 flex-col justify-evenly gap-1 py-1">
-        <div v-for="feature in plan.features" :key="feature" class="flex items-start gap-1.5">
+      <div v-if="planFeatures.length > 0" class="mb-3 flex flex-1 flex-col justify-evenly gap-1 py-1">
+        <div v-for="feature in planFeatures" :key="feature" class="flex items-start gap-1.5">
           <svg :class="['mt-0.5 h-3.5 w-3.5 flex-shrink-0', iconClass]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
@@ -120,6 +120,7 @@ import { useAuthStore } from '@/stores/auth'
 import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import { isPlanOneShotQuota, planValiditySuffix, type PlanQuotaPeriod } from './validity'
 import { currencySymbol } from '@/components/payment/currency'
+import { pickPlanText } from '@/utils/planText'
 import {
   platformAccentBarClass,
   platformBadgeLightClass,
@@ -133,7 +134,15 @@ import {
 
 const props = defineProps<{ plan: SubscriptionPlan; activeSubscriptions?: UserSubscription[] }>()
 const emit = defineEmits<{ select: [plan: SubscriptionPlan] }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// Plan copy is operator-authored and stored per field, so i18n can't reach it.
+// planText.ts handles the `zh || en` convention admins use to write both.
+const planName = computed(() => pickPlanText(props.plan.name, locale.value))
+const planDescription = computed(() => pickPlanText(props.plan.description, locale.value))
+const planFeatures = computed(() =>
+  (props.plan.features || []).map((feature) => pickPlanText(feature, locale.value)).filter(Boolean)
+)
 
 const platform = computed(() => props.plan.group_platform || '')
 const isRenewal = computed(() =>

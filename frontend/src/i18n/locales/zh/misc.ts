@@ -568,6 +568,9 @@ export default {
       groupId: '分组 ID',
       features: '功能特性',
       featuresHint: '每行一个特性',
+      // 竖线是 vue-i18n 的复数分隔符，字面量必须写成 {'||'} 才能通过编译。
+      bilingualHint:
+        "双语文案：套餐名称、描述和特性可以用 {'||'} 分隔中英文（中文在前），站点会按访客当前语言显示对应的一半，例如「日卡 {'||'} Day Pass」。特性按行填写，每行各自分隔。不带分隔符的文案在两种语言下都原样显示。",
       featuresPlaceholder: '输入套餐特性...',
       providerManagement: '服务商管理',
       providerManagementDesc: '管理支付服务商实例',

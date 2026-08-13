@@ -1,6 +1,11 @@
 <template>
   <BaseDialog :show="show" :title="plan ? t('payment.admin.editPlan') : t('payment.admin.createPlan')" width="wide" @close="emit('close')">
     <form id="plan-form" @submit.prevent="handleSavePlan" class="space-y-4">
+      <!-- Plan copy is stored as plain text, so it can't go through i18n. The
+           `||` convention is how one field carries both languages. -->
+      <p class="rounded-lg bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-600 dark:bg-dark-800 dark:text-gray-400">
+        {{ t('payment.admin.bilingualHint') }}
+      </p>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="input-label">{{ t('payment.admin.planName') }} <span class="text-red-500">*</span></label>

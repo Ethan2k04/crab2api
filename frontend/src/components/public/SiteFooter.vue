@@ -25,7 +25,9 @@
               </router-link>
             </li>
             <li>
-              <router-link :to="{ path: publicPath('/'), hash: '#models' }" class="footer-link">
+              <!-- The landing page no longer lists models; the docs page's
+                   model table is where someone comparing ids ends up anyway. -->
+              <router-link :to="{ path: publicPath('/docs'), hash: '#models' }" class="footer-link">
                 {{ t('siteFooter.models') }}
               </router-link>
             </li>

@@ -75,20 +75,27 @@ export default {
       }
     },
 
-    demo: {
-      label: 'DEMO',
-      request: 'REQUEST',
-      response: 'RESPONSE',
-      client: 'Client',
-      gateway: 'Gateway',
-      upstream: 'Upstream',
-      yourApp: 'Your app',
-      routing: 'Routing',
-      status: 'Status',
-      latency: 'Latency',
-      tokens: 'Tokens',
-      model: 'Model',
-      verified: 'verified upstream'
+    // Claude Code demo terminal in the hero. `prompts` are typed out in order
+    // and follow the page language — keep the key set in step with PROMPT_KEYS
+    // in ClaudeCodeTerminal.vue.
+    terminal: {
+      cwd: '~/projects/my-app',
+      connected: 'Connected to Crab2API',
+      hint: '? for shortcuts',
+      working: 'Thinking',
+      done: 'Done',
+      doneDetail: 'Routed through Crab2API to an Anthropic upstream',
+      crabCoding: 'The crab is writing code',
+      crabIdle: 'The crab is idle',
+      crabYawning: 'The crab yawns',
+      crabThinking: 'The crab is thinking',
+      prompts: {
+        p1: 'Compare the annualised return of DCA into the Nasdaq vs the S&P 500',
+        p2: 'Design a minimal project page for this repo',
+        p3: 'Add a job that pushes new releases to my Telegram channel',
+        p4: 'Research LLM distillation and write it up as a .md report',
+        p5: 'Fix the flaky 401 on the login endpoint and add a regression test'
+      }
     },
 
     features: {
@@ -122,15 +129,46 @@ export default {
       }
     },
 
+    // The landing page swapped its model list for "what Claude Code can do";
+    // `tier` stays because the docs page's model table still uses it.
     models: {
-      title: 'Available models',
-      subtitle: 'The full pure-blood Claude line-up, nothing else.',
       tier: {
         flagship: 'Flagship',
         balanced: 'Balanced',
         fast: 'Fast'
+      }
+    },
+
+    useCases: {
+      title: 'What you can do with Claude Code',
+      subtitle: 'Not just autocomplete — hand over the whole job, from research to shipped code.',
+      items: {
+        data: {
+          title: 'Data & financial analysis',
+          desc: 'It pulls the data, writes and runs the script, plots the chart, then explains what the numbers actually mean.',
+          examples: {
+            e1: 'Compare the annualised return of DCA into the Nasdaq vs the S&P 500',
+            e2: 'Chart quarterly revenue from this CSV and flag the outlier months'
+          }
+        },
+        build: {
+          title: 'Design & build projects',
+          desc: 'From one sentence to working code: it reads your existing project, writes the implementation, adds tests, and iterates until they pass.',
+          examples: {
+            e1: 'Design a minimal, clean project page for this repo',
+            e2: 'Add a job that pushes new releases to my Telegram channel'
+          }
+        },
+        research: {
+          title: 'Research & literature review',
+          desc: 'Searches the web for current papers, cross-checks sources against each other, and writes it up as a structured report with citations.',
+          examples: {
+            e1: 'Research LLM distillation, find recent papers, and write a .md report',
+            e2: 'Compare the experimental setups in these three papers and list where they disagree'
+          }
+        }
       },
-      note: 'Model availability follows Anthropic upstream. New Claude releases are added as soon as our upstream accounts receive them.'
+      note: 'These are typical Claude Code workflows. This site only forwards your requests, unmodified, to a genuine Anthropic upstream — which client you use and what you build with it is entirely up to you.'
     },
 
     pricing: {

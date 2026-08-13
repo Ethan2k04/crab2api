@@ -75,20 +75,27 @@ export default {
       }
     },
 
-    demo: {
-      label: '演示',
-      request: '请求',
-      response: '响应',
-      client: '客户端',
-      gateway: '网关',
-      upstream: '上游',
-      yourApp: '你的应用',
-      routing: '路由',
-      status: '状态',
-      latency: '延迟',
-      tokens: 'Token',
-      model: '模型',
-      verified: '已验证上游'
+    // 首屏右侧的 Claude Code 演示终端。prompts 会按顺序循环打字，
+    // 语言跟随页面语言 —— 新增/删除条目时记得同步 ClaudeCodeTerminal.vue
+    // 里的 PROMPT_KEYS。
+    terminal: {
+      cwd: '~/projects/my-app',
+      connected: '已接入 Crab2API',
+      hint: '? 查看快捷键',
+      working: '思考中',
+      done: '完成',
+      doneDetail: '经 Crab2API 转发至 Anthropic 上游',
+      crabCoding: '螃蟹正在写代码',
+      crabIdle: '螃蟹待命中',
+      crabYawning: '螃蟹打了个哈欠',
+      crabThinking: '螃蟹在思考',
+      prompts: {
+        p1: '帮我分析纳斯达克和标普 500 定投的年化收益率',
+        p2: '帮我设计一个简约风格的 project page',
+        p3: '帮我实现自动推送到 Telegram 频道的功能',
+        p4: '调研大模型蒸馏技术，总结成一份 .md 报告',
+        p5: '修复登录接口偶发的 401，并补上回归测试'
+      }
     },
 
     features: {
@@ -122,15 +129,46 @@ export default {
       }
     },
 
+    // 落地页的模型清单已换成「能用 Claude Code 做什么」，
+    // tier 仍被文档页的模型表格使用，故保留。
     models: {
-      title: '可用模型',
-      subtitle: '完整的纯血 Claude 阵容，仅此而已。',
       tier: {
         flagship: '旗舰',
         balanced: '均衡',
         fast: '轻快'
+      }
+    },
+
+    useCases: {
+      title: '能用 Claude Code 做什么',
+      subtitle: '不只是补全代码——把整件事交给它，从调研到落地。',
+      items: {
+        data: {
+          title: '数据与金融分析',
+          desc: '拉取数据、跑计算、画图表，然后用人话把结论讲清楚，中间的脚本它自己写自己跑。',
+          examples: {
+            e1: '帮我分析纳斯达克和标普 500 定投的年化收益率',
+            e2: '把这份 CSV 的季度营收做成图表，并指出异常月份'
+          }
+        },
+        build: {
+          title: '项目设计与实现',
+          desc: '从一句话需求到能跑的代码：读懂现有项目结构，写实现、补测试、改到通过为止。',
+          examples: {
+            e1: '帮我设计一个简约风格的 project page',
+            e2: '帮我实现自动推送到 Telegram 频道的功能'
+          }
+        },
+        research: {
+          title: '科研与文献调研',
+          desc: '联网检索最新文献，交叉比对不同来源，最后整理成一份带引用的结构化报告。',
+          examples: {
+            e1: '调研大模型蒸馏技术，搜索最前沿的文献并总结成 .md 报告',
+            e2: '对比这三篇论文的实验设置，列出结论冲突的地方'
+          }
+        }
       },
-      note: '模型可用性跟随 Anthropic 上游。Claude 新版本在上游账号开放后会第一时间上架。'
+      note: '以上是 Claude Code 的典型用法。本站只负责把请求原样转发到真实的 Anthropic 上游——用什么客户端、做什么任务都由你决定。'
     },
 
     pricing: {

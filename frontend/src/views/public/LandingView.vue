@@ -18,7 +18,7 @@
   <PublicLayout v-else>
     <LandingHero />
     <LandingFeatures />
-    <LandingModels />
+    <LandingUseCases />
     <LandingPricing />
     <LandingFaq />
     <LandingCta />
@@ -37,7 +37,7 @@ import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/components/public/PublicLayout.vue'
 import LandingHero from '@/components/public/landing/LandingHero.vue'
 import LandingFeatures from '@/components/public/landing/LandingFeatures.vue'
-import LandingModels from '@/components/public/landing/LandingModels.vue'
+import LandingUseCases from '@/components/public/landing/LandingUseCases.vue'
 import LandingPricing from '@/components/public/landing/LandingPricing.vue'
 import LandingFaq from '@/components/public/landing/LandingFaq.vue'
 import LandingCta from '@/components/public/landing/LandingCta.vue'

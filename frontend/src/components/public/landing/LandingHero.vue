@@ -64,83 +64,8 @@
           </ul>
         </div>
 
-        <!-- Right: gateway trace panel -->
-        <div class="relative">
-          <div
-            class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-card dark:border-dark-700 dark:bg-dark-900"
-          >
-            <!-- panel head -->
-            <div
-              class="flex items-center justify-between border-b border-gray-200 px-4 py-2.5 dark:border-dark-700"
-            >
-              <span class="font-mono text-[11px] tracking-wider text-gray-400 dark:text-dark-400">
-                CRAB2API / {{ t('landing.demo.label') }}
-              </span>
-              <span class="flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full bg-primary-500"></span>
-                <span class="font-mono text-[11px] text-gray-400 dark:text-dark-400">
-                  {{ t('landing.demo.verified') }}
-                </span>
-              </span>
-            </div>
-
-            <!-- request line -->
-            <div class="border-b border-gray-200 px-4 py-3 dark:border-dark-700">
-              <div class="flex items-center justify-between gap-3">
-                <span class="font-mono text-xs text-gray-500 dark:text-dark-400">
-                  {{ t('landing.demo.request') }}
-                </span>
-                <code class="font-mono text-xs text-gray-800 dark:text-gray-100">
-                  POST /v1/messages
-                </code>
-                <span class="font-mono text-xs font-semibold text-primary-600 dark:text-primary-400">
-                  200 OK
-                </span>
-              </div>
-            </div>
-
-            <!-- pipeline -->
-            <div class="grid grid-cols-3 gap-px bg-gray-200 dark:bg-dark-700">
-              <div class="bg-white px-3 py-4 dark:bg-dark-900">
-                <p class="mono-label">01 / {{ t('landing.demo.client') }}</p>
-                <p class="mt-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                  {{ t('landing.demo.yourApp') }}
-                </p>
-                <p class="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-dark-400">
-                  sk-crab_••••
-                </p>
-              </div>
-              <div class="bg-primary-500 px-3 py-4">
-                <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-white/70">
-                  02 / {{ t('landing.demo.gateway') }}
-                </p>
-                <p class="mt-1.5 text-sm font-medium text-white">Crab2API</p>
-                <p class="mt-0.5 font-mono text-[11px] text-white/70">claude-only</p>
-              </div>
-              <div class="bg-white px-3 py-4 dark:bg-dark-900">
-                <p class="mono-label">03 / {{ t('landing.demo.upstream') }}</p>
-                <p class="mt-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                  claude-opus-4-6
-                </p>
-                <p class="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-dark-400">
-                  Anthropic
-                </p>
-              </div>
-            </div>
-
-            <!-- metrics -->
-            <div
-              class="grid grid-cols-2 gap-px border-t border-gray-200 bg-gray-200 sm:grid-cols-4 dark:border-dark-700 dark:bg-dark-700"
-            >
-              <div v-for="metric in metrics" :key="metric.label" class="bg-white px-3 py-3 dark:bg-dark-900">
-                <p class="mono-label">{{ metric.label }}</p>
-                <p class="mt-1 font-mono text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ metric.value }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Right: live-looking Claude Code session -->
+        <ClaudeCodeTerminal />
       </div>
     </div>
   </section>
@@ -150,6 +75,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BrandLogo from '@/components/brand/BrandLogo.vue'
+import ClaudeCodeTerminal from '@/components/public/landing/ClaudeCodeTerminal.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { usePublicLocale } from '@/composables/usePublicLocale'
 import { useAppStore } from '@/stores'
@@ -165,13 +91,5 @@ const badges = computed(() => [
   t('landing.hero.badges.oneKey'),
   t('landing.hero.badges.claudeOnly'),
   t('landing.hero.badges.anthropicCompatible')
-])
-
-// Illustrative figures for the demo panel — not live telemetry.
-const metrics = computed(() => [
-  { label: t('landing.demo.status'), value: '200 OK' },
-  { label: t('landing.demo.latency'), value: '0.94 s' },
-  { label: t('landing.demo.tokens'), value: '1,284' },
-  { label: t('landing.demo.model'), value: 'opus-4-6' }
 ])
 </script>

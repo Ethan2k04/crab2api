@@ -155,6 +155,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { paymentAPI, type PublicSubscriptionPlan } from '@/api/payment'
 import { currencySymbol, formatPaymentAmount } from '@/components/payment/currency'
+import { pickPlanLines, pickPlanText } from '@/utils/planText'
 import {
   FALLBACK_PLANS,
   OFFICIAL_PLANS,
@@ -203,18 +204,17 @@ function periodLabel(days: number): string {
 const liveCards = computed<PlanCard[]>(() =>
   livePlans.value.map((plan, index) => ({
     key: `live-${plan.id}`,
-    name: plan.name,
-    description: plan.description,
+    // Plan copy is operator-authored, so i18n can't reach it — see planText.ts
+    // for the `zh || en` convention that keeps these cards bilingual.
+    name: pickPlanText(plan.name, locale.value),
+    description: pickPlanText(plan.description, locale.value),
     priceDisplay: formatPaymentAmount(plan.price, plan.currency, locale.value),
     originalPriceDisplay:
       typeof plan.original_price === 'number' && plan.original_price > plan.price
         ? formatPaymentAmount(plan.original_price, plan.currency, locale.value)
         : '',
     periodLabel: periodLabel(plan.validity_days),
-    features: String(plan.features || '')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean),
+    features: pickPlanLines(plan.features, locale.value),
     // Highlight the middle card when there are three or more plans.
     featured: livePlans.value.length >= 3 ? index === 1 : index === 0,
     // The purchase page opens on the balance tab by default; ?tab=subscription

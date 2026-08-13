@@ -544,6 +544,10 @@ export default {
       groupId: 'Group ID',
       features: 'Features',
       featuresHint: 'One feature per line',
+      // The pipe is vue-i18n's plural separator, so a literal one must be
+      // written as {'||'} for the message to compile.
+      bilingualHint:
+        "Bilingual copy: in the name, description and features, separate Chinese and English with {'||'} (Chinese first) and the site shows the half matching the visitor's language — for example \"日卡 {'||'} Day Pass\". Features are per line, each with its own separator. Text without a separator is shown as-is in both languages.",
       featuresPlaceholder: 'Enter plan features...',
       providerManagement: 'Provider Management',
       providerManagementDesc: 'Manage payment provider instances',
