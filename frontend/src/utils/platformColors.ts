@@ -105,7 +105,10 @@ const ICON_DEFAULT = 'text-primary-500 dark:text-primary-400'
 
 // ── Button (solid bg) ───────────────────────────────────────────────
 const BUTTON: Record<Platform, string> = {
-  anthropic: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-500',
+  // No dark: override — SiteHeader's "控制台" nav pill uses plain bg-primary-500
+  // in both themes, so buttons need the same fixed shade to read as one color
+  // rather than going duller than the header in dark mode.
+  anthropic: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700',
   openai: 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800 dark:bg-green-600/80 dark:hover:bg-green-600',
   antigravity: 'bg-purple-500 text-white hover:bg-purple-600 active:bg-purple-700 dark:bg-purple-500/80 dark:hover:bg-purple-500',
   gemini: 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 dark:bg-blue-500/80 dark:hover:bg-blue-500',
