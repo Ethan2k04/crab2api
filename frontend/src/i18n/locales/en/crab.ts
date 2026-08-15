@@ -207,7 +207,7 @@ export default {
           name: 'Day Pass',
           desc: 'Try the service, or top up mid-crunch.',
           features: {
-            f1: '$5 allowance, billed at upstream rates',
+            f1: '$10 allowance, billed at upstream rates',
             f2: 'Valid 24 hours from purchase',
             f3: 'Every pure-blood Claude model',
             f4: 'Buy another the moment it runs out'
@@ -217,7 +217,7 @@ export default {
           name: 'Week Pass',
           desc: "A week of everyday coding — the usual pick.",
           features: {
-            f1: '$20 allowance, billed at upstream rates',
+            f1: '$30 allowance, billed at upstream rates',
             f2: 'Valid 7 days from purchase',
             f3: 'Every pure-blood Claude model',
             f4: 'Buy another the moment it runs out'

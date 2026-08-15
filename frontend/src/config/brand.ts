@@ -58,9 +58,10 @@ export const ADVERTISED_MODELS: AdvertisedModel[] = [
  * These render only when payment is disabled or the endpoint is unreachable, so
  * the pricing section never collapses into an empty state.
  *
- * Keep these in step with `backend/migrations/221_crab2api_subscription_tiers.sql`,
- * which seeds the real plans. Copy lives in i18n under `landing.pricing.plans.*`
- * so the fallback stays bilingual.
+ * Keep these in step with the seeded plans — `221_crab2api_subscription_tiers.sql`
+ * creates them, `222_crab2api_tier_price_bump.sql` sets the prices and
+ * `224_crab2api_quota_bump.sql` sets the allowances. Copy lives in i18n under
+ * `landing.pricing.plans.*` so the fallback stays bilingual.
  */
 export interface FallbackPlan {
   key: string
@@ -74,8 +75,8 @@ export interface FallbackPlan {
 }
 
 export const FALLBACK_PLANS: FallbackPlan[] = [
-  { key: 'day', priceCNY: 6.99, quotaUSD: 5, periodDays: 1 },
-  { key: 'week', priceCNY: 29.99, quotaUSD: 20, periodDays: 7, featured: true },
+  { key: 'day', priceCNY: 6.99, quotaUSD: 10, periodDays: 1 },
+  { key: 'week', priceCNY: 29.99, quotaUSD: 30, periodDays: 7, featured: true },
   { key: 'month', priceCNY: 69.99, quotaUSD: 60, periodDays: 30 }
 ]
 

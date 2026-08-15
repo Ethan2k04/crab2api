@@ -103,7 +103,7 @@
                   <span :class="['rounded-md border px-2 py-0.5 text-xs font-medium', planBadgeClass]">
                     {{ platformLabel(selectedPlan.group_platform || '') }}
                   </span>
-                  <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedPlan.name }}</h3>
+                  <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedPlanName }}</h3>
                 </div>
                 <!-- Price -->
                 <div class="flex items-baseline gap-2">
@@ -114,8 +114,8 @@
                   <span class="text-sm text-gray-500 dark:text-gray-400">/ {{ planValiditySuffix }}</span>
                 </div>
                 <!-- Description -->
-                <p v-if="selectedPlan.description" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-                  {{ selectedPlan.description }}
+                <p v-if="selectedPlanDescription" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                  {{ selectedPlanDescription }}
                 </p>
                 <!-- Rate + Limits grid. Rate multipliers stay admin-only. -->
                 <div class="mt-3 grid grid-cols-2 gap-3">
@@ -260,6 +260,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
+import { pickPlanText } from '@/utils/planText'
 import { usePaymentStore } from '@/stores/payment'
 import { useSubscriptionStore } from '@/stores/subscriptions'
 import { useAppStore } from '@/stores'
@@ -309,8 +311,11 @@ const appStore = useAppStore()
 const user = computed(() => authStore.user)
 const activeSubscriptions = computed(() => subscriptionStore.activeSubscriptions)
 
-/** Rate multipliers are an operator-side pricing knob, not customer-facing. */
-const canSeeRateMultiplier = computed(() => authStore.isAdmin)
+/**
+ * Rate multipliers are an operator-side pricing knob, not customer-facing —
+ * and this page *is* the customer-facing surface even when an admin opens it.
+ */
+const canSeeRateMultiplier = useRateMultiplierVisible()
 
 /**
  * A limit whose window outlives the plan's term never resets inside that term —
@@ -593,6 +598,17 @@ const localeCode = computed(() => {
   }
   return undefined
 })
+
+/**
+ * Plan copy is operator-authored and stored per field, so i18n can't reach it.
+ * Admins write both languages into one field as `中文 || English`; rendering it
+ * raw made the checkout header read "日卡 || Day Pass" in every locale.
+ * Same convention the plan cards use — see utils/planText.ts.
+ */
+const selectedPlanName = computed(() => pickPlanText(selectedPlan.value?.name, localeCode.value))
+const selectedPlanDescription = computed(() =>
+  pickPlanText(selectedPlan.value?.description, localeCode.value)
+)
 
 function currencyFractionDigits(currency: string): number {
   try {

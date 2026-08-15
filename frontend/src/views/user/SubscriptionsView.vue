@@ -245,11 +245,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
+import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import subscriptionsAPI from '@/api/subscriptions'
 import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -268,7 +268,7 @@ import {
 
 function platformAccentDotClass(p: string): string {
   switch (p) {
-    case 'anthropic': return 'bg-orange-500'
+    case 'anthropic': return 'bg-primary-500'
     case 'openai': return 'bg-emerald-500'
     case 'antigravity': return 'bg-purple-500'
     case 'gemini': return 'bg-blue-500'
@@ -279,10 +279,12 @@ function platformAccentDotClass(p: string): string {
 const { t } = useI18n()
 const router = useRouter()
 const appStore = useAppStore()
-const authStore = useAuthStore()
 
-/** Rate multipliers are an operator-side pricing knob, not customer-facing. */
-const canSeeRateMultiplier = computed(() => authStore.isAdmin)
+/**
+ * Rate multipliers are an operator-side pricing knob, not customer-facing —
+ * and this page *is* the customer-facing surface even when an admin opens it.
+ */
+const canSeeRateMultiplier = useRateMultiplierVisible()
 
 const subscriptions = ref<UserSubscription[]>([])
 const loading = ref(true)

@@ -29,15 +29,19 @@ export const PLAN_TEXT_SEPARATOR = '||'
  * Falls back to the other language when the requested half is missing, since a
  * half-filled field should degrade to showing *something* rather than blanking
  * a plan name on the pricing page.
+ *
+ * `locale` is tolerant of null/undefined for callers that hold it as an
+ * optional (a view may keep the locale only to hand to `Intl`, which is happy
+ * to be given nothing); an absent locale reads as "not Chinese".
  */
-export function pickPlanText(raw: string | null | undefined, locale: string): string {
+export function pickPlanText(raw: string | null | undefined, locale: string | null | undefined): string {
   const text = String(raw ?? '').trim()
   if (!text.includes(PLAN_TEXT_SEPARATOR)) return text
 
   const parts = text.split(PLAN_TEXT_SEPARATOR)
   const zh = (parts[0] ?? '').trim()
   const en = (parts[1] ?? '').trim()
-  const preferred = locale.toLowerCase().startsWith('zh') ? zh : en
+  const preferred = String(locale ?? '').toLowerCase().startsWith('zh') ? zh : en
 
   return preferred || zh || en
 }
@@ -46,7 +50,7 @@ export function pickPlanText(raw: string | null | undefined, locale: string): st
  * Split a newline-delimited field (i.e. `features`) into localized lines,
  * dropping blanks so a trailing newline doesn't render an empty bullet.
  */
-export function pickPlanLines(raw: string | null | undefined, locale: string): string[] {
+export function pickPlanLines(raw: string | null | undefined, locale: string | null | undefined): string[] {
   return String(raw ?? '')
     .split('\n')
     .map((line) => pickPlanText(line, locale))

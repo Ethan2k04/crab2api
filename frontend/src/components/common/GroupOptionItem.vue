@@ -64,14 +64,13 @@ import { useI18n } from 'vue-i18n'
 import GroupBadge from './GroupBadge.vue'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
+import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 
 const { t } = useI18n()
 
-const authStore = useAuthStore()
-/** 倍率只对管理员可见 —— 与 GroupBadge 保持同一条规则。 */
-const canSeeRate = computed(() => authStore.isAdmin)
+/** 倍率只在管理后台页面可见 —— 与 GroupBadge 保持同一条规则。 */
+const canSeeRate = useRateMultiplierVisible()
 
 interface Props {
   name: string

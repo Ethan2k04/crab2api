@@ -2,8 +2,17 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { createPinia } from "pinia";
 import { createI18n } from "vue-i18n";
+import { createMemoryHistory, createRouter } from "vue-router";
 import type { SubscriptionPlan } from "@/types/payment";
 import SubscriptionPlanCard from "../SubscriptionPlanCard.vue";
+
+// The card reads the current path to decide whether the rate multiplier is
+// visible (admin console only — see composables/useRateMultiplierVisible).
+// These cases are all about layout and copy, so any non-admin path will do.
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [{ path: "/:pathMatch(.*)*", component: { template: "<div />" } }],
+});
 
 const i18n = createI18n({
   legacy: false,
@@ -48,7 +57,7 @@ const mountPlanCard = (groupPlatform: string, overrides: Partial<SubscriptionPla
         ...overrides,
       },
     },
-    global: { plugins: [i18n, createPinia()] },
+    global: { plugins: [i18n, createPinia(), router] },
   });
 
 describe("SubscriptionPlanCard", () => {

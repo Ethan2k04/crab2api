@@ -50,7 +50,8 @@
       <div class="mb-3 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-gray-50 px-3 py-2 text-xs dark:bg-dark-700/50">
         <!-- Rate multipliers are an operator-side pricing knob. Customers are
              billed in dollars of usage and never need to see the multiplier,
-             so both rate rows are admin-only. -->
+             so both rate rows only render on admin console pages — including
+             for an admin, who sees this same card on the purchase page. -->
         <div v-if="canSeeRateMultiplier" class="flex items-center justify-between">
           <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.rate') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">{{ rateDisplay }}</span>
@@ -116,7 +117,7 @@ import { useI18n } from 'vue-i18n'
 import type { SubscriptionPlan } from '@/types/payment'
 import type { UserSubscription } from '@/types'
 import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
+import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import { isPlanOneShotQuota, planValiditySuffix, type PlanQuotaPeriod } from './validity'
 import { currencySymbol } from '@/components/payment/currency'
@@ -171,14 +172,13 @@ const rateDisplay = computed(() => {
 })
 
 const appStore = useAppStore()
-const authStore = useAuthStore()
-const canSeeRateMultiplier = computed(() => authStore.isAdmin)
+const canSeeRateMultiplier = useRateMultiplierVisible()
 const planCurrencySymbol = computed(() => currencySymbol(props.plan.currency || 'USD'))
 
 /**
  * A limit whose window is longer than the plan's term never resets inside that
  * term — it is the total allowance, not a recurring one. Calling a day pass's
- * $5 a "monthly limit" implies a renewal the pass will never reach.
+ * $10 a "monthly limit" implies a renewal the pass will never reach.
  */
 function quotaLabel(period: PlanQuotaPeriod): string {
   if (isPlanOneShotQuota(props.plan, period)) return t('payment.planCard.totalQuota')

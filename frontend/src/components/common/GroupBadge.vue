@@ -31,7 +31,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
-import { useAuthStore } from '@/stores/auth'
+import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import PlatformIcon from './PlatformIcon.vue'
 
@@ -68,15 +68,13 @@ const { t } = useI18n()
 
 const isSubscription = computed(() => props.subscriptionType === 'subscription')
 
-const authStore = useAuthStore()
-
 /**
- * 倍率是运营侧的计价旋钮：只有管理员配置、也只有管理员该看到。
- * 普通用户看到的应该是实际扣减的美元用量，而不是换算系数。
- * 这里在共用组件里统一收口，所有引用它的页面（API 密钥、模型广场、
- * 账号分组等）一次生效。
+ * 倍率是运营侧的计价旋钮：只在管理后台页面展示。
+ * 用户（包括以管理员身份浏览自己控制台的人）看到的应该是实际扣减的美元用量，
+ * 而不是换算系数。这里在共用组件里统一收口，所有引用它的页面（API 密钥、
+ * 模型广场、账号分组等）一次生效。
  */
-const canSeeRate = computed(() => authStore.isAdmin)
+const canSeeRate = useRateMultiplierVisible()
 
 // 是否有专属倍率（且与默认倍率不同）
 const hasCustomRate = computed(() => {
@@ -162,7 +160,7 @@ const labelClass = computed(() => {
 
   // 正常状态或无天数：根据平台显示主题色
   if (props.platform === 'anthropic') {
-    return `${base} bg-orange-200/60 text-orange-800 dark:bg-orange-800/40 dark:text-orange-300`
+    return `${base} bg-primary-200/70 text-primary-800 dark:bg-primary-800/50 dark:text-primary-200`
   }
   if (props.platform === 'openai') {
     return `${base} bg-emerald-200/60 text-emerald-800 dark:bg-emerald-800/40 dark:text-emerald-300`
@@ -189,10 +187,10 @@ const peakRateClass = computed(() => {
 // Badge color based on platform and subscription type
 const badgeClass = computed(() => {
   if (props.platform === 'anthropic') {
-    // Claude: orange theme
+    // Claude: clay theme (primary), matching the brand rather than stock orange
     return isSubscription.value
-      ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-      : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
+      : 'bg-primary-50 text-primary-700 dark:bg-primary-900/25 dark:text-primary-300'
   } else if (props.platform === 'openai') {
     // OpenAI: green theme
     return isSubscription.value
