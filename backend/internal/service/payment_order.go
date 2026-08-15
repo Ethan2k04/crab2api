@@ -114,8 +114,22 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	return resp, nil
 }
 
+// alphaBalanceRechargeSuspended withholds pre-paid balance top-up for the
+// alpha, during which subscription passes are the only thing on sale.
+//
+// Deliberately separate from cfg.BalanceDisabled: that is the operator's own
+// permanent switch, and overloading it would mean an admin who later turns
+// top-up on reopens it before the alpha is over. The frontend hides the
+// top-up form behind the matching BALANCE_RECHARGE_SUSPENDED
+// (frontend/src/config/alphaGate.ts), but the form is not the boundary —
+// POST /payment/orders with order_type=balance needs no plan id at all.
+//
+// TO RESTORE TOP-UP: set this to false, and clear BALANCE_RECHARGE_SUSPENDED
+// in frontend/src/config/alphaGate.ts.
+const alphaBalanceRechargeSuspended = true
+
 func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrderRequest, cfg *PaymentConfig) (*dbent.SubscriptionPlan, error) {
-	if req.OrderType == payment.OrderTypeBalance && cfg.BalanceDisabled {
+	if req.OrderType == payment.OrderTypeBalance && (cfg.BalanceDisabled || alphaBalanceRechargeSuspended) {
 		return nil, infraerrors.Forbidden("BALANCE_PAYMENT_DISABLED", "balance recharge has been disabled")
 	}
 	if req.OrderType == payment.OrderTypeSubscription {

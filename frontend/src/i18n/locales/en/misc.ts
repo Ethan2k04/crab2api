@@ -426,6 +426,9 @@ export default {
     renewNow: 'Renew',
     /** Tiers withheld during the alpha — see config/alphaGate.ts */
     notYetAvailable: 'Not Yet Available',
+    /** Balance top-up withheld during the alpha — see config/alphaGate.ts */
+    rechargeSuspended: 'Balance top-up is not available yet',
+    rechargeSuspendedHint: 'Subscription plans are available in the meantime. Top-up opens with the public release.',
     selectPlan: 'Select Plan',
     planFeatures: 'Features',
     planCard: {

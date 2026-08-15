@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { isPlanSuspended, isSuspendedTerm, SUSPENDED_PLAN_TERM_DAYS } from '../alphaGate'
+import {
+  BALANCE_RECHARGE_SUSPENDED,
+  isPlanSuspended,
+  isSuspendedTerm,
+  SUSPENDED_PLAN_TERM_DAYS,
+} from '../alphaGate'
 
 /**
  * These lock in *which* tiers the alpha withholds. When the month pass comes
@@ -37,5 +42,9 @@ describe('alpha plan gate', () => {
     expect(isPlanSuspended(null)).toBe(false)
     expect(isPlanSuspended(undefined)).toBe(false)
     expect(isSuspendedTerm(0)).toBe(false)
+  })
+
+  it('withholds balance top-up', () => {
+    expect(BALANCE_RECHARGE_SUSPENDED).toBe(true)
   })
 })

@@ -4,6 +4,8 @@ import PaymentView from '../PaymentView.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
 import { formatPaymentAmount } from '@/components/payment/currency'
 import SubscriptionPlanCard from '@/components/payment/SubscriptionPlanCard.vue'
+import AmountInput from '@/components/payment/AmountInput.vue'
+import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector.vue'
 import type { CheckoutInfoResponse, MethodLimit, SubscriptionPlan } from '@/types/payment'
 
 const routeState = vi.hoisted(() => ({
@@ -295,8 +297,59 @@ describe('PaymentView subscription plan grid', () => {
   })
 })
 
+async function mountRechargeTab() {
+  vi.useRealTimers()
+  routeState.path = '/purchase'
+  routeState.query = { tab: 'recharge' }
+  routerReplace.mockReset().mockResolvedValue(undefined)
+  routerPush.mockReset().mockResolvedValue(undefined)
+  routerResolve.mockClear()
+  createOrder.mockReset()
+  refreshUser.mockReset()
+  fetchActiveSubscriptions.mockReset().mockResolvedValue(undefined)
+  showError.mockReset()
+  showInfo.mockReset()
+  showWarning.mockReset()
+  getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoWithPlansFixture())
+  bridgeInvoke.mockReset()
+  window.localStorage.clear()
+  ;(window as Window & { WeixinJSBridge?: { invoke: typeof bridgeInvoke } }).WeixinJSBridge = undefined
+
+  const wrapper = shallowMount(PaymentView, {
+    global: {
+      stubs: {
+        AppLayout: { template: '<div><slot /></div>' },
+        Teleport: true,
+        Transition: false,
+      },
+    },
+  })
+  await flushPromises()
+  await flushPromises()
+  return wrapper
+}
+
 // Alpha gate (config/alphaGate.ts). Delete this block when the month pass
 // returns and SUSPENDED_PLAN_TERM_DAYS empties out.
+describe('PaymentView withheld top-up', () => {
+  it('explains the withheld top-up instead of rendering the amount form', async () => {
+    const wrapper = await mountRechargeTab()
+    const text = wrapper.text()
+
+    expect(text).toContain('payment.rechargeSuspended')
+    // The three pieces of the top-up flow must all be gone, not just the button.
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(false)
+    expect(wrapper.findComponent(PaymentMethodSelector).exists()).toBe(false)
+    expect(wrapper.findAll('button').some(button => button.text().includes('payment.createOrder'))).toBe(false)
+  })
+
+  it('keeps the top-up tab reachable so the explanation can be found', async () => {
+    const wrapper = await mountRechargeTab()
+
+    expect(wrapper.findAll('button').some(button => button.text() === 'payment.tabTopUp')).toBe(true)
+  })
+})
+
 describe('PaymentView withheld tiers', () => {
   it('does not open checkout for a withheld tier deep-linked by ?group=', async () => {
     const wrapper = await mountSubscriptionConfirm({

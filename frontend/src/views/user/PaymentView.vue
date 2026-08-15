@@ -35,6 +35,14 @@
         <template v-else>
           <!-- Top-up Tab -->
           <template v-if="activeTab === 'recharge'">
+            <!-- Withheld for the alpha (config/alphaGate.ts). The tab stays where
+                 users expect it and explains itself, rather than vanishing —
+                 amounts, methods and the pay button are all withheld with it. -->
+            <div v-if="rechargeSuspended" class="card py-16 text-center">
+              <p class="text-base font-medium text-gray-700 dark:text-gray-200">{{ t('payment.rechargeSuspended') }}</p>
+              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ t('payment.rechargeSuspendedHint') }}</p>
+            </div>
+            <template v-else>
             <!-- Recharge Account Card -->
             <div class="card p-5">
               <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
@@ -91,6 +99,7 @@
               </span>
               <span v-else>{{ t('payment.createOrder') }} {{ formatSelectedPaymentAmount(totalAmount) }}</span>
             </button>
+            </template>
             </template>
           </template>
           <!-- Subscribe Tab -->
@@ -262,7 +271,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import { pickPlanText } from '@/utils/planText'
-import { isPlanSuspended } from '@/config/alphaGate'
+import { isPlanSuspended, BALANCE_RECHARGE_SUSPENDED } from '@/config/alphaGate'
 import { usePaymentStore } from '@/stores/payment'
 import { useSubscriptionStore } from '@/stores/subscriptions'
 import { useAppStore } from '@/stores'
@@ -687,8 +696,12 @@ const amountError = computed(() => {
   return ''
 })
 
+/** Balance top-up is withheld for the alpha — see config/alphaGate.ts */
+const rechargeSuspended = BALANCE_RECHARGE_SUSPENDED
+
 const canSubmit = computed(() =>
-  validAmount.value > 0
+  !rechargeSuspended
+    && validAmount.value > 0
     && amountFitsMethod(validAmount.value, selectedMethod.value)
     && selectedLimit.value?.available !== false
 )

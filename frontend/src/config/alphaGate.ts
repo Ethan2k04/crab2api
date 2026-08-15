@@ -1,5 +1,12 @@
 /**
- * Alpha-only plan suspension.
+ * Alpha-only sales gates.
+ *
+ * Two things are withheld during the alpha: the month pass, and balance
+ * top-up. Both come back for the public release, so nothing is deleted —
+ * the plan, the group, the balance ledger and every backend path stay exactly
+ * as they are and are simply refused at the door.
+ *
+ * -- 1. The month pass --
  *
  * During the alpha we sell the day and week passes only. The month pass stays
  * in the database, stays on sale (`for_sale = true`) and keeps its price, so it
@@ -46,3 +53,18 @@ export function isPlanSuspended(
   if (!plan) return false
   return isSuspendedTerm(planTermDays(plan))
 }
+
+/**
+ * Whether pre-paid balance top-up is withheld for the alpha.
+ *
+ * Deliberately *not* the existing `balance_disabled` admin setting, which is
+ * the operator's own permanent switch and hides the top-up tab outright. This
+ * is a separate, temporary alpha state: the tab stays where users expect it
+ * and explains itself, and flipping this back does not disturb whatever the
+ * operator has configured.
+ *
+ * TO RESTORE TOP-UP: set this to false. The matching backend guard is
+ * `alphaBalanceRechargeSuspended` in
+ * `backend/internal/service/payment_order.go`; both must be cleared.
+ */
+export const BALANCE_RECHARGE_SUSPENDED = true
