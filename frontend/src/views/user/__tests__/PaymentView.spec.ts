@@ -131,7 +131,10 @@ function checkoutInfoWithPlansFixture(options: {
     description: '',
     price: 128,
     original_price: 0,
-    validity_days: 30,
+    // A week term on purpose: the 30-day tier is withheld during the alpha
+    // (config/alphaGate.ts) and would never reach the confirm panel these
+    // cases assert on. Nothing here depends on the term itself.
+    validity_days: 7,
     validity_unit: 'day',
     rate_multiplier: 1,
     daily_limit_usd: null,
@@ -289,6 +292,30 @@ describe('PaymentView subscription plan grid', () => {
       'sm:grid-cols-2',
       'lg:grid-cols-3',
     ]))
+  })
+})
+
+// Alpha gate (config/alphaGate.ts). Delete this block when the month pass
+// returns and SUSPENDED_PLAN_TERM_DAYS empties out.
+describe('PaymentView withheld tiers', () => {
+  it('does not open checkout for a withheld tier deep-linked by ?group=', async () => {
+    const wrapper = await mountSubscriptionConfirm({
+      plan: { validity_days: 30, validity_unit: 'day', price: 128 },
+    })
+
+    // The confirm panel is what a purchasable plan renders; the pay button
+    // carrying the amount is its unmistakable marker.
+    const payAmount = formatPaymentAmount(128, 'CNY')
+    expect(wrapper.findAll('button').some(button => button.text().includes(payAmount))).toBe(false)
+  })
+
+  it('still opens checkout for a purchasable tier deep-linked the same way', async () => {
+    const wrapper = await mountSubscriptionConfirm({
+      plan: { validity_days: 7, validity_unit: 'day', price: 128 },
+    })
+
+    const payAmount = formatPaymentAmount(128, 'CNY')
+    expect(wrapper.findAll('button').some(button => button.text().includes(payAmount))).toBe(true)
   })
 })
 

@@ -126,7 +126,17 @@
               </li>
             </ul>
 
+            <!-- Suspended tiers render the same card with an inert action, so
+                 the price stays visible without offering a dead link into the
+                 console — see config/alphaGate.ts -->
+            <span
+              v-if="card.suspended"
+              class="mt-7 inline-flex h-10 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100 text-sm font-medium text-gray-400 dark:bg-dark-800 dark:text-dark-500"
+            >
+              {{ t('payment.notYetAvailable') }}
+            </span>
             <router-link
+              v-else
               :to="card.href"
               class="mt-7 inline-flex h-10 items-center justify-center rounded-xl text-sm font-medium transition-colors"
               :class="
@@ -156,6 +166,7 @@ import Icon from '@/components/icons/Icon.vue'
 import { paymentAPI, type PublicSubscriptionPlan } from '@/api/payment'
 import { currencySymbol, formatPaymentAmount } from '@/components/payment/currency'
 import { pickPlanLines, pickPlanText } from '@/utils/planText'
+import { isPlanSuspended, isSuspendedTerm } from '@/config/alphaGate'
 import {
   FALLBACK_PLANS,
   OFFICIAL_PLANS,
@@ -177,6 +188,8 @@ interface PlanCard {
   periodDays: number
   /** Numeric price in CNY, for arithmetic the display string can't do. */
   priceCNY: number
+  /** Withheld for the alpha — shown, but not purchasable. */
+  suspended: boolean
 }
 
 const { t, locale } = useI18n()
@@ -222,7 +235,8 @@ const liveCards = computed<PlanCard[]>(() =>
     // need its group id, which the public endpoint deliberately withholds.
     href: PURCHASE_PATH,
     periodDays: plan.validity_days,
-    priceCNY: plan.currency === 'CNY' ? plan.price : 0
+    priceCNY: plan.currency === 'CNY' ? plan.price : 0,
+    suspended: isPlanSuspended(plan)
   }))
 )
 
@@ -240,7 +254,9 @@ const fallbackCards = computed<PlanCard[]>(() =>
     featured: plan.featured === true,
     href: PURCHASE_PATH,
     periodDays: plan.periodDays,
-    priceCNY: plan.priceCNY
+    priceCNY: plan.priceCNY,
+    // Fallback tiers are declared directly in days, so no unit to resolve.
+    suspended: isSuspendedTerm(plan.periodDays)
   }))
 )
 

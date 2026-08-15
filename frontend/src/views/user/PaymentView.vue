@@ -262,6 +262,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
 import { pickPlanText } from '@/utils/planText'
+import { isPlanSuspended } from '@/config/alphaGate'
 import { usePaymentStore } from '@/stores/payment'
 import { useSubscriptionStore } from '@/stores/subscriptions'
 import { useAppStore } from '@/stores'
@@ -731,6 +732,7 @@ const subMethodOptions = computed<PaymentMethodOption[]>(() => {
 
 const canSubmitSubscription = computed(() =>
   selectedPlan.value !== null
+    && !isPlanSuspended(selectedPlan.value)
     && amountFitsMethod(subTotalAmount.value, selectedMethod.value)
     && selectedLimit.value?.available !== false
 )
@@ -779,11 +781,15 @@ function planPeakRateLabel(plan: SubscriptionPlan): string {
 }
 
 function selectPlan(plan: SubscriptionPlan) {
+  // The card's button is already inert for suspended tiers; this is the guard
+  // for every other way a plan can land here (deep links, payment resume).
+  if (isPlanSuspended(plan)) return
   selectedPlan.value = plan
   errorMessage.value = ''
 }
 
 function selectPlanFromModal(plan: SubscriptionPlan) {
+  if (isPlanSuspended(plan)) return
   showRenewalModal.value = false
   renewGroupId.value = null
   selectedPlan.value = plan
@@ -1114,7 +1120,11 @@ async function resumeWechatPaymentFromQuery() {
     amount.value = resume.orderAmount
   }
   if (resume.orderType === 'subscription' && resume.planId) {
-    selectedPlan.value = checkout.value.plans.find(plan => plan.id === resume.planId) ?? null
+    const resumed = checkout.value.plans.find(plan => plan.id === resume.planId) ?? null
+    // A payment started before this tier was withheld must not restore into a
+    // purchasable state. The backend rejects it too (PLAN_NOT_AVAILABLE); this
+    // just avoids showing a confirm panel that can never submit.
+    selectedPlan.value = resumed && isPlanSuspended(resumed) ? null : resumed
   }
 
   await router.replace({ path: route.path, query: stripWechatResumeQuery(route.query) })
@@ -1186,7 +1196,9 @@ onMounted(async () => {
       activeTab.value = 'subscription'
       if (route.query.group) {
         const groupId = Number(route.query.group)
-        const groupPlans = checkout.value.plans.filter(p => p.group_id === groupId)
+        // ?group= is how the "续费" buttons deep-link in. Drop withheld tiers so
+        // a renewal link for a suspended plan lands on the list, not a checkout.
+        const groupPlans = checkout.value.plans.filter(p => p.group_id === groupId && !isPlanSuspended(p))
         if (groupPlans.length === 1) {
           selectedPlan.value = groupPlans[0]
         } else if (groupPlans.length > 1) {

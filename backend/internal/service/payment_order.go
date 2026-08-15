@@ -131,12 +131,46 @@ func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrder
 	return nil, nil
 }
 
+// alphaSuspendedPlanTermDays lists plan term lengths, in days, that cannot be
+// bought during the alpha — [30] is the month pass.
+//
+// The frontend greys out these tiers (see frontend/src/config/alphaGate.ts),
+// but the button is not the boundary: a plan id is all it takes to POST
+// /payment/orders directly, so the rule has to hold here too.
+//
+// Matching on term rather than plan id keeps dev, staging and production in
+// step without a per-environment id, and leaves the plan itself untouched —
+// it stays in the database, stays for_sale, keeps rendering on the pricing
+// page. Nothing has to be recreated when the alpha ends.
+//
+// TO RESTORE THE MONTH PASS: empty this slice, and clear
+// SUSPENDED_PLAN_TERM_DAYS in frontend/src/config/alphaGate.ts.
+var alphaSuspendedPlanTermDays = []int{30}
+
+func alphaPlanSuspended(plan *dbent.SubscriptionPlan) bool {
+	if plan == nil || len(alphaSuspendedPlanTermDays) == 0 {
+		return false
+	}
+	// Same conversion billing uses, so a plan stored as 1 "months" is caught
+	// exactly like one stored as 30 "days".
+	term := psComputeValidityDays(plan.ValidityDays, plan.ValidityUnit)
+	for _, suspended := range alphaSuspendedPlanTermDays {
+		if term == suspended {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *PaymentService) validateSubOrder(ctx context.Context, req CreateOrderRequest) (*dbent.SubscriptionPlan, error) {
 	if req.PlanID == 0 {
 		return nil, infraerrors.BadRequest("INVALID_INPUT", "subscription order requires a plan")
 	}
 	plan, err := s.configService.GetPlan(ctx, req.PlanID)
 	if err != nil || !plan.ForSale {
+		return nil, infraerrors.NotFound("PLAN_NOT_AVAILABLE", "plan not found or not for sale")
+	}
+	if alphaPlanSuspended(plan) {
 		return nil, infraerrors.NotFound("PLAN_NOT_AVAILABLE", "plan not found or not for sale")
 	}
 	group, err := s.groupRepo.GetByID(ctx, plan.GroupID)

@@ -99,13 +99,20 @@
       </div>
       <div v-else class="flex-1" />
 
-      <!-- Subscribe Button -->
+      <!-- Subscribe Button. Suspended tiers keep the card (price, allowance and
+           features stay readable) but the action is inert — see config/alphaGate.ts -->
       <button
         type="button"
-        :class="['w-full rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]', btnClass]"
-        @click="emit('select', plan)"
+        :disabled="suspended"
+        :class="[
+          'w-full rounded-xl py-2.5 text-sm font-semibold transition-all',
+          suspended
+            ? 'cursor-not-allowed bg-gray-200 text-gray-500 dark:bg-dark-700 dark:text-dark-400'
+            : ['active:scale-[0.98]', btnClass],
+        ]"
+        @click="suspended || emit('select', plan)"
       >
-        {{ isRenewal ? t('payment.renewNow') : t('payment.subscribeNow') }}
+        {{ suspended ? t('payment.notYetAvailable') : isRenewal ? t('payment.renewNow') : t('payment.subscribeNow') }}
       </button>
     </div>
   </div>
@@ -122,6 +129,7 @@ import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLa
 import { isPlanOneShotQuota, planValiditySuffix, type PlanQuotaPeriod } from './validity'
 import { currencySymbol } from '@/components/payment/currency'
 import { pickPlanText } from '@/utils/planText'
+import { isPlanSuspended } from '@/config/alphaGate'
 import {
   platformAccentBarClass,
   platformBadgeLightClass,
@@ -144,6 +152,9 @@ const planDescription = computed(() => pickPlanText(props.plan.description, loca
 const planFeatures = computed(() =>
   (props.plan.features || []).map((feature) => pickPlanText(feature, locale.value)).filter(Boolean)
 )
+
+/** Withheld for the alpha: card still renders, purchase action is dead. */
+const suspended = computed(() => isPlanSuspended(props.plan))
 
 const platform = computed(() => props.plan.group_platform || '')
 const isRenewal = computed(() =>

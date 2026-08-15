@@ -448,6 +448,8 @@ export default {
     },
     subscribeNow: '立即开通',
     renewNow: '续费',
+    /** Alpha 期间暂停销售的档位 —— 见 config/alphaGate.ts */
+    notYetAvailable: '暂未开通',
     selectPlan: '选择套餐',
     planFeatures: '功能特性',
     planCard: {

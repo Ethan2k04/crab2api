@@ -122,6 +122,9 @@ describe("SubscriptionPlanCard", () => {
       price: 123.45,
       currency: "USD",
       description: "Includes advanced models and priority support.",
+      // 7 days, not the fixture's 30: the 30-day tier is withheld during the
+      // alpha (config/alphaGate.ts), which relabels the action button.
+      validity_days: 7,
     });
     const title = wrapper.get("h3");
     const badge = wrapper.findAll("span").find((node) => node.text() === "OpenAI");
@@ -135,11 +138,34 @@ describe("SubscriptionPlanCard", () => {
       "items-center",
       "justify-end",
     ]));
-    expect(badge?.element.parentElement?.textContent).toContain("/ 30payment.days");
+    expect(badge?.element.parentElement?.textContent).toContain("/ 7payment.days");
     expect(badge?.element.parentElement?.parentElement?.classList).toContain("shrink-0");
     expect(price?.element.parentElement?.parentElement?.classList).toContain("shrink-0");
     expect(wrapper.get("p").text()).toBe("Includes advanced models and priority support.");
     expect(wrapper.get("button").text()).toBe("payment.subscribeNow");
+  });
+
+  // Alpha gate (config/alphaGate.ts). Delete these when the month pass returns.
+  it("renders a withheld tier with a dead, relabeled action button", async () => {
+    const wrapper = mountPlanCard("openai", { validity_days: 30, validity_unit: "day" });
+    const button = wrapper.get("button");
+
+    expect(button.text()).toBe("payment.notYetAvailable");
+    expect(button.attributes("disabled")).toBeDefined();
+
+    await button.trigger("click");
+    expect(wrapper.emitted("select")).toBeUndefined();
+  });
+
+  it("keeps a purchasable tier's action live", async () => {
+    const wrapper = mountPlanCard("openai", { validity_days: 7, validity_unit: "day" });
+    const button = wrapper.get("button");
+
+    expect(button.text()).toBe("payment.subscribeNow");
+    expect(button.attributes("disabled")).toBeUndefined();
+
+    await button.trigger("click");
+    expect(wrapper.emitted("select")).toHaveLength(1);
   });
 
   it("keeps short plan titles compact and aligned", () => {

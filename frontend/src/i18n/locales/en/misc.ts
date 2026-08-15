@@ -424,6 +424,8 @@ export default {
     },
     subscribeNow: 'Subscribe Now',
     renewNow: 'Renew',
+    /** Tiers withheld during the alpha — see config/alphaGate.ts */
+    notYetAvailable: 'Not Yet Available',
     selectPlan: 'Select Plan',
     planFeatures: 'Features',
     planCard: {
