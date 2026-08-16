@@ -453,7 +453,7 @@ export default {
      */
     renewNow: '重置',
     /** Alpha 期间暂停销售的档位 —— 见 config/alphaGate.ts */
-    notYetAvailable: '暂未开通',
+    notYetAvailable: '敬请期待',
     /** Alpha 期间暂停的余额充值 —— 见 config/alphaGate.ts */
     rechargeSuspended: '充值功能暂未开放',
     rechargeSuspendedHint: '你可以先购买订阅套餐。余额充值将在正式版开放。',

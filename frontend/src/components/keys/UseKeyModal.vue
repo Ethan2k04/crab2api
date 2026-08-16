@@ -369,8 +369,11 @@ const clientTabs = computed((): TabConfig[] => {
         { id: 'opencode', label: t('keys.useKeyModal.cliTabs.opencode'), icon: TerminalIcon }
       ]
     default:
+      // Own tab id (not 'codex') so it doesn't fall into the openai/grok Codex
+      // tabs' 2-way (unix/windows) shell tab set below — this one needs all 3.
       return [
         { id: 'claude', label: t('keys.useKeyModal.cliTabs.claudeCode'), icon: TerminalIcon },
+        { id: 'codex-claude', label: t('keys.useKeyModal.cliTabs.codexCli'), icon: TerminalIcon },
         { id: 'opencode', label: t('keys.useKeyModal.cliTabs.opencode'), icon: TerminalIcon }
       ]
   }
@@ -424,6 +427,9 @@ const platformDescription = computed(() => {
       }
       return t('keys.useKeyModal.grok.description')
     default:
+      if (activeClientTab.value === 'codex-claude') {
+        return t('keys.useKeyModal.codex.description')
+      }
       return t('keys.useKeyModal.description')
   }
 })
@@ -461,6 +467,9 @@ const platformNote = computed(() => {
       }
       return t('keys.useKeyModal.grok.note')
     default:
+      if (activeClientTab.value === 'codex-claude') {
+        return t('keys.useKeyModal.codex.note')
+      }
       return t('keys.useKeyModal.note')
   }
 })
@@ -549,6 +558,9 @@ const currentFiles = computed((): FileConfig[] => {
       }
       return generateGrokFiles(apiBase, apiKey)
     default:
+      if (activeClientTab.value === 'codex-claude') {
+        return generateCodexClaudeFiles(baseRoot, apiKey)
+      }
       return generateAnthropicFiles(baseUrl, apiKey)
   }
 })
@@ -969,6 +981,76 @@ supports_websockets = false
       path: joinConfigPath(configDir, 'config.toml', isWindowsPath),
       content: configContent,
       hint: t('keys.useKeyModal.grok.codexConfigTomlHint')
+    }
+  ]
+}
+
+// Codex CLI → Crab2API Claude group. The gateway's OpenAI Responses API
+// converts requests to/from Anthropic's native format server-side (see
+// GatewayHandler.Responses on the backend), so no real OpenAI account is
+// involved — Codex just needs a base_url + api key, same as the Grok path.
+// No WebSocket variant here: the Responses WS upgrade always dispatches to
+// the OpenAI/Grok upstream client, which has nothing to select an account
+// from under an Anthropic group.
+function generateCodexClaudeFiles(baseUrl: string, apiKey: string): FileConfig[] {
+  const shell = activeTab.value
+  const isWindowsPath = shell === 'cmd' || shell === 'powershell'
+  const configDir = isWindowsPath ? '%userprofile%\\.codex' : '~/.codex'
+
+  let envPath: string
+  let envContent: string
+  switch (shell) {
+    case 'cmd':
+      envPath = 'Command Prompt'
+      envContent = `set CRAB2API_API_KEY=${apiKey}`
+      break
+    case 'powershell':
+      envPath = 'PowerShell'
+      envContent = `$env:CRAB2API_API_KEY="${apiKey}"`
+      break
+    default:
+      envPath = 'Terminal'
+      envContent = `export CRAB2API_API_KEY="${apiKey}"`
+  }
+
+  const configContent = `# Codex CLI → Crab2API Claude group
+# The gateway translates the OpenAI Responses API to/from Anthropic's native
+# format, so Codex talks to your Claude group without any OpenAI account.
+#
+# Switch model: claude-opus-5 (default) | claude-sonnet-5 | claude-haiku-4-5 | claude-fable-5
+
+model_provider = "crab2api"
+model = "claude-opus-5"
+# Optional:
+# review_model = "claude-opus-5"
+# model_reasoning_effort = "medium"
+# disable_response_storage = true
+# network_access = "enabled"
+# windows_wsl_setup_acknowledged = true
+
+[model_providers.crab2api]
+name = "Crab2API Claude"
+base_url = "${baseUrl}"
+# Prefer env_key (variable NAME). Do not combine with experimental_bearer_token.
+env_key = "CRAB2API_API_KEY"
+# Fallback only if you cannot set env (discouraged — keeps secret on disk):
+# experimental_bearer_token = "${apiKey}"
+wire_api = "responses"
+# API-key providers: do not require ChatGPT OAuth login
+requires_openai_auth = false
+# This path is HTTP/SSE, not WebSocket; disable WS so Codex doesn't try it first.
+supports_websockets = false
+
+# Optional:
+# [features]
+# goals = true`
+
+  return [
+    { path: envPath, content: envContent },
+    {
+      path: joinConfigPath(configDir, 'config.toml', isWindowsPath),
+      content: configContent,
+      hint: t('keys.useKeyModal.codex.configTomlHint')
     }
   ]
 }

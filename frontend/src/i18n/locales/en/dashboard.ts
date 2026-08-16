@@ -137,6 +137,13 @@ export default {
       claudeSettingsHint: 'User-level persistent configuration. Do not commit this file containing your API key to a project repository.',
       noGroupTitle: 'Please assign a group first',
       noGroupDescription: 'This API key has not been assigned to a group. Please click the group column in the key list to assign one before viewing the configuration.',
+      codex: {
+        description:
+          'Configure Codex to send Responses API traffic through your Crab2API Claude group. The gateway converts it to/from Anthropic\'s native format server-side, so no OpenAI account is involved.',
+        configTomlHint: 'Make sure the config directory exists. macOS/Linux users can run mkdir -p ~/.codex to create it; Windows users can press Win+R and enter %userprofile%\\.codex (create it manually if it does not exist).',
+        note:
+          'Export/set CRAB2API_API_KEY and save config.toml under ~/.codex (or %USERPROFILE%\\.codex on Windows), then fully restart Codex for it to take effect. Swap model for claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5 as needed. If this group\'s admin has enabled "Claude Code client restriction," Codex requests will be rejected — that restriction only allows the official Claude Code CLI.',
+      },
       openai: {
         description: 'Add the following configuration files to your Codex CLI config directory.',
         authModeTitle: 'Codex authentication mode',
@@ -290,6 +297,8 @@ export default {
     /** 5-hour request window — see composables/useWindow5h.ts */
     window5h: {
       label: '5h window',
+      /** The large stat-card number, sized to match Total Requests; "chats" spells out the unit so it doesn't read as a raw ratio. */
+      usage: '{used} / {limit} chats',
       alertTitle: 'Your 5-hour window is filling up',
       alertHint:
         'You have used {used} of {limit} requests in this window. Consider easing off — once it is full you will have to wait for the window to reset.',

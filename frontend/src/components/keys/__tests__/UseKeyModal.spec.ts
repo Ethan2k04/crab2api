@@ -553,6 +553,75 @@ describe('UseKeyModal', () => {
     expect(models['gpt-5.6'].name).toBe('GPT-5.6 (Sol)')
   })
 
+  it('renders a Codex tab between Claude Code and OpenCode for a plain Anthropic key', async () => {
+    const wrapper = mount(UseKeyModal, {
+      props: {
+        show: true,
+        apiKey: 'sk-anthropic-codex-test',
+        baseUrl: 'https://example.com',
+        platform: 'anthropic'
+      },
+      global: {
+        stubs: {
+          BaseDialog: {
+            template: '<div><slot /><slot name="footer" /></div>'
+          },
+          Icon: {
+            template: '<span />'
+          }
+        }
+      }
+    })
+
+    const tabLabels = wrapper.findAll('nav[aria-label="Client"] button').map((b) => b.text())
+    const claudeIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.claudeCode'))
+    const codexIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.codexCli'))
+    const opencodeIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.opencode'))
+    expect(claudeIdx).toBeGreaterThanOrEqual(0)
+    expect(codexIdx).toBeGreaterThan(claudeIdx)
+    expect(opencodeIdx).toBeGreaterThan(codexIdx)
+
+    const codexTab = wrapper.findAll('button').find((button) =>
+      button.text().includes('keys.useKeyModal.cliTabs.codexCli')
+    )
+    await codexTab!.trigger('click')
+    await nextTick()
+
+    // Codex-for-Claude gets the full 3-way shell tab set (unix/cmd/powershell),
+    // not the 2-way (unix/windows) set used by the real OpenAI/Grok Codex tabs.
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'macOS / Linux')).toBe(true)
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'Windows CMD')).toBe(true)
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'PowerShell')).toBe(true)
+
+    let codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
+    let configToml = codeBlocks.find((content) => content.includes('[model_providers.crab2api]'))
+    expect(configToml).toBeDefined()
+    expect(configToml).toContain('model_provider = "crab2api"')
+    expect(configToml).toContain('model = "claude-opus-5"')
+    expect(configToml).toContain('base_url = "https://example.com"')
+    expect(configToml).toContain('env_key = "CRAB2API_API_KEY"')
+    expect(configToml).toContain('wire_api = "responses"')
+    expect(configToml).toContain('requires_openai_auth = false')
+    expect(configToml).toContain('supports_websockets = false')
+    expect(codeBlocks.join('\n')).toContain('export CRAB2API_API_KEY="sk-anthropic-codex-test"')
+    // No auth-mode toggle for this tab — it's a fixed API-key provider, unlike
+    // the real OpenAI Codex tab's legacy/api-key radio.
+    expect(wrapper.find('[role="radiogroup"]').exists()).toBe(false)
+
+    const cmdTab = wrapper.findAll('button').find((button) => button.text().trim() === 'Windows CMD')
+    await cmdTab!.trigger('click')
+    await nextTick()
+    expect(wrapper.text()).toContain('%userprofile%\\.codex\\config.toml')
+    codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
+    expect(codeBlocks.join('\n')).toContain('set CRAB2API_API_KEY=sk-anthropic-codex-test')
+
+    const powershellTab = wrapper.findAll('button').find((button) => button.text().trim() === 'PowerShell')
+    await powershellTab!.trigger('click')
+    await nextTick()
+    codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
+    expect(codeBlocks.join('\n')).toContain('$env:CRAB2API_API_KEY="sk-anthropic-codex-test"')
+  })
+
   it('renders Claude Fable 5 OpenCode config with adaptive thinking', async () => {
     const wrapper = mount(UseKeyModal, {
       props: {

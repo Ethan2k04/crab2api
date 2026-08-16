@@ -1,18 +1,19 @@
 /**
  * Alpha-only sales gates.
  *
- * Two things are withheld during the alpha: the month pass, and balance
- * top-up. Both come back for the public release, so nothing is deleted —
- * the plan, the group, the balance ledger and every backend path stay exactly
- * as they are and are simply refused at the door.
+ * Two things are withheld during the alpha: the week and month passes, and
+ * balance top-up. All three come back for the public release, so nothing is
+ * deleted — the plans, the groups, the balance ledger and every backend path
+ * stay exactly as they are and are simply refused at the door.
  *
- * -- 1. The month pass --
+ * -- 1. The week and month passes --
  *
- * During the alpha we sell the day and week passes only. The month pass stays
- * in the database, stays on sale (`for_sale = true`) and keeps its price, so it
- * still renders on the pricing page and in the console — its purchase button is
- * just greyed out. Nothing about the plan, the group or the billing path is
- * removed, because all of it comes back for the public release.
+ * During the alpha we sell the day pass only. The week and month passes stay
+ * in the database, stay on sale (`for_sale = true`) and keep their price, so
+ * they still render on the pricing page and in the console — their purchase
+ * buttons are just greyed out. Nothing about the plans, the groups or the
+ * billing path is removed, because all of it comes back for the public
+ * release.
  *
  * Plans are matched on **term length**, not name or id:
  *   - names are operator-authored and bilingual (`月卡 || Month Pass`), so
@@ -22,18 +23,20 @@
  * The term is the one property that means the same thing everywhere, and
  * `planTermDays` resolves it exactly the way billing does.
  *
- * TO RESTORE THE MONTH PASS: empty `SUSPENDED_PLAN_TERM_DAYS` (or delete this
- * file and its imports). There is nothing else to undo on the frontend. The
- * backend carries a matching guard — see `alphaSuspendedPlanTermDays` in
- * `backend/internal/service/payment_order.go`; both must be cleared.
+ * TO RESTORE THE WEEK/MONTH PASSES: empty `SUSPENDED_PLAN_TERM_DAYS` (or
+ * delete this file and its imports). There is nothing else to undo on the
+ * frontend. The backend carries a matching guard — see
+ * `alphaSuspendedPlanTermDays` in `backend/internal/service/payment_order.go`;
+ * both must be cleared.
  */
 import { planTermDays } from '@/components/payment/validity'
 
 /**
  * Term lengths, in days, that cannot be purchased right now.
- * `[30]` is the month pass. An empty array disables the gate entirely.
+ * `[7, 30]` is the week and month passes. An empty array disables the gate
+ * entirely.
  */
-export const SUSPENDED_PLAN_TERM_DAYS: readonly number[] = [30]
+export const SUSPENDED_PLAN_TERM_DAYS: readonly number[] = [7, 30]
 
 /** True when a plan of this term length is suspended for the alpha. */
 export function isSuspendedTerm(termDays: number): boolean {

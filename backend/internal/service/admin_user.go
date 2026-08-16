@@ -131,16 +131,24 @@ func (s *adminServiceImpl) CreateUser(ctx context.Context, input *CreateUserInpu
 		return nil, err
 	}
 
+	requestLimit5h := DefaultRequestLimit5h
+	if input.RequestLimit5h != nil {
+		requestLimit5h = max(*input.RequestLimit5h, 0)
+	} else if s.settingService != nil {
+		requestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+	}
+
 	user := &User{
-		Email:         input.Email,
-		Username:      input.Username,
-		Notes:         input.Notes,
-		Role:          role,
-		Balance:       balance,
-		Concurrency:   input.Concurrency,
-		RPMLimit:      input.RPMLimit,
-		Status:        StatusActive,
-		AllowedGroups: input.AllowedGroups,
+		Email:          input.Email,
+		Username:       input.Username,
+		Notes:          input.Notes,
+		Role:           role,
+		Balance:        balance,
+		Concurrency:    input.Concurrency,
+		RPMLimit:       input.RPMLimit,
+		RequestLimit5h: requestLimit5h,
+		Status:         StatusActive,
+		AllowedGroups:  input.AllowedGroups,
 	}
 	if err := user.SetPassword(input.Password); err != nil {
 		return nil, err

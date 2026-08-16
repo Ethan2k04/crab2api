@@ -7,35 +7,36 @@ import {
 } from '../alphaGate'
 
 /**
- * These lock in *which* tiers the alpha withholds. When the month pass comes
- * back, `SUSPENDED_PLAN_TERM_DAYS` empties out and this whole file goes with it.
+ * These lock in *which* tiers the alpha withholds. When the week and month
+ * passes come back, `SUSPENDED_PLAN_TERM_DAYS` empties out and this whole
+ * file goes with it.
  */
 describe('alpha plan gate', () => {
-  it('withholds only the 30-day tier', () => {
-    expect([...SUSPENDED_PLAN_TERM_DAYS]).toEqual([30])
+  it('withholds the 7-day and 30-day tiers', () => {
+    expect([...SUSPENDED_PLAN_TERM_DAYS]).toEqual([7, 30])
   })
 
-  it('leaves the day and week passes purchasable', () => {
+  it('leaves only the day pass purchasable', () => {
     expect(isPlanSuspended({ validity_days: 1, validity_unit: 'day' })).toBe(false)
-    expect(isPlanSuspended({ validity_days: 7, validity_unit: 'day' })).toBe(false)
+  })
+
+  it('withholds the week pass', () => {
+    expect(isPlanSuspended({ validity_days: 7, validity_unit: 'day' })).toBe(true)
   })
 
   it('withholds the month pass', () => {
     expect(isPlanSuspended({ validity_days: 30, validity_unit: 'day' })).toBe(true)
   })
 
-  // The admin plan form saves plural units, so the same 30-day term can be
-  // stored three different ways. Matching the raw day count would miss two.
+  // The admin plan form saves plural units, so the same term can be stored
+  // multiple different ways. Matching the raw day count would miss these.
   it.each([
     ['1 months', 1, 'months'],
     ['1 month', 1, 'month'],
     ['30 days', 30, 'days'],
-  ])('withholds a 30-day term stored as %s', (_label, days, unit) => {
+    ['1 weeks', 1, 'weeks'],
+  ])('withholds a term stored as %s', (_label, days, unit) => {
     expect(isPlanSuspended({ validity_days: days, validity_unit: unit })).toBe(true)
-  })
-
-  it('does not withhold a 7-day term stored as 1 weeks', () => {
-    expect(isPlanSuspended({ validity_days: 1, validity_unit: 'weeks' })).toBe(false)
   })
 
   it('treats a missing or zero-length plan as purchasable rather than blocked', () => {

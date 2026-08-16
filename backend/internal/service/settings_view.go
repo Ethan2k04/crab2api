@@ -177,6 +177,7 @@ type SystemSettings struct {
 	AffiliateRebatePerInviteeCap float64
 	AdminRechargeRebateEnabled   bool
 	DefaultUserRPMLimit          int
+	DefaultUserRequestLimit5h    int
 	DefaultSubscriptions         []DefaultSubscriptionSetting
 
 	// Model fallback configuration

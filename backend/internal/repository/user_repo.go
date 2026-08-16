@@ -146,9 +146,15 @@ func (r *userRepository) create(ctx context.Context, userIn *service.User, guard
 		SetNillableLastLoginAt(userIn.LastLoginAt).
 		SetNillableLastActiveAt(userIn.LastActiveAt).
 		SetRpmLimit(userIn.RPMLimit).
-		// 有意不设 request_limit_5h / request_alert_pct_5h：让 schema 默认值
-		// （30 次 / 80%）落到每个新用户身上。注册路径构造的 service.User 不带这两个
-		// 字段，显式回写只会把默认值覆盖成 0 —— 而 0 的语义是「不限制」。
+		// request_limit_5h 现在显式写入：每条创建用户的路径（自助注册、OAuth
+		// 自动建号、管理员创建）都会先解析 SettingKeyDefaultUserRequestLimit5h
+		// 再落到 userIn 上，不再依赖 ent schema 默认值兜底。
+		//
+		// request_alert_pct_5h 仍然不设——它没有对应的可配置默认值，注册路径
+		// 构造的 service.User 不带这个字段，显式回写只会把 schema 默认值（80%）
+		// 覆盖成 0；读取侧 NormalizeRequestAlertPct5h 也会把 0 变回 80，
+		// 但不写才是更直接的选择。
+		SetRequestLimit5h(userIn.RequestLimit5h).
 		Save(txCtx)
 	if err != nil {
 		return translatePersistenceError(err, nil, service.ErrEmailExists)

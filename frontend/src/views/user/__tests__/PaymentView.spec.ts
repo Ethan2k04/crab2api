@@ -133,10 +133,11 @@ function checkoutInfoWithPlansFixture(options: {
     description: '',
     price: 128,
     original_price: 0,
-    // A week term on purpose: the 30-day tier is withheld during the alpha
-    // (config/alphaGate.ts) and would never reach the confirm panel these
-    // cases assert on. Nothing here depends on the term itself.
-    validity_days: 7,
+    // A 1-day term on purpose: only the day pass is purchasable during the
+    // alpha (config/alphaGate.ts) — week and month are both withheld and
+    // would never reach the confirm panel these cases assert on. Nothing
+    // here depends on the term itself.
+    validity_days: 1,
     validity_unit: 'day',
     rate_multiplier: 1,
     daily_limit_usd: null,
@@ -351,9 +352,12 @@ describe('PaymentView withheld top-up', () => {
 })
 
 describe('PaymentView withheld tiers', () => {
-  it('does not open checkout for a withheld tier deep-linked by ?group=', async () => {
+  it.each([
+    ['week pass', 7],
+    ['month pass', 30],
+  ])('does not open checkout for a withheld %s deep-linked by ?group=', async (_label, days) => {
     const wrapper = await mountSubscriptionConfirm({
-      plan: { validity_days: 30, validity_unit: 'day', price: 128 },
+      plan: { validity_days: days, validity_unit: 'day', price: 128 },
     })
 
     // The confirm panel is what a purchasable plan renders; the pay button
@@ -362,9 +366,9 @@ describe('PaymentView withheld tiers', () => {
     expect(wrapper.findAll('button').some(button => button.text().includes(payAmount))).toBe(false)
   })
 
-  it('still opens checkout for a purchasable tier deep-linked the same way', async () => {
+  it('still opens checkout for the day pass — the only purchasable tier — deep-linked the same way', async () => {
     const wrapper = await mountSubscriptionConfirm({
-      plan: { validity_days: 7, validity_unit: 'day', price: 128 },
+      plan: { validity_days: 1, validity_unit: 'day', price: 128 },
     })
 
     const payAmount = formatPaymentAmount(128, 'CNY')

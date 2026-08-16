@@ -71,12 +71,11 @@ export interface FallbackPlan {
   quotaUSD: number
   /** Term length in days; the allowance is forfeited when it lapses. */
   periodDays: number
-  featured?: boolean
 }
 
 export const FALLBACK_PLANS: FallbackPlan[] = [
   { key: 'day', priceCNY: 6.99, quotaUSD: 10, periodDays: 1 },
-  { key: 'week', priceCNY: 29.99, quotaUSD: 30, periodDays: 7, featured: true },
+  { key: 'week', priceCNY: 29.99, quotaUSD: 30, periodDays: 7 },
   { key: 'month', priceCNY: 69.99, quotaUSD: 60, periodDays: 30 }
 ]
 

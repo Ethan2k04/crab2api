@@ -332,6 +332,21 @@ func (s *SettingService) GetDefaultUserRPMLimit(ctx context.Context) int {
 	return 0
 }
 
+// GetDefaultUserRequestLimit5h 获取新用户默认 5h 窗口请求数上限（0 = 不限制）。
+// 未配置或值非法则回退 DefaultRequestLimit5h（30），与 users.request_limit_5h
+// 的 ent schema 默认一致——不像 RPM 那样回退到 0，因为 0 在这里意味着
+// "不限制"，静默把新用户的 5h 闸门关掉不是一个安全的缺省行为。
+func (s *SettingService) GetDefaultUserRequestLimit5h(ctx context.Context) int {
+	value, err := s.settingRepo.GetValue(ctx, SettingKeyDefaultUserRequestLimit5h)
+	if err != nil || value == "" {
+		return DefaultRequestLimit5h
+	}
+	if v, err := strconv.Atoi(value); err == nil && v >= 0 {
+		return v
+	}
+	return DefaultRequestLimit5h
+}
+
 // GetDefaultSubscriptions 获取新用户默认订阅配置列表。
 func (s *SettingService) GetDefaultSubscriptions(ctx context.Context) []DefaultSubscriptionSetting {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeyDefaultSubscriptions)

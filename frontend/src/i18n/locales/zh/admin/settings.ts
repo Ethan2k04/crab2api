@@ -382,6 +382,9 @@ export default {
         defaultConcurrencyHint: '新用户的最大并发请求数',
         defaultUserRpmLimit: '默认用户 RPM 限制',
         defaultUserRpmLimitHint: '新用户默认每分钟最大请求数，0 = 不限制；仅作用于新用户创建时初始化',
+        defaultUserRequestLimit5h: '默认每 5 小时请求数',
+        defaultUserRequestLimit5hHint:
+          '新用户默认 5 小时窗口内最大请求数，0 = 不限制；仅作用于新用户创建时初始化，创建后可在「编辑用户」中单独调整',
         defaultSubscriptions: '默认订阅列表',
         defaultSubscriptionsHint: '新用户创建或注册时自动分配这些订阅',
         addDefaultSubscription: '添加默认订阅',

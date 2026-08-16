@@ -65,9 +65,11 @@ type CreateUserRequest struct {
 	Notes         string   `json:"notes"`
 	Role          string   `json:"role" binding:"omitempty,oneof=admin user"`
 	Balance       *float64 `json:"balance"`
-	Concurrency   int      `json:"concurrency"`
-	RPMLimit      int      `json:"rpm_limit"`
-	AllowedGroups []int64  `json:"allowed_groups"`
+	Concurrency int `json:"concurrency"`
+	RPMLimit    int `json:"rpm_limit"`
+	// RequestLimit5h 未提供时回退到 SettingKeyDefaultUserRequestLimit5h。
+	RequestLimit5h *int    `json:"request_limit_5h" binding:"omitempty,min=0"`
+	AllowedGroups  []int64 `json:"allowed_groups"`
 }
 
 // UpdateUserRequest represents admin update user request
@@ -289,16 +291,17 @@ func (h *UserHandler) Create(c *gin.Context) {
 	}
 
 	user, err := h.adminService.CreateUser(c.Request.Context(), &service.CreateUserInput{
-		Email:         req.Email,
-		Password:      req.Password,
-		Username:      req.Username,
-		Notes:         req.Notes,
-		Role:          req.Role,
-		Balance:       req.Balance,
-		Concurrency:   req.Concurrency,
-		RPMLimit:      req.RPMLimit,
-		AllowedGroups: req.AllowedGroups,
-		ActorAdminID:  getAdminIDFromContext(c),
+		Email:          req.Email,
+		Password:       req.Password,
+		Username:       req.Username,
+		Notes:          req.Notes,
+		Role:           req.Role,
+		Balance:        req.Balance,
+		Concurrency:    req.Concurrency,
+		RPMLimit:       req.RPMLimit,
+		RequestLimit5h: req.RequestLimit5h,
+		AllowedGroups:  req.AllowedGroups,
+		ActorAdminID:   getAdminIDFromContext(c),
 	})
 	if err != nil {
 		response.ErrorFrom(c, err)

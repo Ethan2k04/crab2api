@@ -233,16 +233,23 @@ func (s *AuthService) RegisterWithVerification(ctx context.Context, email, passw
 	if s.settingService != nil {
 		defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
 	}
+	// 新用户默认 5h 窗口请求数上限。未配置时 GetDefaultUserRequestLimit5h
+	// 自己回落到 DefaultRequestLimit5h（30），故这里不用像 RPM 那样判空。
+	defaultRequestLimit5h := DefaultRequestLimit5h
+	if s.settingService != nil {
+		defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+	}
 
 	// 创建用户
 	user := &User{
-		Email:        email,
-		PasswordHash: hashedPassword,
-		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		RPMLimit:     defaultRPMLimit,
-		Status:       StatusActive,
+		Email:          email,
+		PasswordHash:   hashedPassword,
+		Role:           RoleUser,
+		Balance:        grantPlan.Balance,
+		Concurrency:    grantPlan.Concurrency,
+		RPMLimit:       defaultRPMLimit,
+		RequestLimit5h: defaultRequestLimit5h,
+		Status:         StatusActive,
 	}
 
 	if err := s.createUserWithRegistrationEmailGuard(ctx, user); err != nil {
@@ -610,17 +617,22 @@ func (s *AuthService) LoginOrRegisterOAuth(ctx context.Context, email, username 
 			if s.settingService != nil {
 				defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
 			}
+			defaultRequestLimit5h := DefaultRequestLimit5h
+			if s.settingService != nil {
+				defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+			}
 
 			newUser := &User{
-				Email:        email,
-				Username:     username,
-				PasswordHash: hashedPassword,
-				Role:         RoleUser,
-				Balance:      grantPlan.Balance,
-				Concurrency:  grantPlan.Concurrency,
-				RPMLimit:     defaultRPMLimit,
-				Status:       StatusActive,
-				SignupSource: signupSource,
+				Email:          email,
+				Username:       username,
+				PasswordHash:   hashedPassword,
+				Role:           RoleUser,
+				Balance:        grantPlan.Balance,
+				Concurrency:    grantPlan.Concurrency,
+				RPMLimit:       defaultRPMLimit,
+				RequestLimit5h: defaultRequestLimit5h,
+				Status:         StatusActive,
+				SignupSource:   signupSource,
 			}
 
 			if err := s.userRepo.Create(ctx, newUser); err != nil {
@@ -759,17 +771,22 @@ func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, ema
 			if s.settingService != nil {
 				defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
 			}
+			defaultRequestLimit5h := DefaultRequestLimit5h
+			if s.settingService != nil {
+				defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+			}
 
 			newUser := &User{
-				Email:        email,
-				Username:     username,
-				PasswordHash: hashedPassword,
-				Role:         RoleUser,
-				Balance:      grantPlan.Balance,
-				Concurrency:  grantPlan.Concurrency,
-				RPMLimit:     defaultRPMLimit,
-				Status:       StatusActive,
-				SignupSource: signupSource,
+				Email:          email,
+				Username:       username,
+				PasswordHash:   hashedPassword,
+				Role:           RoleUser,
+				Balance:        grantPlan.Balance,
+				Concurrency:    grantPlan.Concurrency,
+				RPMLimit:       defaultRPMLimit,
+				RequestLimit5h: defaultRequestLimit5h,
+				Status:         StatusActive,
+				SignupSource:   signupSource,
 			}
 
 			if s.entClient != nil && invitationRedeemCode != nil {

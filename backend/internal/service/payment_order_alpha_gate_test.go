@@ -6,9 +6,9 @@ import (
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 )
 
-// These lock in which tiers the alpha withholds from purchase. When the month
-// pass comes back, alphaSuspendedPlanTermDays empties out and this file goes
-// with it.
+// These lock in which tiers the alpha withholds from purchase. When the week
+// and month passes come back, alphaSuspendedPlanTermDays empties out and this
+// file goes with it.
 func TestAlphaPlanSuspended(t *testing.T) {
 	cases := []struct {
 		name string
@@ -17,8 +17,8 @@ func TestAlphaPlanSuspended(t *testing.T) {
 		want bool
 	}{
 		{"day pass", 1, "day", false},
-		{"week pass", 7, "day", false},
-		{"week pass stored as 1 weeks", 1, "weeks", false},
+		{"week pass", 7, "day", true},
+		{"week pass stored as 1 weeks", 1, "weeks", true},
 		{"month pass", 30, "day", true},
 		// The admin plan form saves plural units, so one 30-day term has three
 		// possible spellings. Comparing the raw day count would miss two.

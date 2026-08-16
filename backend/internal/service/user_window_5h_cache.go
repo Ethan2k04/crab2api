@@ -50,6 +50,11 @@ const Window5hDuration = 5 * time.Hour
 // 这里兜的是历史数据里该列为 0（或超出 1-100）的行。
 const DefaultRequestAlertPct5h = 80
 
+// DefaultRequestLimit5h 5h 窗口请求数上限缺省值，与 ent schema
+// （users.request_limit_5h）的默认值保持一致。GetDefaultUserRequestLimit5h
+// 在管理员未配置 SettingKeyDefaultUserRequestLimit5h 时回退到这个值。
+const DefaultRequestLimit5h = 30
+
 // NormalizeRequestAlertPct5h 把告警百分比夹到 1-100，越界回落到默认值。
 func NormalizeRequestAlertPct5h(pct int) int {
 	if pct <= 0 || pct > 100 {

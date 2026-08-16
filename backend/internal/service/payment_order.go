@@ -146,20 +146,21 @@ func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrder
 }
 
 // alphaSuspendedPlanTermDays lists plan term lengths, in days, that cannot be
-// bought during the alpha — [30] is the month pass.
+// bought during the alpha — [7, 30] is the week and month passes; only the
+// day pass stays purchasable.
 //
 // The frontend greys out these tiers (see frontend/src/config/alphaGate.ts),
 // but the button is not the boundary: a plan id is all it takes to POST
 // /payment/orders directly, so the rule has to hold here too.
 //
 // Matching on term rather than plan id keeps dev, staging and production in
-// step without a per-environment id, and leaves the plan itself untouched —
-// it stays in the database, stays for_sale, keeps rendering on the pricing
-// page. Nothing has to be recreated when the alpha ends.
+// step without a per-environment id, and leaves the plans themselves
+// untouched — they stay in the database, stay for_sale, keep rendering on
+// the pricing page. Nothing has to be recreated when the alpha ends.
 //
-// TO RESTORE THE MONTH PASS: empty this slice, and clear
+// TO RESTORE THE WEEK/MONTH PASSES: empty this slice, and clear
 // SUSPENDED_PLAN_TERM_DAYS in frontend/src/config/alphaGate.ts.
-var alphaSuspendedPlanTermDays = []int{30}
+var alphaSuspendedPlanTermDays = []int{7, 30}
 
 func alphaPlanSuspended(plan *dbent.SubscriptionPlan) bool {
 	if plan == nil || len(alphaSuspendedPlanTermDays) == 0 {

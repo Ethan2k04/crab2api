@@ -137,6 +137,13 @@ export default {
       noGroupTitle: '请先分配分组',
       noGroupDescription:
         '此 API 密钥尚未分配分组，请先在密钥列表中点击分组列进行分配，然后才能查看使用配置。',
+      codex: {
+        description:
+          '配置 Codex，让 Responses API 请求通过当前 Crab2API Claude 分组发送（网关自动转换为 Anthropic 原生格式，无需 OpenAI 账号）。',
+        configTomlHint: '请确保配置目录存在。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开（不存在需先手动创建）。',
+        note:
+          '导出/设置 CRAB2API_API_KEY，并将 config.toml 保存到 ~/.codex（Windows 为 %USERPROFILE%\\.codex），保存后需完全重启 Codex 才会生效。model 可按需替换为 claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5。若该分组管理员开启了「Claude Code 客户端限制」，Codex 请求会被拒绝——该限制只放行官方 Claude Code CLI。'
+      },
       openai: {
         description: '将以下配置文件添加到 Codex CLI 配置目录中。',
         authModeTitle: 'Codex 认证模式',
@@ -295,6 +302,8 @@ export default {
     /** 5h 请求窗口 —— 见 composables/useWindow5h.ts */
     window5h: {
       label: '5 小时窗口',
+      /** 卡片里的大号数字，跟"总请求数"用同一套字号，需要"对话"这个量词才不会让人误以为是别的单位 */
+      usage: '{used} / {limit} 对话',
       alertTitle: '当前 5 小时窗口用量偏高',
       alertHint:
         '本窗口已用 {used}/{limit} 次请求。建议暂时放慢节奏，用满后需等窗口重置才能继续。',

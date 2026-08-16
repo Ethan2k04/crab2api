@@ -315,6 +315,10 @@ const (
 	SettingKeyDefaultBalance       = "default_balance"        // 新用户默认余额
 	SettingKeyDefaultSubscriptions = "default_subscriptions"  // 新用户默认订阅列表（JSON）
 	SettingKeyDefaultUserRPMLimit  = "default_user_rpm_limit" // 新用户默认 RPM 限制（0 = 不限制）
+	// SettingKeyDefaultUserRequestLimit5h 新用户默认 5h 窗口请求数上限（0 = 不限制）。
+	// 未配置或非法值时回退 DefaultRequestLimit5h（见 user_window_5h_cache.go），
+	// 与 users.request_limit_5h 的 ent schema 默认保持一致。
+	SettingKeyDefaultUserRequestLimit5h = "default_user_request_limit_5h"
 
 	// 第三方认证来源默认授予配置
 	SettingKeyAuthSourceDefaultEmailBalance             = "auth_source_default_email_balance"

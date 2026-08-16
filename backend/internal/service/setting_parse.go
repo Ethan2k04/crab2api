@@ -130,6 +130,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateRebateDurationDays:               strconv.Itoa(AffiliateRebateDurationDaysDefault),
 		SettingKeyAffiliateRebatePerInviteeCap:              strconv.FormatFloat(AffiliateRebatePerInviteeCapDefault, 'f', 2, 64),
 		SettingKeyDefaultUserRPMLimit:                       "0",
+		SettingKeyDefaultUserRequestLimit5h:                 strconv.Itoa(DefaultRequestLimit5h),
 		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
 		SettingKeyAuthSourceDefaultEmailConcurrency:         "5",
@@ -383,6 +384,12 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 
 	if rpm, err := strconv.Atoi(settings[SettingKeyDefaultUserRPMLimit]); err == nil && rpm >= 0 {
 		result.DefaultUserRPMLimit = rpm
+	}
+
+	if limit5h, err := strconv.Atoi(settings[SettingKeyDefaultUserRequestLimit5h]); err == nil && limit5h >= 0 {
+		result.DefaultUserRequestLimit5h = limit5h
+	} else {
+		result.DefaultUserRequestLimit5h = DefaultRequestLimit5h
 	}
 
 	// 解析浮点数类型

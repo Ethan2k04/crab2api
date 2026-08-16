@@ -179,16 +179,21 @@ func (s *AuthService) createEmailOAuthUser(ctx context.Context, email, username,
 	if s.settingService != nil {
 		defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
 	}
+	defaultRequestLimit5h := DefaultRequestLimit5h
+	if s.settingService != nil {
+		defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+	}
 	user := &User{
-		Email:        email,
-		Username:     strings.TrimSpace(username),
-		PasswordHash: hashedPassword,
-		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		RPMLimit:     defaultRPMLimit,
-		Status:       StatusActive,
-		SignupSource: providerType,
+		Email:          email,
+		Username:       strings.TrimSpace(username),
+		PasswordHash:   hashedPassword,
+		Role:           RoleUser,
+		Balance:        grantPlan.Balance,
+		Concurrency:    grantPlan.Concurrency,
+		RPMLimit:       defaultRPMLimit,
+		RequestLimit5h: defaultRequestLimit5h,
+		Status:         StatusActive,
+		SignupSource:   providerType,
 	}
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		if errors.Is(err, ErrEmailExists) {

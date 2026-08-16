@@ -419,6 +419,7 @@ export interface SystemSettings {
   affiliate_admin_recharge_enabled: boolean;
   default_concurrency: number;
   default_user_rpm_limit: number;
+  default_user_request_limit_5h: number;
   default_subscriptions: DefaultSubscriptionSetting[];
   auth_source_default_email_balance?: number;
   auth_source_default_email_concurrency?: number;
@@ -757,6 +758,7 @@ export interface UpdateSettingsRequest {
   affiliate_admin_recharge_enabled?: boolean;
   default_concurrency?: number;
   default_user_rpm_limit?: number;
+  default_user_request_limit_5h?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_email_balance?: number;
   auth_source_default_email_concurrency?: number;

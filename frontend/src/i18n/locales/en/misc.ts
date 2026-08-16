@@ -429,7 +429,7 @@ export default {
      */
     renewNow: 'Reset',
     /** Tiers withheld during the alpha — see config/alphaGate.ts */
-    notYetAvailable: 'Not Yet Available',
+    notYetAvailable: 'Coming Soon',
     /** Balance top-up withheld during the alpha — see config/alphaGate.ts */
     rechargeSuspended: 'Balance top-up is not available yet',
     rechargeSuspendedHint: 'Subscription plans are available in the meantime. Top-up opens with the public release.',

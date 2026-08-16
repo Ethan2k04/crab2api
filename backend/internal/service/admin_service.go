@@ -145,9 +145,14 @@ type CreateUserInput struct {
 	Notes         string
 	Role          string // 空字符串表示使用默认角色(user);合法值 admin/user
 	Balance       *float64
-	Concurrency   int
-	RPMLimit      int
-	AllowedGroups []int64
+	Concurrency int
+	RPMLimit    int
+	// RequestLimit5h 每 5 小时窗口请求数上限。nil = 未在创建表单中指定，
+	// 回退到 SettingKeyDefaultUserRequestLimit5h（与注册路径一致）；
+	// 用指针而非 int 是因为这里 0 和 RPMLimit 不同——0 意味着"不限制"，
+	// 若不区分"未提供"和"显式设为 0"，管理员留空就会把新用户的闸门关掉。
+	RequestLimit5h *int
+	AllowedGroups  []int64
 	// ActorAdminID 执行本次操作的管理员ID(来自JWT)，仅用于权限敏感操作的审计日志。
 	ActorAdminID int64
 }

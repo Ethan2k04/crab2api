@@ -214,6 +214,28 @@ function periodLabel(days: number): string {
   return days === 1 ? t('landing.pricing.per24h') : t('landing.pricing.perPeriodDays', { days })
 }
 
+/**
+ * Which card gets the "Most Popular" badge.
+ *
+ * Normally that's an editorial choice (the middle card, or the first when
+ * there are fewer than three) — but during the alpha only one tier is
+ * actually buyable, and badging a greyed-out card the visitor can't purchase
+ * would be actively misleading. So: when exactly one tier is purchasable,
+ * that one wins regardless of position; otherwise fall back to the
+ * positional heuristic. This self-reverts the moment alphaGate empties and
+ * more than one tier is purchasable again.
+ */
+function pickFeaturedIndex(suspended: boolean[]): number {
+  const purchasableIndexes = suspended.reduce<number[]>((acc, isSuspended, index) => {
+    if (!isSuspended) acc.push(index)
+    return acc
+  }, [])
+  if (purchasableIndexes.length === 1) return purchasableIndexes[0]
+  return suspended.length >= 3 ? 1 : 0
+}
+
+const liveFeaturedIndex = computed(() => pickFeaturedIndex(livePlans.value.map((plan) => isPlanSuspended(plan))))
+
 const liveCards = computed<PlanCard[]>(() =>
   livePlans.value.map((plan, index) => ({
     key: `live-${plan.id}`,
@@ -228,8 +250,7 @@ const liveCards = computed<PlanCard[]>(() =>
         : '',
     periodLabel: periodLabel(plan.validity_days),
     features: pickPlanLines(plan.features, locale.value),
-    // Highlight the middle card when there are three or more plans.
-    featured: livePlans.value.length >= 3 ? index === 1 : index === 0,
+    featured: index === liveFeaturedIndex.value,
     // The purchase page opens on the balance tab by default; ?tab=subscription
     // is the param it already understands. Deep-linking a single plan would
     // need its group id, which the public endpoint deliberately withholds.
@@ -240,8 +261,12 @@ const liveCards = computed<PlanCard[]>(() =>
   }))
 )
 
+const fallbackFeaturedIndex = computed(() =>
+  pickFeaturedIndex(FALLBACK_PLANS.map((plan) => isSuspendedTerm(plan.periodDays)))
+)
+
 const fallbackCards = computed<PlanCard[]>(() =>
-  FALLBACK_PLANS.map((plan) => ({
+  FALLBACK_PLANS.map((plan, index) => ({
     key: `fallback-${plan.key}`,
     name: t(`landing.pricing.plans.${plan.key}.name`),
     description: t(`landing.pricing.plans.${plan.key}.desc`),
@@ -251,7 +276,7 @@ const fallbackCards = computed<PlanCard[]>(() =>
     originalPriceDisplay: '',
     periodLabel: periodLabel(plan.periodDays),
     features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
-    featured: plan.featured === true,
+    featured: index === fallbackFeaturedIndex.value,
     href: PURCHASE_PATH,
     periodDays: plan.periodDays,
     priceCNY: plan.priceCNY,

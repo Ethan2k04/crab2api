@@ -152,15 +152,20 @@ func (s *AuthService) RegisterOAuthEmailAccount(
 
 	signupSource = normalizeOAuthSignupSource(signupSource)
 	grantPlan := s.resolveSignupGrantPlan(ctx, signupSource)
+	defaultRequestLimit5h := DefaultRequestLimit5h
+	if s.settingService != nil {
+		defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+	}
 
 	user := &User{
-		Email:        email,
-		PasswordHash: hashedPassword,
-		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		Status:       StatusActive,
-		SignupSource: signupSource,
+		Email:          email,
+		PasswordHash:   hashedPassword,
+		Role:           RoleUser,
+		Balance:        grantPlan.Balance,
+		Concurrency:    grantPlan.Concurrency,
+		RequestLimit5h: defaultRequestLimit5h,
+		Status:         StatusActive,
+		SignupSource:   signupSource,
 	}
 
 	if err := s.createUserWithRegistrationEmailGuard(ctx, user); err != nil {
@@ -239,15 +244,20 @@ func (s *AuthService) RegisterVerifiedOAuthEmailAccount(
 	if s.settingService != nil {
 		defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
 	}
+	defaultRequestLimit5h := DefaultRequestLimit5h
+	if s.settingService != nil {
+		defaultRequestLimit5h = s.settingService.GetDefaultUserRequestLimit5h(ctx)
+	}
 	user := &User{
-		Email:        email,
-		PasswordHash: hashedPassword,
-		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		RPMLimit:     defaultRPMLimit,
-		Status:       StatusActive,
-		SignupSource: signupSource,
+		Email:          email,
+		PasswordHash:   hashedPassword,
+		Role:           RoleUser,
+		Balance:        grantPlan.Balance,
+		Concurrency:    grantPlan.Concurrency,
+		RPMLimit:       defaultRPMLimit,
+		RequestLimit5h: defaultRequestLimit5h,
+		Status:         StatusActive,
+		SignupSource:   signupSource,
 	}
 
 	if err := s.createUserWithRegistrationEmailGuard(ctx, user); err != nil {
