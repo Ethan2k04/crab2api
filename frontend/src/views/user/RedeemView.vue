@@ -13,9 +13,6 @@
           <p class="mt-2 text-4xl font-bold text-white">
             ${{ user?.balance?.toFixed(2) || '0.00' }}
           </p>
-          <p class="mt-2 text-sm text-primary-100">
-            {{ t('redeem.concurrency') }}: {{ user?.concurrency || 0 }} {{ t('redeem.requests') }}
-          </p>
         </div>
       </div>
 
@@ -101,10 +98,6 @@
                     <p v-if="redeemResult.type === 'balance'" class="font-medium">
                       {{ t('redeem.added') }}: ${{ redeemResult.value.toFixed(2) }}
                     </p>
-                    <p v-else-if="redeemResult.type === 'concurrency'" class="font-medium">
-                      {{ t('redeem.added') }}: {{ redeemResult.value }}
-                      {{ t('redeem.concurrentRequests') }}
-                    </p>
                     <p v-else-if="redeemResult.type === 'subscription'" class="font-medium">
                       {{ t('redeem.subscriptionAssigned') }}
                       <span v-if="redeemResult.group_name"> - {{ redeemResult.group_name }}</span>
@@ -117,12 +110,6 @@
                     <p v-if="redeemResult.new_balance !== undefined">
                       {{ t('redeem.newBalance') }}:
                       <span class="font-semibold">${{ redeemResult.new_balance.toFixed(2) }}</span>
-                    </p>
-                    <p v-if="redeemResult.new_concurrency !== undefined">
-                      {{ t('redeem.newConcurrency') }}:
-                      <span class="font-semibold"
-                        >{{ redeemResult.new_concurrency }} {{ t('redeem.requests') }}</span
-                      >
                     </p>
                   </div>
                 </div>
@@ -420,10 +407,12 @@ const formatHistoryValue = (item: RedeemHistoryItem) => {
   }
 }
 
+// 并发数是运维参数，对用户不可见——历史记录里也不展示相关条目。
 const fetchHistory = async () => {
   loadingHistory.value = true
   try {
-    history.value = await redeemAPI.getHistory()
+    const items = await redeemAPI.getHistory()
+    history.value = items.filter((item) => item.type !== 'concurrency' && item.type !== 'admin_concurrency')
   } catch (error) {
     console.error('Failed to fetch history:', error)
   } finally {

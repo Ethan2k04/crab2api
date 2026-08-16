@@ -139,10 +139,10 @@ export default {
         '此 API 密钥尚未分配分组，请先在密钥列表中点击分组列进行分配，然后才能查看使用配置。',
       codex: {
         description:
-          '配置 Codex，让 Responses API 请求通过当前 Crab2API Claude 分组发送（网关自动转换为 Anthropic 原生格式，无需 OpenAI 账号）。请按下方的步骤顺序配置。',
+          '配置 Codex，请按下方的步骤顺序配置。',
         configTomlHint:
-          '步骤 1：先保存这个 config.toml——没有它 Codex 根本不知道 Crab2API 这个 provider 存在，第二步设置的密钥也无从生效。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开（不存在需先手动创建）。保存后需完全重启 Codex 才会生效。',
-        envHint: '步骤 2：再设置这个环境变量作为你的 API 密钥（对应 config.toml 里的 env_key = "CRAB2API_API_KEY"）。仅在当前终端会话生效，新开终端需重新设置。',
+          '步骤 1：将下面的内容替换本地用户目录下面的 config.toml。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开。创建或覆写 config.toml 文件后需完全重启 Codex 才会生效。',
+        envHint: '步骤 2：打开命令行窗口并执行下面的指令。注意该环境变量仅在当前终端会话生效，新开终端需重新设置。',
         note:
           'model 可按需替换为 claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5，切换后记得同步调整 model_context_window（opus-5、fable-5 是 1M 窗口，其余为标准窗口）。若该分组管理员开启了「Claude Code 客户端限制」，Codex 请求会被拒绝——该限制只放行官方 Claude Code CLI。'
       },
@@ -657,9 +657,8 @@ export default {
   // Redeem
   redeem: {
     title: '兑换码',
-    description: '输入兑换码以充值余额或增加并发数',
+    description: '输入兑换码以充值余额或获取其他权益',
     currentBalance: '当前余额',
-    concurrency: '并发数',
     requests: '请求',
     redeemCodeLabel: '兑换码',
     redeemCodePlaceholder: '请输入兑换码',
@@ -669,14 +668,12 @@ export default {
     redeemSuccess: '兑换成功！',
     redeemFailed: '兑换失败',
     added: '已添加',
-    concurrentRequests: '并发请求',
     newBalance: '新余额',
-    newConcurrency: '新并发数',
     aboutCodes: '关于兑换码',
     codeRule1: '每个兑换码只能使用一次',
-    codeRule2: '兑换码可以增加余额、并发数或试用权限',
+    codeRule2: '兑换码可以增加余额或试用权限',
     codeRule3: '如有兑换问题，请联系客服',
-    codeRule4: '余额和并发数即时更新',
+    codeRule4: '余额即时更新',
     recentActivity: '最近活动',
     historyWillAppear: '您的兑换历史将显示在这里',
     balanceAddedRedeem: '余额充值（兑换）',

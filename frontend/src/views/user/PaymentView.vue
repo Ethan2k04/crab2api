@@ -140,19 +140,19 @@
                       {{ planPeakRateLabel(selectedPlan) }}
                     </div>
                   </div>
-                  <div v-if="selectedPlan.daily_limit_usd != null">
+                  <div v-if="selectedPlan.daily_limit_usd">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ planQuotaLabel(selectedPlan, 'daily') }}</span>
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.daily_limit_usd }}</div>
                   </div>
-                  <div v-if="selectedPlan.weekly_limit_usd != null">
+                  <div v-if="selectedPlan.weekly_limit_usd">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ planQuotaLabel(selectedPlan, 'weekly') }}</span>
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.weekly_limit_usd }}</div>
                   </div>
-                  <div v-if="selectedPlan.monthly_limit_usd != null">
+                  <div v-if="selectedPlan.monthly_limit_usd">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ planQuotaLabel(selectedPlan, 'monthly') }}</span>
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.monthly_limit_usd }}</div>
                   </div>
-                  <div v-if="selectedPlan.daily_limit_usd == null && selectedPlan.weekly_limit_usd == null && selectedPlan.monthly_limit_usd == null">
+                  <div v-if="!selectedPlan.daily_limit_usd && !selectedPlan.weekly_limit_usd && !selectedPlan.monthly_limit_usd">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.quota') }}</span>
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ t('payment.planCard.unlimited') }}</div>
                   </div>
