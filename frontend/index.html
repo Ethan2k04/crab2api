@@ -2,7 +2,19 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Google's search-result favicon fetcher is unreliable with an SVG-only
+      declaration (it wants a square raster fallback, ideally a /favicon.ico
+      at the root, discoverable independent of these <link> tags). Keep the
+      SVG first for browsers that render it crisp at any size; the PNG/ICO
+      set below is what Search actually picks up.
+    -->
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Crab2API - 只中转纯血 Claude 模型 / Only pure blood Claude models" />
     <meta name="theme-color" content="#c15f3c" />

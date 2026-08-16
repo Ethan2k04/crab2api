@@ -139,10 +139,12 @@ export default {
       noGroupDescription: 'This API key has not been assigned to a group. Please click the group column in the key list to assign one before viewing the configuration.',
       codex: {
         description:
-          'Configure Codex to send Responses API traffic through your Crab2API Claude group. The gateway converts it to/from Anthropic\'s native format server-side, so no OpenAI account is involved.',
-        configTomlHint: 'Make sure the config directory exists. macOS/Linux users can run mkdir -p ~/.codex to create it; Windows users can press Win+R and enter %userprofile%\\.codex (create it manually if it does not exist).',
+          'Configure Codex to send Responses API traffic through your Crab2API Claude group. The gateway converts it to/from Anthropic\'s native format server-side, so no OpenAI account is involved. Follow the steps below in order.',
+        configTomlHint:
+          'Step 1: save this config.toml first — without it, Codex has no idea Crab2API exists as a provider, and the key you set in step 2 has nothing to attach to. macOS/Linux users can run mkdir -p ~/.codex to create the directory; Windows users can press Win+R and enter %userprofile%\\.codex (create it manually if it does not exist). Fully restart Codex after saving for it to take effect.',
+        envHint: 'Step 2: now set this environment variable as your API key (matches env_key = "CRAB2API_API_KEY" in config.toml). Only active in the current terminal session — set it again in a new one.',
         note:
-          'Export/set CRAB2API_API_KEY and save config.toml under ~/.codex (or %USERPROFILE%\\.codex on Windows), then fully restart Codex for it to take effect. Swap model for claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5 as needed. If this group\'s admin has enabled "Claude Code client restriction," Codex requests will be rejected — that restriction only allows the official Claude Code CLI.',
+          'Swap model for claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5 as needed, and adjust model_context_window to match (opus-5 and fable-5 use the 1M window, the others use the standard one). If this group\'s admin has enabled "Claude Code client restriction," Codex requests will be rejected — that restriction only allows the official Claude Code CLI.',
       },
       openai: {
         description: 'Add the following configuration files to your Codex CLI config directory.',

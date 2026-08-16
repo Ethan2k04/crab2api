@@ -597,7 +597,13 @@ describe('UseKeyModal', () => {
     let configToml = codeBlocks.find((content) => content.includes('[model_providers.crab2api]'))
     expect(configToml).toBeDefined()
     expect(configToml).toContain('model_provider = "crab2api"')
-    expect(configToml).toContain('model = "claude-opus-5"')
+    expect(configToml).toContain('model = "claude-sonnet-5"')
+    expect(configToml).toContain('model_reasoning_effort = "medium"')
+    // Codex has no built-in metadata for non-OpenAI models and otherwise warns
+    // "Model metadata not found" — set the real window explicitly instead.
+    // claude-sonnet-5 uses the standard (non-1M) window.
+    expect(configToml).toContain('model_context_window = 200000')
+    expect(configToml).toContain('# review_model = "claude-sonnet-5"')
     expect(configToml).toContain('base_url = "https://example.com"')
     expect(configToml).toContain('env_key = "CRAB2API_API_KEY"')
     expect(configToml).toContain('wire_api = "responses"')
@@ -607,6 +613,14 @@ describe('UseKeyModal', () => {
     // No auth-mode toggle for this tab — it's a fixed API-key provider, unlike
     // the real OpenAI Codex tab's legacy/api-key radio.
     expect(wrapper.find('[role="radiogroup"]').exists()).toBe(false)
+
+    // config.toml is the prerequisite — it must render before (above) the env
+    // var block, and carry the emphasized "do this first" hint styling.
+    const configTomlIndex = codeBlocks.findIndex((c) => c.includes('[model_providers.crab2api]'))
+    const envVarIndex = codeBlocks.findIndex((c) => c.includes('export CRAB2API_API_KEY'))
+    expect(configTomlIndex).toBeLessThan(envVarIndex)
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHint')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.envHint')
 
     const cmdTab = wrapper.findAll('button').find((button) => button.text().trim() === 'Windows CMD')
     await cmdTab!.trigger('click')

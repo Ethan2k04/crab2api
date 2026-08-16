@@ -141,7 +141,14 @@
             class="relative"
           >
             <!-- File Hint (if exists) -->
-            <p v-if="file.hint" class="text-xs text-amber-600 dark:text-amber-400 mb-1.5 flex items-center gap-1">
+            <div
+              v-if="file.hint && file.emphasizeHint"
+              class="mb-2 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-700 dark:bg-amber-900/20"
+            >
+              <Icon name="exclamationCircle" size="sm" class="mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+              <p class="text-sm font-medium text-amber-800 dark:text-amber-200">{{ file.hint }}</p>
+            </div>
+            <p v-else-if="file.hint" class="text-xs text-amber-600 dark:text-amber-400 mb-1.5 flex items-center gap-1">
               <Icon name="exclamationCircle" size="sm" class="flex-shrink-0" />
               {{ file.hint }}
             </p>
@@ -225,6 +232,11 @@ interface FileConfig {
   path: string
   content: string
   hint?: string  // Optional hint message for this file
+  // Renders `hint` as a bordered/backgrounded box instead of plain amber text —
+  // for a hard prerequisite ("do this before the other block") rather than a
+  // passing note, where the plain-text treatment used everywhere else reads
+  // as optional and gets skipped.
+  emphasizeHint?: boolean
   highlighted?: string
 }
 
@@ -1017,13 +1029,19 @@ function generateCodexClaudeFiles(baseUrl: string, apiKey: string): FileConfig[]
 # The gateway translates the OpenAI Responses API to/from Anthropic's native
 # format, so Codex talks to your Claude group without any OpenAI account.
 #
-# Switch model: claude-opus-5 (default) | claude-sonnet-5 | claude-haiku-4-5 | claude-fable-5
+# Switch model: claude-sonnet-5 (default) | claude-opus-5 | claude-haiku-4-5 | claude-fable-5
 
 model_provider = "crab2api"
-model = "claude-opus-5"
+model = "claude-sonnet-5"
+model_reasoning_effort = "medium"
+# Codex only ships built-in metadata for OpenAI's own models, so it warns
+# "Model metadata not found" and guesses at limits for anything else. Set the
+# real window explicitly instead: claude-sonnet-5 / claude-haiku-4-5 use the
+# standard window; bump this to 1000000 if you switch to claude-opus-5 or
+# claude-fable-5, which are the 1M variants.
+model_context_window = 200000
 # Optional:
-# review_model = "claude-opus-5"
-# model_reasoning_effort = "medium"
+# review_model = "claude-sonnet-5"
 # disable_response_storage = true
 # network_access = "enabled"
 # windows_wsl_setup_acknowledged = true
@@ -1046,12 +1064,13 @@ supports_websockets = false
 # goals = true`
 
   return [
-    { path: envPath, content: envContent },
     {
       path: joinConfigPath(configDir, 'config.toml', isWindowsPath),
       content: configContent,
-      hint: t('keys.useKeyModal.codex.configTomlHint')
-    }
+      hint: t('keys.useKeyModal.codex.configTomlHint'),
+      emphasizeHint: true
+    },
+    { path: envPath, content: envContent, hint: t('keys.useKeyModal.codex.envHint') }
   ]
 }
 

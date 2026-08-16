@@ -139,10 +139,12 @@ export default {
         '此 API 密钥尚未分配分组，请先在密钥列表中点击分组列进行分配，然后才能查看使用配置。',
       codex: {
         description:
-          '配置 Codex，让 Responses API 请求通过当前 Crab2API Claude 分组发送（网关自动转换为 Anthropic 原生格式，无需 OpenAI 账号）。',
-        configTomlHint: '请确保配置目录存在。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开（不存在需先手动创建）。',
+          '配置 Codex，让 Responses API 请求通过当前 Crab2API Claude 分组发送（网关自动转换为 Anthropic 原生格式，无需 OpenAI 账号）。请按下方的步骤顺序配置。',
+        configTomlHint:
+          '步骤 1：先保存这个 config.toml——没有它 Codex 根本不知道 Crab2API 这个 provider 存在，第二步设置的密钥也无从生效。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开（不存在需先手动创建）。保存后需完全重启 Codex 才会生效。',
+        envHint: '步骤 2：再设置这个环境变量作为你的 API 密钥（对应 config.toml 里的 env_key = "CRAB2API_API_KEY"）。仅在当前终端会话生效，新开终端需重新设置。',
         note:
-          '导出/设置 CRAB2API_API_KEY，并将 config.toml 保存到 ~/.codex（Windows 为 %USERPROFILE%\\.codex），保存后需完全重启 Codex 才会生效。model 可按需替换为 claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5。若该分组管理员开启了「Claude Code 客户端限制」，Codex 请求会被拒绝——该限制只放行官方 Claude Code CLI。'
+          'model 可按需替换为 claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5，切换后记得同步调整 model_context_window（opus-5、fable-5 是 1M 窗口，其余为标准窗口）。若该分组管理员开启了「Claude Code 客户端限制」，Codex 请求会被拒绝——该限制只放行官方 Claude Code CLI。'
       },
       openai: {
         description: '将以下配置文件添加到 Codex CLI 配置目录中。',
