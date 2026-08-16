@@ -146,6 +146,9 @@ func (r *userRepository) create(ctx context.Context, userIn *service.User, guard
 		SetNillableLastLoginAt(userIn.LastLoginAt).
 		SetNillableLastActiveAt(userIn.LastActiveAt).
 		SetRpmLimit(userIn.RPMLimit).
+		// 有意不设 request_limit_5h / request_alert_pct_5h：让 schema 默认值
+		// （30 次 / 80%）落到每个新用户身上。注册路径构造的 service.User 不带这两个
+		// 字段，显式回写只会把默认值覆盖成 0 —— 而 0 的语义是「不限制」。
 		Save(txCtx)
 	if err != nil {
 		return translatePersistenceError(err, nil, service.ErrEmailExists)
@@ -305,6 +308,11 @@ func (r *userRepository) Update(ctx context.Context, userIn *service.User, field
 	}
 	if fields.RPMLimit {
 		updateOp = updateOp.SetRpmLimit(userIn.RPMLimit)
+	}
+	if fields.RequestLimit5h {
+		updateOp = updateOp.
+			SetRequestLimit5h(userIn.RequestLimit5h).
+			SetRequestAlertPct5h(userIn.RequestAlertPct5h)
 	}
 	if fields.Status {
 		updateOp = updateOp.SetStatus(userIn.Status)

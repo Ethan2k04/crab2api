@@ -56,6 +56,29 @@
         />
         <p class="input-hint">{{ t('admin.users.form.rpmLimitHint') }}</p>
       </div>
+      <div>
+        <label class="input-label">{{ t('admin.users.form.requestLimit5h') }}</label>
+        <input
+          v-model.number="form.request_limit_5h"
+          type="number"
+          min="0"
+          step="1"
+          class="input"
+        />
+        <p class="input-hint">{{ t('admin.users.form.requestLimit5hHint') }}</p>
+      </div>
+      <div>
+        <label class="input-label">{{ t('admin.users.form.requestAlertPct5h') }}</label>
+        <input
+          v-model.number="form.request_alert_pct_5h"
+          type="number"
+          min="1"
+          max="100"
+          step="1"
+          class="input"
+        />
+        <p class="input-hint">{{ t('admin.users.form.requestAlertPct5hHint') }}</p>
+      </div>
       <UserAttributeForm v-model="form.customAttributes" :user-id="user?.id" />
     </form>
     <template #footer>
@@ -90,11 +113,13 @@ const emit = defineEmits(['close', 'success'])
 const { t } = useI18n(); const appStore = useAppStore(); const { copyToClipboard } = useClipboard()
 
 const submitting = ref(false); const passwordCopied = ref(false)
-const form = reactive({ email: '', password: '', username: '', notes: '', role: 'user', concurrency: 1, rpm_limit: 0, customAttributes: {} as UserAttributeValuesMap })
+const form = reactive({ email: '', password: '', username: '', notes: '', role: 'user', concurrency: 1, rpm_limit: 0, request_limit_5h: 30, request_alert_pct_5h: 80, customAttributes: {} as UserAttributeValuesMap })
 
 watch(() => props.user, (u) => {
   if (u) {
-    Object.assign(form, { email: u.email, password: '', username: u.username || '', notes: u.notes || '', role: u.role || 'user', concurrency: u.concurrency, rpm_limit: u.rpm_limit ?? 0, customAttributes: {} })
+    // request_limit_5h 的 ?? 兜底是 30 而不是 0：0 在后端的语义是"不限制"，
+    // 拿它当"字段缺失"的默认值会把闸门静默关掉。
+    Object.assign(form, { email: u.email, password: '', username: u.username || '', notes: u.notes || '', role: u.role || 'user', concurrency: u.concurrency, rpm_limit: u.rpm_limit ?? 0, request_limit_5h: u.request_limit_5h ?? 30, request_alert_pct_5h: u.request_alert_pct_5h ?? 80, customAttributes: {} })
     passwordCopied.value = false
   }
 }, { immediate: true })
@@ -121,10 +146,14 @@ const handleUpdateUser = async () => {
     appStore.showError(t('admin.users.concurrencyMin'))
     return
   }
+  if (form.request_alert_pct_5h < 1 || form.request_alert_pct_5h > 100) {
+    appStore.showError(t('admin.users.form.requestAlertPct5hRange'))
+    return
+  }
   const userId = props.user.id
   submitting.value = true
   try {
-    const data: any = { email: form.email, username: form.username, notes: form.notes, role: form.role, concurrency: form.concurrency, rpm_limit: form.rpm_limit }
+    const data: any = { email: form.email, username: form.username, notes: form.notes, role: form.role, concurrency: form.concurrency, rpm_limit: form.rpm_limit, request_limit_5h: Math.max(form.request_limit_5h, 0), request_alert_pct_5h: form.request_alert_pct_5h }
     if (form.password.trim()) data.password = form.password.trim()
     // 提升为管理员属敏感操作：后端返回 STEP_UP_REQUIRED 时弹 TOTP 验证并重试
     await stepUp.run(() => adminAPI.users.update(userId, data))

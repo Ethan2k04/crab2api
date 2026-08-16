@@ -432,6 +432,48 @@ func (_u *UserUpdate) AddRpmLimit(v int) *UserUpdate {
 	return _u
 }
 
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (_u *UserUpdate) SetRequestLimit5h(v int) *UserUpdate {
+	_u.mutation.ResetRequestLimit5h()
+	_u.mutation.SetRequestLimit5h(v)
+	return _u
+}
+
+// SetNillableRequestLimit5h sets the "request_limit_5h" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableRequestLimit5h(v *int) *UserUpdate {
+	if v != nil {
+		_u.SetRequestLimit5h(*v)
+	}
+	return _u
+}
+
+// AddRequestLimit5h adds value to the "request_limit_5h" field.
+func (_u *UserUpdate) AddRequestLimit5h(v int) *UserUpdate {
+	_u.mutation.AddRequestLimit5h(v)
+	return _u
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (_u *UserUpdate) SetRequestAlertPct5h(v int) *UserUpdate {
+	_u.mutation.ResetRequestAlertPct5h()
+	_u.mutation.SetRequestAlertPct5h(v)
+	return _u
+}
+
+// SetNillableRequestAlertPct5h sets the "request_alert_pct_5h" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableRequestAlertPct5h(v *int) *UserUpdate {
+	if v != nil {
+		_u.SetRequestAlertPct5h(*v)
+	}
+	return _u
+}
+
+// AddRequestAlertPct5h adds value to the "request_alert_pct_5h" field.
+func (_u *UserUpdate) AddRequestAlertPct5h(v int) *UserUpdate {
+	_u.mutation.AddRequestAlertPct5h(v)
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdate) AddAPIKeyIDs(ids ...int64) *UserUpdate {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -1098,6 +1140,18 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedRpmLimit(); ok {
 		_spec.AddField(user.FieldRpmLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequestLimit5h(); ok {
+		_spec.SetField(user.FieldRequestLimit5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequestLimit5h(); ok {
+		_spec.AddField(user.FieldRequestLimit5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequestAlertPct5h(); ok {
+		_spec.SetField(user.FieldRequestAlertPct5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequestAlertPct5h(); ok {
+		_spec.AddField(user.FieldRequestAlertPct5h, field.TypeInt, value)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2108,6 +2162,48 @@ func (_u *UserUpdateOne) AddRpmLimit(v int) *UserUpdateOne {
 	return _u
 }
 
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (_u *UserUpdateOne) SetRequestLimit5h(v int) *UserUpdateOne {
+	_u.mutation.ResetRequestLimit5h()
+	_u.mutation.SetRequestLimit5h(v)
+	return _u
+}
+
+// SetNillableRequestLimit5h sets the "request_limit_5h" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableRequestLimit5h(v *int) *UserUpdateOne {
+	if v != nil {
+		_u.SetRequestLimit5h(*v)
+	}
+	return _u
+}
+
+// AddRequestLimit5h adds value to the "request_limit_5h" field.
+func (_u *UserUpdateOne) AddRequestLimit5h(v int) *UserUpdateOne {
+	_u.mutation.AddRequestLimit5h(v)
+	return _u
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (_u *UserUpdateOne) SetRequestAlertPct5h(v int) *UserUpdateOne {
+	_u.mutation.ResetRequestAlertPct5h()
+	_u.mutation.SetRequestAlertPct5h(v)
+	return _u
+}
+
+// SetNillableRequestAlertPct5h sets the "request_alert_pct_5h" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableRequestAlertPct5h(v *int) *UserUpdateOne {
+	if v != nil {
+		_u.SetRequestAlertPct5h(*v)
+	}
+	return _u
+}
+
+// AddRequestAlertPct5h adds value to the "request_alert_pct_5h" field.
+func (_u *UserUpdateOne) AddRequestAlertPct5h(v int) *UserUpdateOne {
+	_u.mutation.AddRequestAlertPct5h(v)
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdateOne) AddAPIKeyIDs(ids ...int64) *UserUpdateOne {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -2804,6 +2900,18 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.AddedRpmLimit(); ok {
 		_spec.AddField(user.FieldRpmLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequestLimit5h(); ok {
+		_spec.SetField(user.FieldRequestLimit5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequestLimit5h(); ok {
+		_spec.AddField(user.FieldRequestLimit5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequestAlertPct5h(); ok {
+		_spec.SetField(user.FieldRequestAlertPct5h, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequestAlertPct5h(); ok {
+		_spec.AddField(user.FieldRequestAlertPct5h, field.TypeInt, value)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{

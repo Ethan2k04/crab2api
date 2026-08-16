@@ -4,10 +4,32 @@
       <div class="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30 text-blue-600">
         <Icon name="document" size="md" />
       </div>
-      <div>
+      <div class="min-w-0 flex-1">
         <p class="text-xs font-medium text-gray-500">{{ t('usage.totalRequests') }}</p>
         <p class="text-xl font-bold">{{ stats?.total_requests?.toLocaleString() || '0' }}</p>
         <p class="text-xs text-gray-400">{{ t('usage.inSelectedRange') }}</p>
+        <!--
+          5h 窗口用量。刻意贴在"总请求数"下面而不是单开一张卡：它和上面
+          那个数是同一个计量单位（次数），只是窗口不同——放一起用户才会
+          把"我这段时间打了多少"和"我离闸门还有多远"联系起来。
+        -->
+        <p
+          v-if="window5h?.enabled.value"
+          class="mt-1 flex items-center gap-1 text-xs tabular-nums"
+          :class="window5h.alerting.value ? 'font-semibold text-red-500 dark:text-red-400' : 'text-gray-400'"
+        >
+          <svg
+            v-if="window5h.alerting.value"
+            class="h-3.5 w-3.5 shrink-0"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 2 1 21h22L12 2Zm0 5.5 7.5 12.5h-15L12 7.5ZM11 10v5h2v-5h-2Zm0 6.5V18h2v-1.5h-2Z" />
+          </svg>
+          <span>{{ t('usage.window5h.label') }}</span>
+          <span>{{ window5h.status.value?.used }} / {{ window5h.status.value?.limit }}</span>
+          <span v-if="window5hResetIn" class="text-gray-400">· ⟳ {{ window5hResetIn }}</span>
+        </p>
       </div>
     </div>
     <div class="card p-4 flex items-center gap-3">
@@ -89,22 +111,45 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AdminUsageStatsResponse } from '@/api/admin/usage'
 import type { UsageStatsResponse } from '@/types'
+import type { Window5h } from '@/composables/useWindow5h'
 import Icon from '@/components/icons/Icon.vue'
 
 const props = withDefaults(defineProps<{
   stats: (AdminUsageStatsResponse | UsageStatsResponse) | null
   showAccountCost?: boolean
   strikeStandardCost?: boolean
+  /**
+   * The viewer's own 5h request window. Only the user-facing Usage page passes
+   * this — the admin view shows every user's traffic, where one person's window
+   * would be meaningless.
+   */
+  window5h?: Window5h | null
 }>(), {
   showAccountCost: true,
   strikeStandardCost: false,
+  window5h: null,
 })
 
 const { t } = useI18n()
+
+// 倒计时按分钟走针即可——窗口以小时计，每秒重算只是白烧渲染。
+const now = ref(Date.now())
+const resetTicker = setInterval(() => { now.value = Date.now() }, 60_000)
+onUnmounted(() => clearInterval(resetTicker))
+
+const window5hResetIn = computed(() => {
+  const resetAt = props.window5h?.status.value?.reset_at
+  if (!resetAt) return ''
+  const diff = new Date(resetAt).getTime() - now.value
+  if (diff <= 0) return ''
+  const hours = Math.floor(diff / 3_600_000)
+  const mins = Math.floor((diff % 3_600_000) / 60_000)
+  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+})
 
 const totalAccountCost = computed(() => {
   const stats = props.stats as (AdminUsageStatsResponse & { total_account_cost?: number }) | null

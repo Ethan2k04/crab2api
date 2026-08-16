@@ -161,7 +161,11 @@ type UpdateUserInput struct {
 	Balance       *float64 // 使用指针区分"未提供"和"设置为0"
 	Concurrency   *int     // 使用指针区分"未提供"和"设置为0"
 	RPMLimit      *int     // 使用指针区分"未提供"和"设置为0"
-	Status        string
+	// RequestLimit5h 每 5 小时窗口请求数上限（0 = 不限制）。
+	RequestLimit5h *int
+	// RequestAlertPct5h 5h 窗口告警百分比（1-100），越界回落到 80。仅影响前端展示。
+	RequestAlertPct5h *int
+	Status            string
 	AllowedGroups *[]int64 // 使用指针区分"未提供"和"设置为空数组"
 	// GroupRates 用户专属分组倍率配置
 	// map[groupID]*rate，nil 表示删除该分组的专属倍率

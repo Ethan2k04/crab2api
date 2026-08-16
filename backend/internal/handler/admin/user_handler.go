@@ -81,8 +81,13 @@ type UpdateUserRequest struct {
 	Balance       *float64 `json:"balance"`
 	Concurrency   *int     `json:"concurrency"`
 	RPMLimit      *int     `json:"rpm_limit"`
-	Status        string   `json:"status" binding:"omitempty,oneof=active disabled"`
-	AllowedGroups *[]int64 `json:"allowed_groups"`
+	// RequestLimit5h 每 5 小时窗口请求数上限（0 = 不限制）。
+	RequestLimit5h *int `json:"request_limit_5h" binding:"omitempty,min=0"`
+	// RequestAlertPct5h 5h 窗口告警百分比。上界卡 100，下界留给 service 层
+	// 归一化——binding 用 min=1 会让「显式传 0」直接 400，而 0 只是想回默认值。
+	RequestAlertPct5h *int     `json:"request_alert_pct_5h" binding:"omitempty,max=100"`
+	Status            string   `json:"status" binding:"omitempty,oneof=active disabled"`
+	AllowedGroups     *[]int64 `json:"allowed_groups"`
 	// GroupRates 用户专属分组倍率配置
 	// map[groupID]*rate，nil 表示删除该分组的专属倍率
 	GroupRates map[int64]*float64 `json:"group_rates"`
@@ -348,11 +353,13 @@ func (h *UserHandler) Update(c *gin.Context) {
 		Notes:         req.Notes,
 		Role:          req.Role,
 		Balance:       req.Balance,
-		Concurrency:   req.Concurrency,
-		RPMLimit:      req.RPMLimit,
-		Status:        req.Status,
-		AllowedGroups: req.AllowedGroups,
-		GroupRates:    req.GroupRates,
+		Concurrency:       req.Concurrency,
+		RPMLimit:          req.RPMLimit,
+		RequestLimit5h:    req.RequestLimit5h,
+		RequestAlertPct5h: req.RequestAlertPct5h,
+		Status:            req.Status,
+		AllowedGroups:     req.AllowedGroups,
+		GroupRates:        req.GroupRates,
 		ActorAdminID:  getAdminIDFromContext(c),
 	})
 	if err != nil {

@@ -423,7 +423,11 @@ export default {
       qrFailed: 'Failed to get WeChat Pay QR code',
     },
     subscribeNow: 'Subscribe Now',
-    renewNow: 'Renew',
+    /**
+     * Re-buying the same tier restarts the period and allowance from zero
+     * rather than extending them, so "Renew" oversold what the button does.
+     */
+    renewNow: 'Reset',
     /** Tiers withheld during the alpha — see config/alphaGate.ts */
     notYetAvailable: 'Not Yet Available',
     /** Balance top-up withheld during the alpha — see config/alphaGate.ts */

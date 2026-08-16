@@ -2344,6 +2344,12 @@ func billingErrorDetails(err error) (status int, code, message string, retryAfte
 		retrySeconds := 60 - int(time.Now().Unix()%60)
 		return http.StatusTooManyRequests, "rate_limit_exceeded", msg, retrySeconds
 	}
+	// 5h 窗口超限：Retry-After 取窗口剩余时间（可长达 5 小时），
+	// 而不是像 RPM 那样报「本分钟剩余秒数」——后者会让客户端每分钟空转重试一次。
+	if errors.Is(err, service.ErrUser5hRequestsExceeded) {
+		msg := pkgerrors.Message(err)
+		return http.StatusTooManyRequests, "rate_limit_exceeded", msg, extractQuotaResetSeconds(err)
+	}
 	if errors.Is(err, service.ErrUserPlatformDailyQuotaExhausted) ||
 		errors.Is(err, service.ErrUserPlatformWeeklyQuotaExhausted) ||
 		errors.Is(err, service.ErrUserPlatformMonthlyQuotaExhausted) {

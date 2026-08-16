@@ -48053,6 +48053,10 @@ type UserMutation struct {
 	addtotal_recharged            *float64
 	rpm_limit                     *int
 	addrpm_limit                  *int
+	request_limit_5h              *int
+	addrequest_limit_5h           *int
+	request_alert_pct_5h          *int
+	addrequest_alert_pct_5h       *int
 	clearedFields                 map[string]struct{}
 	api_keys                      map[int64]struct{}
 	removedapi_keys               map[int64]struct{}
@@ -49259,6 +49263,118 @@ func (m *UserMutation) ResetRpmLimit() {
 	m.addrpm_limit = nil
 }
 
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (m *UserMutation) SetRequestLimit5h(i int) {
+	m.request_limit_5h = &i
+	m.addrequest_limit_5h = nil
+}
+
+// RequestLimit5h returns the value of the "request_limit_5h" field in the mutation.
+func (m *UserMutation) RequestLimit5h() (r int, exists bool) {
+	v := m.request_limit_5h
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestLimit5h returns the old "request_limit_5h" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldRequestLimit5h(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestLimit5h is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestLimit5h requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestLimit5h: %w", err)
+	}
+	return oldValue.RequestLimit5h, nil
+}
+
+// AddRequestLimit5h adds i to the "request_limit_5h" field.
+func (m *UserMutation) AddRequestLimit5h(i int) {
+	if m.addrequest_limit_5h != nil {
+		*m.addrequest_limit_5h += i
+	} else {
+		m.addrequest_limit_5h = &i
+	}
+}
+
+// AddedRequestLimit5h returns the value that was added to the "request_limit_5h" field in this mutation.
+func (m *UserMutation) AddedRequestLimit5h() (r int, exists bool) {
+	v := m.addrequest_limit_5h
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequestLimit5h resets all changes to the "request_limit_5h" field.
+func (m *UserMutation) ResetRequestLimit5h() {
+	m.request_limit_5h = nil
+	m.addrequest_limit_5h = nil
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (m *UserMutation) SetRequestAlertPct5h(i int) {
+	m.request_alert_pct_5h = &i
+	m.addrequest_alert_pct_5h = nil
+}
+
+// RequestAlertPct5h returns the value of the "request_alert_pct_5h" field in the mutation.
+func (m *UserMutation) RequestAlertPct5h() (r int, exists bool) {
+	v := m.request_alert_pct_5h
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestAlertPct5h returns the old "request_alert_pct_5h" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldRequestAlertPct5h(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestAlertPct5h is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestAlertPct5h requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestAlertPct5h: %w", err)
+	}
+	return oldValue.RequestAlertPct5h, nil
+}
+
+// AddRequestAlertPct5h adds i to the "request_alert_pct_5h" field.
+func (m *UserMutation) AddRequestAlertPct5h(i int) {
+	if m.addrequest_alert_pct_5h != nil {
+		*m.addrequest_alert_pct_5h += i
+	} else {
+		m.addrequest_alert_pct_5h = &i
+	}
+}
+
+// AddedRequestAlertPct5h returns the value that was added to the "request_alert_pct_5h" field in this mutation.
+func (m *UserMutation) AddedRequestAlertPct5h() (r int, exists bool) {
+	v := m.addrequest_alert_pct_5h
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequestAlertPct5h resets all changes to the "request_alert_pct_5h" field.
+func (m *UserMutation) ResetRequestAlertPct5h() {
+	m.request_alert_pct_5h = nil
+	m.addrequest_alert_pct_5h = nil
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by ids.
 func (m *UserMutation) AddAPIKeyIDs(ids ...int64) {
 	if m.api_keys == nil {
@@ -49995,7 +50111,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -50068,6 +50184,12 @@ func (m *UserMutation) Fields() []string {
 	if m.rpm_limit != nil {
 		fields = append(fields, user.FieldRpmLimit)
 	}
+	if m.request_limit_5h != nil {
+		fields = append(fields, user.FieldRequestLimit5h)
+	}
+	if m.request_alert_pct_5h != nil {
+		fields = append(fields, user.FieldRequestAlertPct5h)
+	}
 	return fields
 }
 
@@ -50124,6 +50246,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.TotalRecharged()
 	case user.FieldRpmLimit:
 		return m.RpmLimit()
+	case user.FieldRequestLimit5h:
+		return m.RequestLimit5h()
+	case user.FieldRequestAlertPct5h:
+		return m.RequestAlertPct5h()
 	}
 	return nil, false
 }
@@ -50181,6 +50307,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTotalRecharged(ctx)
 	case user.FieldRpmLimit:
 		return m.OldRpmLimit(ctx)
+	case user.FieldRequestLimit5h:
+		return m.OldRequestLimit5h(ctx)
+	case user.FieldRequestAlertPct5h:
+		return m.OldRequestAlertPct5h(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -50358,6 +50488,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRpmLimit(v)
 		return nil
+	case user.FieldRequestLimit5h:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestLimit5h(v)
+		return nil
+	case user.FieldRequestAlertPct5h:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestAlertPct5h(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -50384,6 +50528,12 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addrpm_limit != nil {
 		fields = append(fields, user.FieldRpmLimit)
 	}
+	if m.addrequest_limit_5h != nil {
+		fields = append(fields, user.FieldRequestLimit5h)
+	}
+	if m.addrequest_alert_pct_5h != nil {
+		fields = append(fields, user.FieldRequestAlertPct5h)
+	}
 	return fields
 }
 
@@ -50404,6 +50554,10 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTotalRecharged()
 	case user.FieldRpmLimit:
 		return m.AddedRpmLimit()
+	case user.FieldRequestLimit5h:
+		return m.AddedRequestLimit5h()
+	case user.FieldRequestAlertPct5h:
+		return m.AddedRequestAlertPct5h()
 	}
 	return nil, false
 }
@@ -50454,6 +50608,20 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRpmLimit(v)
+		return nil
+	case user.FieldRequestLimit5h:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequestLimit5h(v)
+		return nil
+	case user.FieldRequestAlertPct5h:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequestAlertPct5h(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -50592,6 +50760,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRpmLimit:
 		m.ResetRpmLimit()
+		return nil
+	case user.FieldRequestLimit5h:
+		m.ResetRequestLimit5h()
+		return nil
+	case user.FieldRequestAlertPct5h:
+		m.ResetRequestAlertPct5h()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

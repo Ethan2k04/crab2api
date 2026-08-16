@@ -175,6 +175,16 @@ func RpmLimit(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldRpmLimit, v))
 }
 
+// RequestLimit5h applies equality check predicate on the "request_limit_5h" field. It's identical to RequestLimit5hEQ.
+func RequestLimit5h(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRequestLimit5h, v))
+}
+
+// RequestAlertPct5h applies equality check predicate on the "request_alert_pct_5h" field. It's identical to RequestAlertPct5hEQ.
+func RequestAlertPct5h(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRequestAlertPct5h, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -1383,6 +1393,86 @@ func RpmLimitLT(v int) predicate.User {
 // RpmLimitLTE applies the LTE predicate on the "rpm_limit" field.
 func RpmLimitLTE(v int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldRpmLimit, v))
+}
+
+// RequestLimit5hEQ applies the EQ predicate on the "request_limit_5h" field.
+func RequestLimit5hEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRequestLimit5h, v))
+}
+
+// RequestLimit5hNEQ applies the NEQ predicate on the "request_limit_5h" field.
+func RequestLimit5hNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldRequestLimit5h, v))
+}
+
+// RequestLimit5hIn applies the In predicate on the "request_limit_5h" field.
+func RequestLimit5hIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldRequestLimit5h, vs...))
+}
+
+// RequestLimit5hNotIn applies the NotIn predicate on the "request_limit_5h" field.
+func RequestLimit5hNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldRequestLimit5h, vs...))
+}
+
+// RequestLimit5hGT applies the GT predicate on the "request_limit_5h" field.
+func RequestLimit5hGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldRequestLimit5h, v))
+}
+
+// RequestLimit5hGTE applies the GTE predicate on the "request_limit_5h" field.
+func RequestLimit5hGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldRequestLimit5h, v))
+}
+
+// RequestLimit5hLT applies the LT predicate on the "request_limit_5h" field.
+func RequestLimit5hLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldRequestLimit5h, v))
+}
+
+// RequestLimit5hLTE applies the LTE predicate on the "request_limit_5h" field.
+func RequestLimit5hLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldRequestLimit5h, v))
+}
+
+// RequestAlertPct5hEQ applies the EQ predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRequestAlertPct5h, v))
+}
+
+// RequestAlertPct5hNEQ applies the NEQ predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldRequestAlertPct5h, v))
+}
+
+// RequestAlertPct5hIn applies the In predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldRequestAlertPct5h, vs...))
+}
+
+// RequestAlertPct5hNotIn applies the NotIn predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldRequestAlertPct5h, vs...))
+}
+
+// RequestAlertPct5hGT applies the GT predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldRequestAlertPct5h, v))
+}
+
+// RequestAlertPct5hGTE applies the GTE predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldRequestAlertPct5h, v))
+}
+
+// RequestAlertPct5hLT applies the LT predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldRequestAlertPct5h, v))
+}
+
+// RequestAlertPct5hLTE applies the LTE predicate on the "request_alert_pct_5h" field.
+func RequestAlertPct5hLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldRequestAlertPct5h, v))
 }
 
 // HasAPIKeys applies the HasEdge predicate on the "api_keys" edge.

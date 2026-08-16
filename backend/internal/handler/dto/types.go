@@ -34,6 +34,12 @@ type User struct {
 	// RPMLimit 用户级每分钟请求数上限（0 = 不限制），仅在所用分组未设置 rpm_limit 时作为兜底生效。
 	RPMLimit int `json:"rpm_limit"`
 
+	// RequestLimit5h 每 5 小时窗口请求数上限（0 = 不限制）。
+	// 有意对普通用户也返回：让用户看得见自己的闸门在哪，是这条限流的产品目的。
+	RequestLimit5h int `json:"request_limit_5h"`
+	// RequestAlertPct5h 5h 窗口告警百分比，前端据此决定何时标红。
+	RequestAlertPct5h int `json:"request_alert_pct_5h"`
+
 	APIKeys       []APIKey           `json:"api_keys,omitempty"`
 	Subscriptions []UserSubscription `json:"subscriptions,omitempty"`
 }

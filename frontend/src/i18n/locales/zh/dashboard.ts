@@ -292,6 +292,16 @@ export default {
     accountMultiplier: '账号倍率',
     avgDuration: '平均耗时',
     inSelectedRange: '所选范围内',
+    /** 5h 请求窗口 —— 见 composables/useWindow5h.ts */
+    window5h: {
+      label: '5 小时窗口',
+      alertTitle: '当前 5 小时窗口用量偏高',
+      alertHint:
+        '本窗口已用 {used}/{limit} 次请求。建议暂时放慢节奏，用满后需等窗口重置才能继续。',
+      exhaustedTitle: '当前 5 小时窗口已用完',
+      exhaustedHint:
+        '本窗口已用满 {used}/{limit} 次请求，新请求会被限流。请等待窗口重置后再继续。',
+    },
     perRequest: '每次请求',
     apiKeyFilter: 'API 密钥',
     allApiKeys: '全部密钥',

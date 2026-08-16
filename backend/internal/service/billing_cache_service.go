@@ -28,6 +28,9 @@ var (
 	// RPM 超限错误。gateway_handler 负责映射为 HTTP 429。
 	ErrGroupRPMExceeded = infraerrors.TooManyRequests("GROUP_RPM_EXCEEDED", "group requests-per-minute limit exceeded")
 	ErrUserRPMExceeded  = infraerrors.TooManyRequests("USER_RPM_EXCEEDED", "user requests-per-minute limit exceeded")
+	// 5h 窗口请求数超限。同样映射为 HTTP 429，但 Retry-After 取窗口剩余时间
+	// 而不是「本分钟剩余秒数」—— 报 60 秒会让客户端一分钟一次地空转到窗口结束。
+	ErrUser5hRequestsExceeded = infraerrors.TooManyRequests("USER_5H_REQUESTS_EXCEEDED", "user 5-hour request limit exceeded")
 
 	// user × platform quota（HTTP 429 Too Many Requests + Retry-After header）。
 	// 选用 429 而非 403：限额耗尽属于"暂时性资源用尽，重试可恢复"的场景（RFC 6585），
@@ -109,6 +112,7 @@ type BillingCacheService struct {
 	subRepo               UserSubscriptionRepository
 	apiKeyRateLimitLoader apiKeyRateLimitLoader
 	userRPMCache          UserRPMCache
+	userWindow5hCache     UserWindow5hCache
 	userGroupRateRepo     UserGroupRateRepository
 	cfg                   *config.Config
 	circuitBreaker        *billingCircuitBreaker
@@ -152,6 +156,19 @@ func NewBillingCacheService(
 	svc.circuitBreaker = newBillingCircuitBreaker(cfg.Billing.CircuitBreaker)
 	svc.startCacheWriteWorkers()
 	return svc
+}
+
+// SetUserWindow5hCache 注入 5h 窗口计数器。
+//
+// 走 setter 而不是加构造参数：NewBillingCacheService 已有 8 个位置参数、
+// 二十来处测试调用点，再加一个 nil 只会让那些调用更难读。生产装配在
+// ProvideBillingCacheService 里调用本方法；未调用时（全部测试）
+// check5hRequests 直接放行。
+func (s *BillingCacheService) SetUserWindow5hCache(cache UserWindow5hCache) {
+	if s == nil {
+		return
+	}
+	s.userWindow5hCache = cache
 }
 
 // Stop 关闭缓存写入工作池
@@ -773,6 +790,43 @@ func (s *BillingCacheService) CheckBillingEligibility(ctx context.Context, user 
 		return err
 	}
 
+	// 5h 窗口请求数限流。与 RPM 同理放在最后：注定失败的请求不该占用窗口配额。
+	if err := s.check5hRequests(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// check5hRequests 执行用户级 5 小时窗口请求数限流。
+//
+// 与 checkRPM 的分工：RPM 挡的是瞬时突发（每分钟），这条挡的是持续高频——
+// 一个每分钟只发 5 次但连发五小时的 agent 客户端能轻松打空上游账号的
+// Anthropic 官方 5h 配额，而那个配额是全站共享的。
+//
+// user.RequestLimit5h == 0 表示不限制；Redis 故障一律 fail-open，
+// 处置与 checkRPM 保持一致——限流组件挂了不该把网关一起拖下水。
+func (s *BillingCacheService) check5hRequests(ctx context.Context, user *User) error {
+	if s == nil || s.userWindow5hCache == nil || user == nil || user.RequestLimit5h <= 0 {
+		return nil
+	}
+
+	state, err := s.userWindow5hCache.IncrementUserWindow5h(ctx, user.ID)
+	if err != nil {
+		logger.LegacyPrintf(
+			"service.billing_cache",
+			"Warning: 5h window increment failed for user=%d: %v",
+			user.ID, err,
+		)
+		return nil // fail-open
+	}
+	if state.Used > user.RequestLimit5h {
+		// 复用 user×platform quota 已有的 window_resets_at 约定，
+		// gateway_handler 的 extractQuotaResetSeconds 会把它折成 Retry-After。
+		return ErrUser5hRequestsExceeded.WithMetadata(map[string]string{
+			"window_resets_at": state.ResetAt.Format(time.RFC3339),
+		})
+	}
 	return nil
 }
 

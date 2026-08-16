@@ -447,7 +447,11 @@ export default {
       qrFailed: '未能获取微信支付二维码',
     },
     subscribeNow: '立即开通',
-    renewNow: '续费',
+    /**
+     * 买同档位不是"续期"——它把周期和额度整个重置回起点，
+     * 叫"续费"会让用户以为剩余额度会累加上去。
+     */
+    renewNow: '重置',
     /** Alpha 期间暂停销售的档位 —— 见 config/alphaGate.ts */
     notYetAvailable: '暂未开通',
     /** Alpha 期间暂停的余额充值 —— 见 config/alphaGate.ts */

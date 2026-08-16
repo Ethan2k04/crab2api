@@ -63,6 +63,10 @@ const (
 	FieldTotalRecharged = "total_recharged"
 	// FieldRpmLimit holds the string denoting the rpm_limit field in the database.
 	FieldRpmLimit = "rpm_limit"
+	// FieldRequestLimit5h holds the string denoting the request_limit_5h field in the database.
+	FieldRequestLimit5h = "request_limit_5h"
+	// FieldRequestAlertPct5h holds the string denoting the request_alert_pct_5h field in the database.
+	FieldRequestAlertPct5h = "request_alert_pct_5h"
 	// EdgeAPIKeys holds the string denoting the api_keys edge name in mutations.
 	EdgeAPIKeys = "api_keys"
 	// EdgeRedeemCodes holds the string denoting the redeem_codes edge name in mutations.
@@ -218,6 +222,8 @@ var Columns = []string{
 	FieldBalanceNotifyExtraEmails,
 	FieldTotalRecharged,
 	FieldRpmLimit,
+	FieldRequestLimit5h,
+	FieldRequestAlertPct5h,
 }
 
 var (
@@ -290,6 +296,10 @@ var (
 	DefaultTotalRecharged float64
 	// DefaultRpmLimit holds the default value on creation for the "rpm_limit" field.
 	DefaultRpmLimit int
+	// DefaultRequestLimit5h holds the default value on creation for the "request_limit_5h" field.
+	DefaultRequestLimit5h int
+	// DefaultRequestAlertPct5h holds the default value on creation for the "request_alert_pct_5h" field.
+	DefaultRequestAlertPct5h int
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -418,6 +428,16 @@ func ByTotalRecharged(opts ...sql.OrderTermOption) OrderOption {
 // ByRpmLimit orders the results by the rpm_limit field.
 func ByRpmLimit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRpmLimit, opts...).ToFunc()
+}
+
+// ByRequestLimit5h orders the results by the request_limit_5h field.
+func ByRequestLimit5h(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestLimit5h, opts...).ToFunc()
+}
+
+// ByRequestAlertPct5h orders the results by the request_alert_pct_5h field.
+func ByRequestAlertPct5h(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestAlertPct5h, opts...).ToFunc()
 }
 
 // ByAPIKeysCount orders the results by api_keys count.

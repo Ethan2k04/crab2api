@@ -579,7 +579,14 @@ export default {
         selectStatus: '选择状态',
         rpmLimit: '每分钟请求数 (RPM)',
         rpmLimitPlaceholder: '0 表示不限制',
-        rpmLimitHint: '该用户每分钟最大请求数，0 = 不限制；仅在所用分组未设置 rpm_limit 时作为兜底生效'
+        rpmLimitHint: '该用户每分钟最大请求数，0 = 不限制；仅在所用分组未设置 rpm_limit 时作为兜底生效',
+        requestLimit5h: '每 5 小时请求数',
+        requestLimit5hHint:
+          '该用户每 5 小时窗口内最大请求数，0 = 不限制。窗口从用户首次对话开始计算，5 小时后重置；期间无对话则窗口消失，下次对话重新开窗。',
+        requestAlertPct5h: '5 小时用量告警阈值 (%)',
+        requestAlertPct5hHint:
+          '窗口用量达到该百分比时，用户的「使用记录」页会标红并提示减少用量。仅影响提示，不影响放行。',
+        requestAlertPct5hRange: '告警阈值需在 1 到 100 之间'
       },
       adjustBalance: '调整余额',
       adjustConcurrency: '调整并发数',

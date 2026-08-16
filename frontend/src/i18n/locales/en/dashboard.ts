@@ -287,6 +287,16 @@ export default {
     accountMultiplier: 'Account rate',
     avgDuration: 'Avg Duration',
     inSelectedRange: 'in selected range',
+    /** 5-hour request window — see composables/useWindow5h.ts */
+    window5h: {
+      label: '5h window',
+      alertTitle: 'Your 5-hour window is filling up',
+      alertHint:
+        'You have used {used} of {limit} requests in this window. Consider easing off — once it is full you will have to wait for the window to reset.',
+      exhaustedTitle: 'Your 5-hour window is used up',
+      exhaustedHint:
+        'You have used all {used} of {limit} requests in this window. New requests will be rate limited until the window resets.',
+    },
     perRequest: 'per request',
     apiKeyFilter: 'API Key',
     allApiKeys: 'All API Keys',

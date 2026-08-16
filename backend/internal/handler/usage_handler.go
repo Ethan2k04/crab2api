@@ -46,10 +46,11 @@ type userGroupStat struct {
 
 // UsageHandler handles usage-related requests
 type UsageHandler struct {
-	usageService   *service.UsageService
-	apiKeyService  *service.APIKeyService
-	opsService     *service.OpsService
-	settingService *service.SettingService
+	usageService      *service.UsageService
+	apiKeyService     *service.APIKeyService
+	opsService        *service.OpsService
+	settingService    *service.SettingService
+	rateWindowService *service.RateWindowService
 }
 
 // NewUsageHandler creates a new UsageHandler
@@ -58,13 +59,38 @@ func NewUsageHandler(
 	apiKeyService *service.APIKeyService,
 	opsService *service.OpsService,
 	settingService *service.SettingService,
+	rateWindowService *service.RateWindowService,
 ) *UsageHandler {
 	return &UsageHandler{
-		usageService:   usageService,
-		apiKeyService:  apiKeyService,
-		opsService:     opsService,
-		settingService: settingService,
+		usageService:      usageService,
+		apiKeyService:     apiKeyService,
+		opsService:        opsService,
+		settingService:    settingService,
+		rateWindowService: rateWindowService,
 	}
+}
+
+// Window5h returns the caller's current 5-hour request window.
+// GET /api/v1/usage/window-5h
+//
+// 只读自己的窗口——userID 取自 JWT 而非查询参数，没有越权读他人窗口的路径。
+func (h *UsageHandler) Window5h(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	if h.rateWindowService == nil {
+		response.InternalError(c, "Rate window service not available")
+		return
+	}
+
+	status, err := h.rateWindowService.GetUserWindow5hStatus(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, status)
 }
 
 func (h *UsageHandler) parseUserUsageFilters(c *gin.Context, requireRange bool) (*userUsageFilters, bool) {

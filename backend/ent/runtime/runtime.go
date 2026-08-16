@@ -2241,6 +2241,14 @@ func init() {
 	userDescRpmLimit := userFields[20].Descriptor()
 	// user.DefaultRpmLimit holds the default value on creation for the rpm_limit field.
 	user.DefaultRpmLimit = userDescRpmLimit.Default.(int)
+	// userDescRequestLimit5h is the schema descriptor for request_limit_5h field.
+	userDescRequestLimit5h := userFields[21].Descriptor()
+	// user.DefaultRequestLimit5h holds the default value on creation for the request_limit_5h field.
+	user.DefaultRequestLimit5h = userDescRequestLimit5h.Default.(int)
+	// userDescRequestAlertPct5h is the schema descriptor for request_alert_pct_5h field.
+	userDescRequestAlertPct5h := userFields[22].Descriptor()
+	// user.DefaultRequestAlertPct5h holds the default value on creation for the request_alert_pct_5h field.
+	user.DefaultRequestAlertPct5h = userDescRequestAlertPct5h.Default.(int)
 	userallowedgroupFields := schema.UserAllowedGroup{}.Fields()
 	_ = userallowedgroupFields
 	// userallowedgroupDescCreatedAt is the schema descriptor for created_at field.

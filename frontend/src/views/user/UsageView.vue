@@ -1,7 +1,53 @@
 <template>
   <AppLayout>
     <div class="space-y-6">
-      <UsageStatsCards :stats="usageStats" :show-account-cost="false" :strike-standard-cost="true" />
+      <!--
+        5h 窗口告警。放在最顶上而不是卡片里：用户来这个页面是查账的，
+        不是来找警告的——真快撞闸门时得让他第一眼就看见。
+      -->
+      <div
+        v-if="window5h.alerting.value"
+        class="flex items-start gap-3 rounded-xl border p-4"
+        :class="window5h.exhausted.value
+          ? 'border-red-300 bg-red-50 dark:border-red-800/60 dark:bg-red-900/20'
+          : 'border-amber-300 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-900/20'"
+      >
+        <svg
+          class="mt-0.5 h-5 w-5 shrink-0"
+          :class="window5h.exhausted.value ? 'text-red-500' : 'text-amber-500'"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 2 1 21h22L12 2Zm0 5.5 7.5 12.5h-15L12 7.5ZM11 10v5h2v-5h-2Zm0 6.5V18h2v-1.5h-2Z" />
+        </svg>
+        <div class="min-w-0">
+          <p
+            class="text-sm font-semibold"
+            :class="window5h.exhausted.value
+              ? 'text-red-700 dark:text-red-300'
+              : 'text-amber-800 dark:text-amber-200'"
+          >
+            {{ window5h.exhausted.value ? t('usage.window5h.exhaustedTitle') : t('usage.window5h.alertTitle') }}
+          </p>
+          <p
+            class="mt-0.5 text-sm"
+            :class="window5h.exhausted.value
+              ? 'text-red-600 dark:text-red-400'
+              : 'text-amber-700 dark:text-amber-300'"
+          >
+            {{ window5h.exhausted.value
+              ? t('usage.window5h.exhaustedHint', { used: window5h.status.value?.used, limit: window5h.status.value?.limit })
+              : t('usage.window5h.alertHint', { used: window5h.status.value?.used, limit: window5h.status.value?.limit }) }}
+          </p>
+        </div>
+      </div>
+
+      <UsageStatsCards
+        :stats="usageStats"
+        :show-account-cost="false"
+        :strike-standard-cost="true"
+        :window5h="window5h"
+      />
 
       <div class="space-y-4">
         <div class="card p-4">
@@ -218,6 +264,7 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useRateMultiplierVisible } from '@/composables/useRateMultiplierVisible'
+import { useWindow5h } from '@/composables/useWindow5h'
 import { keysAPI, usageAPI, userGroupsAPI } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -254,6 +301,8 @@ const { t } = useI18n()
 const appStore = useAppStore()
 /** 倍率只在管理后台页面可见 —— 与 GroupBadge / 套餐卡片保持同一条规则。 */
 const canSeeRateMultiplier = useRateMultiplierVisible()
+/** 当前 5h 请求窗口。不受日期筛选影响——它问的是"此刻"，不是"这段时间"。 */
+const window5h = useWindow5h()
 
 type DistributionMetric = 'tokens' | 'actual_cost'
 type EndpointSource = 'inbound' | 'upstream' | 'path'
@@ -544,6 +593,7 @@ const refreshData = () => {
   void loadStats()
   void loadModelStats()
   void loadChartData()
+  void window5h.refresh()
   if (activeTab.value === 'errors') void loadErrors()
 }
 
@@ -876,17 +926,23 @@ const switchToErrors = () => {
   if (errorRows.value.length === 0) void loadErrors()
 }
 
+// 窗口以 5 小时计，一分钟一刷已经远比它变化得快；再频繁只是给
+// 面板加负载，何况用量本来就随用户自己的请求走，不刷新也不会突变。
+let window5hTimer: ReturnType<typeof setInterval> | null = null
+
 onMounted(() => {
   loadSavedColumns()
   loadSavedErrColumns()
   document.addEventListener('click', handleColumnClickOutside)
   void loadFilterOptions()
   refreshData()
+  window5hTimer = setInterval(() => void window5h.refresh(), 60_000)
 })
 
 onUnmounted(() => {
   abortController?.abort()
   document.removeEventListener('click', handleColumnClickOutside)
+  if (window5hTimer) clearInterval(window5hTimer)
 })
 
 watch(endpointDistributionSource, () => {

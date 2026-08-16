@@ -216,6 +216,7 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 	oldStatus := user.Status
 	oldRole := user.Role
 	oldRPMLimit := user.RPMLimit
+	oldRequestLimit5h := user.RequestLimit5h
 	oldAllowedGroups := append([]int64(nil), user.AllowedGroups...)
 
 	// fields 与下面的 input.X 判空条件一一对应：管理员没提交的列不写回，
@@ -274,6 +275,20 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 		fields.RPMLimit = true
 	}
 
+	// 5h 窗口限额与告警阈值同属一个设置，任一提交就整组回写：
+	// 只改阈值却不带上限额时，若不同时回写 RequestLimit5h，
+	// 下面 repo 层的整组 Set 会把它写成这份快照里的旧值——快照来自本次读取，
+	// 值一致，因此这样处理是安全的，也免去两个独立 flag 的组合状态。
+	if input.RequestLimit5h != nil || input.RequestAlertPct5h != nil {
+		if input.RequestLimit5h != nil {
+			user.RequestLimit5h = max(*input.RequestLimit5h, 0)
+		}
+		if input.RequestAlertPct5h != nil {
+			user.RequestAlertPct5h = NormalizeRequestAlertPct5h(*input.RequestAlertPct5h)
+		}
+		fields.RequestLimit5h = true
+	}
+
 	if input.AllowedGroups != nil {
 		user.AllowedGroups = *input.AllowedGroups
 		fields.AllowedGroups = true
@@ -297,9 +312,9 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 	}
 
 	if s.authCacheInvalidator != nil {
-		// RPMLimit 直接参与 billing_cache_service.checkRPM 的三级级联，
+		// RPMLimit / RequestLimit5h 直接参与 billing_cache_service 的限流判断，
 		// allowed_groups 参与 API Key 专属分组授权判断；不失效缓存会让修改在一个 L2 TTL 内失去效果。
-		if user.Concurrency != oldConcurrency || user.Status != oldStatus || user.Role != oldRole || user.RPMLimit != oldRPMLimit || !sameInt64Set(user.AllowedGroups, oldAllowedGroups) {
+		if user.Concurrency != oldConcurrency || user.Status != oldStatus || user.Role != oldRole || user.RPMLimit != oldRPMLimit || user.RequestLimit5h != oldRequestLimit5h || !sameInt64Set(user.AllowedGroups, oldAllowedGroups) {
 			s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, user.ID)
 		}
 	}

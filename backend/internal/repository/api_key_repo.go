@@ -161,6 +161,10 @@ func (r *apiKeyRepository) GetByKeyForAuth(ctx context.Context, key string) (*se
 				user.FieldLastLoginAt,
 				user.FieldLastActiveAt,
 				user.FieldRpmLimit,
+				// 必须 Select：热路径快照漏掉它会让 RequestLimit5h 恒为 0，
+				// 而 0 的语义是「不限制」——闸门会静默失效。
+				user.FieldRequestLimit5h,
+				user.FieldRequestAlertPct5h,
 			)
 			q.WithAllowedGroups(func(gq *dbent.GroupQuery) {
 				gq.Select(group.FieldID)
@@ -931,6 +935,8 @@ func userEntityToService(u *dbent.User) *service.User {
 		BalanceNotifyThreshold:     u.BalanceNotifyThreshold,
 		TotalRecharged:             u.TotalRecharged,
 		RPMLimit:                   u.RpmLimit,
+		RequestLimit5h:             u.RequestLimit5h,
+		RequestAlertPct5h:          u.RequestAlertPct5h,
 		CreatedAt:                  u.CreatedAt,
 		UpdatedAt:                  u.UpdatedAt,
 		DeletedAt:                  u.DeletedAt,

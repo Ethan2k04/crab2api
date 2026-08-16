@@ -368,6 +368,31 @@ export async function getMyErrorDetail(id: number): Promise<UserErrorRequestDeta
   return data
 }
 
+/**
+ * The caller's current 5-hour request window.
+ *
+ * `limit === 0` means uncapped — render nothing rather than a full bar.
+ * `window_open === false` means no window is running (no request in the last
+ * 5 hours), so `reset_at` is absent; the window opens on the next request.
+ * `degraded === true` means the counter was unreachable, so `used` is not
+ * trustworthy — hide the number instead of showing a misleading 0.
+ */
+export interface Window5hStatus {
+  limit: number
+  used: number
+  alert_pct: number
+  window_open: boolean
+  reset_at?: string
+  degraded: boolean
+}
+
+export async function getWindow5h(
+  config: { signal?: AbortSignal } = {}
+): Promise<Window5hStatus> {
+  const { data } = await apiClient.get<Window5hStatus>('/usage/window-5h', config)
+  return data
+}
+
 export const usageAPI = {
   list,
   query,
@@ -384,7 +409,9 @@ export const usageAPI = {
   getDashboardApiKeysUsage,
   // Error requests
   listMyErrorRequests,
-  getMyErrorDetail
+  getMyErrorDetail,
+  // Rate limit windows
+  getWindow5h
 }
 
 export default usageAPI

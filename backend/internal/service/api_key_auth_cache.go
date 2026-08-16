@@ -49,6 +49,12 @@ type APIKeyAuthUserSnapshot struct {
 	// RPMLimit 用户级每分钟请求数上限（0 = 不限制）；用于 billing_cache_service.checkRPM 兜底判断。
 	RPMLimit int `json:"rpm_limit"`
 
+	// RequestLimit5h 用户级 5 小时窗口请求数上限（0 = 不限制）；
+	// 用于 billing_cache_service.check5hRequests。
+	RequestLimit5h int `json:"request_limit_5h"`
+	// RequestAlertPct5h 5h 窗口告警百分比；只在用户界面展示，不参与放行判断。
+	RequestAlertPct5h int `json:"request_alert_pct_5h"`
+
 	// UserGroupRPMOverride 该 API Key 对应的 (user, group) 专属 RPM 覆盖值。
 	// nil = 无 override（回退到 group/user 级）；0 = 不限流；>0 = 专属上限。
 	UserGroupRPMOverride *int `json:"user_group_rpm_override,omitempty"`

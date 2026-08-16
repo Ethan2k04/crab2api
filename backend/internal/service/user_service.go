@@ -104,7 +104,10 @@ type UserUpdateFields struct {
 	Status       bool
 	Concurrency  bool
 	RPMLimit     bool
-	SignupSource bool
+	// RequestLimit5h 覆盖 request_limit_5h / request_alert_pct_5h —— 两者同属
+	// 一个「5h 窗口」设置，永远一起改，拆成两个 flag 只会让调用方漏设一个。
+	RequestLimit5h bool
+	SignupSource   bool
 	LastLoginAt  bool
 	LastActiveAt bool
 	// BalanceNotifySettings 覆盖 balance_notify_enabled / _threshold_type / _threshold。

@@ -55,6 +55,15 @@ type User struct {
 	// 且该 (用户, 分组) 无 rpm_override 时作为全局兜底生效，计数键 rpm:u:{userID}:{min}。
 	RPMLimit int
 
+	// RequestLimit5h 用户级 5 小时窗口请求数上限（0 = 不限制）。窗口自首次请求起算，
+	// 计数键 req5h:u:{userID}，TTL 5h。与 RPMLimit 正交：RPM 挡瞬时突发，
+	// 这条挡的是持续高频把上游账号的官方 5h 配额打空。
+	RequestLimit5h int
+
+	// RequestAlertPct5h 5h 窗口用量告警阈值（百分比 1-100）。仅供前端标红提示，
+	// 不参与放行判断——超过 RequestLimit5h 才拒绝。
+	RequestAlertPct5h int
+
 	// UserGroupRPMOverride 来自 auth cache snapshot 的 (user, group) RPM 覆盖值。
 	// nil = 该 API Key 对应的 (user, group) 无 override；非 nil 时 checkRPM 直接使用，
 	// 避免每请求查 DB。字段不持久化到数据库。

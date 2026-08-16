@@ -95,6 +95,10 @@ func RegisterUserRoutes(
 			channels.GET("/available", h.AvailableChannel.List)
 		}
 
+		// 5h 请求窗口。刻意留在 Heavy 限流之外：它只做一次 Redis 读 + 一次用户查询，
+		// 而面板会周期性轮询它——挂在重查询限流下会先把用户自己的看板打成 429。
+		authenticated.GET("/usage/window-5h", h.Usage.Window5h)
+
 		// 使用记录（聚合统计属重查询，叠加更严格的按用户限流）
 		usage := authenticated.Group("/usage")
 		usage.Use(panelRateLimiter.Heavy())

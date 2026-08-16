@@ -514,7 +514,14 @@ export default {
         selectStatus: 'Select status',
         rpmLimit: 'Requests Per Minute (RPM)',
         rpmLimitPlaceholder: '0 = unlimited',
-        rpmLimitHint: 'Max requests per minute for this user; 0 = unlimited. Acts as a fallback only when the group has no rpm_limit set.'
+        rpmLimitHint: 'Max requests per minute for this user; 0 = unlimited. Acts as a fallback only when the group has no rpm_limit set.',
+        requestLimit5h: 'Requests Per 5 Hours',
+        requestLimit5hHint:
+          'Max requests this user may make in a rolling 5-hour window; 0 = unlimited. The window opens on their first request and expires 5 hours later; if they go quiet the window lapses and the next request opens a fresh one.',
+        requestAlertPct5h: '5-Hour Usage Alert Threshold (%)',
+        requestAlertPct5hHint:
+          'Once window usage reaches this percentage, the user\'s Usage page turns red and asks them to ease off. Display only — it never blocks a request.',
+        requestAlertPct5hRange: 'Alert threshold must be between 1 and 100'
       },
       columns: {
         user: 'User',

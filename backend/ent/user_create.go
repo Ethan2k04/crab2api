@@ -354,6 +354,34 @@ func (_c *UserCreate) SetNillableRpmLimit(v *int) *UserCreate {
 	return _c
 }
 
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (_c *UserCreate) SetRequestLimit5h(v int) *UserCreate {
+	_c.mutation.SetRequestLimit5h(v)
+	return _c
+}
+
+// SetNillableRequestLimit5h sets the "request_limit_5h" field if the given value is not nil.
+func (_c *UserCreate) SetNillableRequestLimit5h(v *int) *UserCreate {
+	if v != nil {
+		_c.SetRequestLimit5h(*v)
+	}
+	return _c
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (_c *UserCreate) SetRequestAlertPct5h(v int) *UserCreate {
+	_c.mutation.SetRequestAlertPct5h(v)
+	return _c
+}
+
+// SetNillableRequestAlertPct5h sets the "request_alert_pct_5h" field if the given value is not nil.
+func (_c *UserCreate) SetNillableRequestAlertPct5h(v *int) *UserCreate {
+	if v != nil {
+		_c.SetRequestAlertPct5h(*v)
+	}
+	return _c
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_c *UserCreate) AddAPIKeyIDs(ids ...int64) *UserCreate {
 	_c.mutation.AddAPIKeyIDs(ids...)
@@ -656,6 +684,14 @@ func (_c *UserCreate) defaults() error {
 		v := user.DefaultRpmLimit
 		_c.mutation.SetRpmLimit(v)
 	}
+	if _, ok := _c.mutation.RequestLimit5h(); !ok {
+		v := user.DefaultRequestLimit5h
+		_c.mutation.SetRequestLimit5h(v)
+	}
+	if _, ok := _c.mutation.RequestAlertPct5h(); !ok {
+		v := user.DefaultRequestAlertPct5h
+		_c.mutation.SetRequestAlertPct5h(v)
+	}
 	return nil
 }
 
@@ -744,6 +780,12 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.RpmLimit(); !ok {
 		return &ValidationError{Name: "rpm_limit", err: errors.New(`ent: missing required field "User.rpm_limit"`)}
+	}
+	if _, ok := _c.mutation.RequestLimit5h(); !ok {
+		return &ValidationError{Name: "request_limit_5h", err: errors.New(`ent: missing required field "User.request_limit_5h"`)}
+	}
+	if _, ok := _c.mutation.RequestAlertPct5h(); !ok {
+		return &ValidationError{Name: "request_alert_pct_5h", err: errors.New(`ent: missing required field "User.request_alert_pct_5h"`)}
 	}
 	return nil
 }
@@ -867,6 +909,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RpmLimit(); ok {
 		_spec.SetField(user.FieldRpmLimit, field.TypeInt, value)
 		_node.RpmLimit = value
+	}
+	if value, ok := _c.mutation.RequestLimit5h(); ok {
+		_spec.SetField(user.FieldRequestLimit5h, field.TypeInt, value)
+		_node.RequestLimit5h = value
+	}
+	if value, ok := _c.mutation.RequestAlertPct5h(); ok {
+		_spec.SetField(user.FieldRequestAlertPct5h, field.TypeInt, value)
+		_node.RequestAlertPct5h = value
 	}
 	if nodes := _c.mutation.APIKeysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1480,6 +1530,42 @@ func (u *UserUpsert) AddRpmLimit(v int) *UserUpsert {
 	return u
 }
 
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (u *UserUpsert) SetRequestLimit5h(v int) *UserUpsert {
+	u.Set(user.FieldRequestLimit5h, v)
+	return u
+}
+
+// UpdateRequestLimit5h sets the "request_limit_5h" field to the value that was provided on create.
+func (u *UserUpsert) UpdateRequestLimit5h() *UserUpsert {
+	u.SetExcluded(user.FieldRequestLimit5h)
+	return u
+}
+
+// AddRequestLimit5h adds v to the "request_limit_5h" field.
+func (u *UserUpsert) AddRequestLimit5h(v int) *UserUpsert {
+	u.Add(user.FieldRequestLimit5h, v)
+	return u
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (u *UserUpsert) SetRequestAlertPct5h(v int) *UserUpsert {
+	u.Set(user.FieldRequestAlertPct5h, v)
+	return u
+}
+
+// UpdateRequestAlertPct5h sets the "request_alert_pct_5h" field to the value that was provided on create.
+func (u *UserUpsert) UpdateRequestAlertPct5h() *UserUpsert {
+	u.SetExcluded(user.FieldRequestAlertPct5h)
+	return u
+}
+
+// AddRequestAlertPct5h adds v to the "request_alert_pct_5h" field.
+func (u *UserUpsert) AddRequestAlertPct5h(v int) *UserUpsert {
+	u.Add(user.FieldRequestAlertPct5h, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -1928,6 +2014,48 @@ func (u *UserUpsertOne) AddRpmLimit(v int) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateRpmLimit() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRpmLimit()
+	})
+}
+
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (u *UserUpsertOne) SetRequestLimit5h(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetRequestLimit5h(v)
+	})
+}
+
+// AddRequestLimit5h adds v to the "request_limit_5h" field.
+func (u *UserUpsertOne) AddRequestLimit5h(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddRequestLimit5h(v)
+	})
+}
+
+// UpdateRequestLimit5h sets the "request_limit_5h" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateRequestLimit5h() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateRequestLimit5h()
+	})
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (u *UserUpsertOne) SetRequestAlertPct5h(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetRequestAlertPct5h(v)
+	})
+}
+
+// AddRequestAlertPct5h adds v to the "request_alert_pct_5h" field.
+func (u *UserUpsertOne) AddRequestAlertPct5h(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddRequestAlertPct5h(v)
+	})
+}
+
+// UpdateRequestAlertPct5h sets the "request_alert_pct_5h" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateRequestAlertPct5h() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateRequestAlertPct5h()
 	})
 }
 
@@ -2545,6 +2673,48 @@ func (u *UserUpsertBulk) AddRpmLimit(v int) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateRpmLimit() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRpmLimit()
+	})
+}
+
+// SetRequestLimit5h sets the "request_limit_5h" field.
+func (u *UserUpsertBulk) SetRequestLimit5h(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetRequestLimit5h(v)
+	})
+}
+
+// AddRequestLimit5h adds v to the "request_limit_5h" field.
+func (u *UserUpsertBulk) AddRequestLimit5h(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddRequestLimit5h(v)
+	})
+}
+
+// UpdateRequestLimit5h sets the "request_limit_5h" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateRequestLimit5h() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateRequestLimit5h()
+	})
+}
+
+// SetRequestAlertPct5h sets the "request_alert_pct_5h" field.
+func (u *UserUpsertBulk) SetRequestAlertPct5h(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetRequestAlertPct5h(v)
+	})
+}
+
+// AddRequestAlertPct5h adds v to the "request_alert_pct_5h" field.
+func (u *UserUpsertBulk) AddRequestAlertPct5h(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddRequestAlertPct5h(v)
+	})
+}
+
+// UpdateRequestAlertPct5h sets the "request_alert_pct_5h" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateRequestAlertPct5h() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateRequestAlertPct5h()
 	})
 }
 

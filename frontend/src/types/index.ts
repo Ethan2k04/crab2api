@@ -89,6 +89,8 @@ export interface User {
   frozen_balance?: number // Balance currently held by async batch jobs
   concurrency: number // Allowed concurrent requests
   rpm_limit?: number // User-level RPM cap (0 = unlimited); effective as fallback when group has no rpm_limit
+  request_limit_5h?: number // Requests allowed per rolling 5-hour window (0 = unlimited)
+  request_alert_pct_5h?: number // Percentage of request_limit_5h at which the usage page warns
   status: 'active' | 'disabled' // Account status
   allowed_groups: number[] | null // Allowed group IDs (null = all non-exclusive groups)
   balance_notify_enabled: boolean
@@ -1951,6 +1953,10 @@ export interface UpdateUserRequest {
   balance?: number
   concurrency?: number
   rpm_limit?: number
+  /** Requests allowed per rolling 5-hour window (0 = unlimited). */
+  request_limit_5h?: number
+  /** Percentage of request_limit_5h at which the user's usage page turns red. */
+  request_alert_pct_5h?: number
   status?: 'active' | 'disabled'
   allowed_groups?: number[] | null
   // 用户专属分组倍率配置 (group_id -> rate_multiplier | null)

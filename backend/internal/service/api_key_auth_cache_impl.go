@@ -365,6 +365,8 @@ func (s *APIKeyService) snapshotFromAPIKey(ctx context.Context, apiKey *APIKey) 
 			BalanceNotifyExtraEmails:   apiKey.User.BalanceNotifyExtraEmails,
 			TotalRecharged:             apiKey.User.TotalRecharged,
 			RPMLimit:                   apiKey.User.RPMLimit,
+			RequestLimit5h:             apiKey.User.RequestLimit5h,
+			RequestAlertPct5h:          apiKey.User.RequestAlertPct5h,
 		},
 	}
 
@@ -467,6 +469,8 @@ func (s *APIKeyService) snapshotToAPIKey(key string, snapshot *APIKeyAuthSnapsho
 			BalanceNotifyExtraEmails:   snapshot.User.BalanceNotifyExtraEmails,
 			TotalRecharged:             snapshot.User.TotalRecharged,
 			RPMLimit:                   snapshot.User.RPMLimit,
+			RequestLimit5h:             snapshot.User.RequestLimit5h,
+			RequestAlertPct5h:          snapshot.User.RequestAlertPct5h,
 			UserGroupRPMOverride:       snapshot.User.UserGroupRPMOverride,
 		},
 	}
