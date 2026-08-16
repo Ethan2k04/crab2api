@@ -143,8 +143,28 @@ export default {
         configTomlHint:
           'Step 1: save this config.toml first. macOS/Linux users can run mkdir -p ~/.codex to create the directory; Windows users can press Win+R and enter %userprofile%\\.codex. Fully restart Codex after saving or rewriting for it to take effect.',
         envHint: 'Step 2: now set this environment variable as your API key in terminal. Only active in the current terminal session — set it again in a new one.',
-        note:
-          'Swap model for claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5 as needed, and adjust model_context_window to match (opus-5 and fable-5 use the 1M window, the others use the standard one). If this group\'s admin has enabled "Claude Code client restriction," Codex requests will be rejected — that restriction only allows the official Claude Code CLI.',
+        configHeader:
+          'Codex CLI → Crab2API Claude group. Translates OpenAI Responses API\n' +
+          'to/from Anthropic\'s native format — no OpenAI account needed.\n' +
+          'Change model / reasoning effort below; Codex\'s /model command only\n' +
+          'lists OpenAI\'s own models and has no effect here.\n' +
+          'If this group has "Claude Code client restriction" enabled, Codex\n' +
+          'requests get rejected — that restriction only allows the official\n' +
+          'Claude Code CLI.',
+        configModelOptions:
+          'Model options: claude-sonnet-5 (default) | claude-opus-5 | claude-haiku-4-5 | claude-fable-5',
+        configReasoningOptions:
+          'Reasoning effort: minimal | low | medium (default) | high | xhigh | max',
+        configContextWindowNote:
+          'Codex only ships built-in metadata for OpenAI\'s own models, so it warns\n' +
+          '"Model metadata not found" and guesses at limits otherwise. Set the real\n' +
+          'window explicitly: claude-sonnet-5 / claude-haiku-4-5 use the standard\n' +
+          'window; use 1000000 for claude-opus-5 or claude-fable-5 (1M variants).',
+        configOptional: 'Optional:',
+        configEnvKeyNote: 'Prefer env_key (variable NAME). Do not combine with experimental_bearer_token.',
+        configBearerFallbackNote: 'Fallback only if you cannot set env (discouraged — keeps secret on disk):',
+        configNoAuthNote: 'API-key providers: do not require ChatGPT OAuth login',
+        configNoWebsocketNote: 'This path is HTTP/SSE, not WebSocket; disable WS so Codex doesn\'t try it first.',
       },
       openai: {
         description: 'Add the following configuration files to your Codex CLI config directory.',
@@ -163,7 +183,6 @@ export default {
         codexCli: 'Codex CLI',
         codexCliWs: 'Codex CLI (WebSocket)',
         grokCli: 'Grok CLI',
-        opencode: 'OpenCode',
       },
       antigravity: {
         description: 'Configure API access for Antigravity group. Select the configuration method based on your client.',
@@ -179,7 +198,7 @@ export default {
       },
       grok: {
         description:
-          'Configure Grok CLI, Claude Code, Codex, or OpenCode to send requests through your Crab2API Grok group. Text models use Responses; image/video use Imagine model IDs on media endpoints.',
+          'Configure Grok CLI, Claude Code, or Codex to send requests through your Crab2API Grok group. Text models use Responses; image/video use Imagine model IDs on media endpoints.',
         claudeDescription: 'Configure Claude Code to send Messages API traffic through your Crab2API Grok group.',
         codexDescription: 'Configure Codex to send Responses API traffic through your Crab2API Grok group.',
         configTomlHint:
@@ -196,11 +215,6 @@ export default {
           'Export CRAB2API_API_KEY, save config.toml under ~/.codex (mkdir -p ~/.codex). Prefer env_key auth; do not commit secrets.',
         codexNoteWindows:
           'Set $env:CRAB2API_API_KEY, save config.toml under %USERPROFILE%\\.codex. Prefer env_key auth; do not commit secrets.',
-      },
-      opencode: {
-        title: 'OpenCode Example',
-        subtitle: 'opencode.json',
-        hint: 'Config path: ~/.config/opencode/opencode.json (or opencode.jsonc), create if not exists. Use default providers (openai/anthropic/google) or custom provider_id. API Key can be configured directly or via /connect command. This is an example, adjust models and options as needed.',
       },
     },
     customKeyLabel: 'Custom Key',
@@ -652,8 +666,9 @@ export default {
   // Redeem
   redeem: {
     title: 'Redeem Code',
-    description: 'Enter your redeem code to add balance or unlock other benefits',
-    currentBalance: 'Current Balance',
+    description: 'Enter your redeem code to unlock a subscription or other benefits',
+    currentSubscription: 'Current Subscription',
+    noSubscription: 'No Subscription',
     requests: 'requests',
     redeemCodeLabel: 'Redeem Code',
     redeemCodePlaceholder: 'Enter your redeem code',
@@ -666,9 +681,10 @@ export default {
     newBalance: 'New Balance',
     aboutCodes: 'About Redeem Codes',
     codeRule1: 'Each code can only be used once',
-    codeRule2: 'Codes may add balance or grant trial access',
+    codeRule2: 'Codes may assign a subscription plan or grant trial access',
+    codeRuleSubscription: 'Subscription codes activate access to that group immediately; validity starts from the moment you redeem',
     codeRule3: 'Contact support if you have issues redeeming a code',
-    codeRule4: 'Balance updates are immediate',
+    codeRule4: 'Subscription status updates are immediate',
     recentActivity: 'Recent Activity',
     historyWillAppear: 'Your redemption history will appear here',
     balanceAddedRedeem: 'Balance Added (Redeem)',

@@ -21,7 +21,7 @@ vi.mock('@/composables/useClipboard', () => ({
 import UseKeyModal from '../UseKeyModal.vue'
 
 describe('UseKeyModal', () => {
-  it('renders Grok Build and OpenCode setup for Grok groups', async () => {
+  it('renders Grok Build setup for Grok groups', async () => {
     const wrapper = mount(UseKeyModal, {
       props: {
         show: true,
@@ -90,27 +90,6 @@ describe('UseKeyModal', () => {
     await windowsTab!.trigger('click')
     await nextTick()
     expect(wrapper.text().toLowerCase()).toContain('%userprofile%\\.grok\\config.toml')
-
-    const opencodeTab = wrapper.findAll('button').find((button) =>
-      button.text().includes('keys.useKeyModal.cliTabs.opencode')
-    )
-    expect(opencodeTab).toBeDefined()
-    await opencodeTab!.trigger('click')
-    await nextTick()
-
-    const parsed = JSON.parse(wrapper.find('pre code').text())
-    expect(parsed.provider.grok.npm).toBe('@ai-sdk/openai-compatible')
-    expect(parsed.provider.grok.name).toBe('Grok via Crab2API')
-    expect(parsed.provider.grok.options).toEqual({
-      baseURL: 'https://example.com/v1',
-      apiKey: 'sk-grok-test'
-    })
-    expect(parsed.provider.grok.models['grok-4.5']).toBeDefined()
-    expect(parsed.provider.grok.models['grok-4.5'].limit.context).toBe(500000)
-    expect(parsed.provider.grok.models['grok-build-0.1']).toBeDefined()
-    expect(parsed.provider.grok.models['grok-4.20-multi-agent-0309']).toBeDefined()
-    expect(parsed.provider.grok.models['grok-composer-2.5-fast']).toBeDefined()
-    expect(parsed.provider.grok.models['gpt-5.6']).toBeUndefined()
   })
 
   it('renders copyable Claude Code setup through the Grok Messages gateway', async () => {
@@ -482,78 +461,7 @@ describe('UseKeyModal', () => {
     expect(wrapper.findAll('pre code').map((code) => code.text()).join('\n')).not.toContain('x-openai-actor-authorization')
   })
 
-  it('renders GPT-5.4 mini entry in OpenCode config', async () => {
-    const wrapper = mount(UseKeyModal, {
-      props: {
-        show: true,
-        apiKey: 'sk-test',
-        baseUrl: 'https://example.com/v1',
-        platform: 'openai'
-      },
-      global: {
-        stubs: {
-          BaseDialog: {
-            template: '<div><slot /><slot name="footer" /></div>'
-          },
-          Icon: {
-            template: '<span />'
-          }
-        }
-      }
-    })
-
-    const opencodeTab = wrapper.findAll('button').find((button) =>
-      button.text().includes('keys.useKeyModal.cliTabs.opencode')
-    )
-
-    expect(opencodeTab).toBeDefined()
-    await opencodeTab!.trigger('click')
-    await nextTick()
-
-    const codeBlock = wrapper.find('pre code')
-    expect(codeBlock.exists()).toBe(true)
-    expect(codeBlock.text()).toContain('"name": "GPT-5.4 Mini"')
-    expect(codeBlock.text()).not.toContain('"name": "GPT-5.4 Nano"')
-  })
-
-  it('renders GPT-5.6 alias and max variants in OpenCode config', async () => {
-    const wrapper = mount(UseKeyModal, {
-      props: {
-        show: true,
-        apiKey: 'sk-test',
-        baseUrl: 'https://example.com/v1',
-        platform: 'openai'
-      },
-      global: {
-        stubs: {
-          BaseDialog: {
-            template: '<div><slot /><slot name="footer" /></div>'
-          },
-          Icon: {
-            template: '<span />'
-          }
-        }
-      }
-    })
-
-    const opencodeTab = wrapper.findAll('button').find((button) =>
-      button.text().includes('keys.useKeyModal.cliTabs.opencode')
-    )
-    expect(opencodeTab).toBeDefined()
-    await opencodeTab!.trigger('click')
-    await nextTick()
-
-    const parsed = JSON.parse(wrapper.find('pre code').text())
-    const models = parsed.provider.openai.models
-    for (const model of ['gpt-5.6', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna']) {
-      expect(models[model]).toBeDefined()
-      expect(models[model].variants).toHaveProperty('max')
-      expect(models[model].variants).toHaveProperty('xhigh')
-    }
-    expect(models['gpt-5.6'].name).toBe('GPT-5.6 (Sol)')
-  })
-
-  it('renders a Codex tab between Claude Code and OpenCode for a plain Anthropic key', async () => {
+  it('renders a Codex tab after Claude Code for a plain Anthropic key', async () => {
     const wrapper = mount(UseKeyModal, {
       props: {
         show: true,
@@ -576,10 +484,10 @@ describe('UseKeyModal', () => {
     const tabLabels = wrapper.findAll('nav[aria-label="Client"] button').map((b) => b.text())
     const claudeIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.claudeCode'))
     const codexIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.codexCli'))
-    const opencodeIdx = tabLabels.findIndex((t) => t.includes('keys.useKeyModal.cliTabs.opencode'))
     expect(claudeIdx).toBeGreaterThanOrEqual(0)
     expect(codexIdx).toBeGreaterThan(claudeIdx)
-    expect(opencodeIdx).toBeGreaterThan(codexIdx)
+    // OpenCode has been removed entirely — Codex is the last tab now.
+    expect(tabLabels.length).toBe(2)
 
     const codexTab = wrapper.findAll('button').find((button) =>
       button.text().includes('keys.useKeyModal.cliTabs.codexCli')
@@ -621,6 +529,15 @@ describe('UseKeyModal', () => {
     expect(configTomlIndex).toBeLessThan(envVarIndex)
     expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHint')
     expect(wrapper.text()).toContain('keys.useKeyModal.codex.envHint')
+    // Both step hints get the same emphasized "do this" box styling now —
+    // no plain-text hint treatment left on this tab.
+    expect(wrapper.findAll('.border-amber-300').length).toBe(2)
+    // The old standalone blue note box is gone — its content now lives in
+    // the config.toml comments themselves (configHeader, configOptional, etc).
+    expect(wrapper.text()).not.toContain('keys.useKeyModal.codex.note')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configHeader')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configModelOptions')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configReasoningOptions')
 
     const cmdTab = wrapper.findAll('button').find((button) => button.text().trim() === 'Windows CMD')
     await cmdTab!.trigger('click')
@@ -636,45 +553,30 @@ describe('UseKeyModal', () => {
     expect(codeBlocks.join('\n')).toContain('$env:CRAB2API_API_KEY="sk-anthropic-codex-test"')
   })
 
-  it('renders Claude Fable 5 OpenCode config with adaptive thinking', async () => {
-    const wrapper = mount(UseKeyModal, {
-      props: {
-        show: true,
-        apiKey: 'sk-test',
-        baseUrl: 'https://example.com/v1',
-        platform: 'antigravity'
-      },
-      global: {
-        stubs: {
-          BaseDialog: {
-            template: '<div><slot /><slot name="footer" /></div>'
-          },
-          Icon: {
-            template: '<span />'
+  it('does not render an OpenCode tab for any platform', () => {
+    for (const platform of ['anthropic', 'openai', 'gemini', 'antigravity', 'grok'] as const) {
+      const wrapper = mount(UseKeyModal, {
+        props: {
+          show: true,
+          apiKey: 'sk-test',
+          baseUrl: 'https://example.com/v1',
+          platform
+        },
+        global: {
+          stubs: {
+            BaseDialog: {
+              template: '<div><slot /><slot name="footer" /></div>'
+            },
+            Icon: {
+              template: '<span />'
+            }
           }
         }
-      }
-    })
+      })
 
-    const opencodeTab = wrapper.findAll('button').find((button) =>
-      button.text().includes('keys.useKeyModal.cliTabs.opencode')
-    )
-
-    expect(opencodeTab).toBeDefined()
-    await opencodeTab!.trigger('click')
-    await nextTick()
-
-    const claudeConfig = wrapper.findAll('pre code')
-      .map((code) => code.text())
-      .find((content) => content.includes('"antigravity-claude"'))
-
-    expect(claudeConfig).toBeDefined()
-    const parsed = JSON.parse(claudeConfig!)
-    const fable = parsed.provider['antigravity-claude'].models['claude-fable-5']
-
-    expect(fable.name).toBe('Claude Fable 5')
-    expect(fable.limit).toEqual({ context: 1048576, output: 128000 })
-    expect(fable.options.thinking).toEqual({ type: 'adaptive' })
-    expect(fable.options.thinking).not.toHaveProperty('budgetTokens')
+      expect(
+        wrapper.findAll('button').some((button) => button.text().includes('keys.useKeyModal.cliTabs.opencode'))
+      ).toBe(false)
+    }
   })
 })

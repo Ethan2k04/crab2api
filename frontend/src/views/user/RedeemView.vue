@@ -1,18 +1,38 @@
 <template>
   <AppLayout>
     <div class="mx-auto max-w-2xl space-y-6">
-      <!-- Current Balance Card -->
+      <!-- Current Subscription Card -->
       <div class="card overflow-hidden">
         <div class="bg-gradient-to-br from-primary-500 to-primary-600 px-6 py-8 text-center">
           <div
             class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm"
           >
-            <Icon name="creditCard" size="xl" class="text-white" />
+            <Icon name="badge" size="xl" class="text-white" />
           </div>
-          <p class="text-sm font-medium text-primary-100">{{ t('redeem.currentBalance') }}</p>
-          <p class="mt-2 text-4xl font-bold text-white">
-            ${{ user?.balance?.toFixed(2) || '0.00' }}
-          </p>
+          <p class="text-sm font-medium text-primary-100">{{ t('redeem.currentSubscription') }}</p>
+
+          <template v-if="primarySubscription">
+            <div class="mt-2 flex items-center justify-center gap-2">
+              <p class="max-w-[16rem] truncate text-2xl font-bold text-white">
+                {{ primarySubscription.group?.name || t('payment.groupFallback', { id: primarySubscription.group_id }) }}
+              </p>
+              <span class="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-medium text-white">
+                {{ platformLabel(primarySubscription.group?.platform || '') }}
+              </span>
+            </div>
+
+            <div v-if="primaryQuota" class="mx-auto mt-4 max-w-xs text-left">
+              <div class="mb-1 flex items-center justify-between text-xs text-primary-100">
+                <span>{{ primaryQuota.label }}</span>
+                <span>{{ t('userSubscriptions.usageOf', { used: `$${primaryQuota.used.toFixed(2)}`, limit: `$${primaryQuota.limit.toFixed(2)}` }) }}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/20">
+                <div class="h-full rounded-full bg-white transition-all" :style="{ width: primaryQuota.pct + '%' }" />
+              </div>
+            </div>
+            <p v-else class="mt-3 text-sm text-primary-100">{{ t('userSubscriptions.unlimited') }}</p>
+          </template>
+          <p v-else class="mt-2 text-2xl font-bold text-white">{{ t('redeem.noSubscription') }}</p>
         </div>
       </div>
 
@@ -169,6 +189,7 @@
               >
                 <li>{{ t('redeem.codeRule1') }}</li>
                 <li>{{ t('redeem.codeRule2') }}</li>
+                <li>{{ t('redeem.codeRuleSubscription') }}</li>
                 <li>
                   {{ t('redeem.codeRule3') }}
                   <span
@@ -338,13 +359,48 @@ import { redeemAPI, authAPI, type RedeemHistoryItem } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { formatDateTime } from '@/utils/format'
+import { platformLabel } from '@/utils/platformColors'
+import { isOneShotQuota, type QuotaPeriod } from '@/utils/subscriptionQuota'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const appStore = useAppStore()
 const subscriptionStore = useSubscriptionStore()
 
-const user = computed(() => authStore.user)
+const primarySubscription = computed(() =>
+  subscriptionStore.activeSubscriptions.find((s) => s.status === 'active') || null
+)
+
+interface QuotaSummary {
+  label: string
+  used: number
+  limit: number
+  pct: number
+}
+
+const primaryQuota = computed<QuotaSummary | null>(() => {
+  const sub = primarySubscription.value
+  if (!sub || !sub.group) return null
+
+  const periods: Array<{ key: QuotaPeriod; limit: number | null; used: number }> = [
+    { key: 'daily', limit: sub.group.daily_limit_usd, used: sub.daily_usage_usd },
+    { key: 'weekly', limit: sub.group.weekly_limit_usd, used: sub.weekly_usage_usd },
+    { key: 'monthly', limit: sub.group.monthly_limit_usd, used: sub.monthly_usage_usd }
+  ]
+  // Crab2API's passes carry their allowance in exactly one of these fields —
+  // the others sit at 0/null. Show whichever one is actually configured.
+  const active = periods.find((p) => p.limit && p.limit > 0)
+  if (!active) return null
+
+  const limit = active.limit as number
+  const used = active.used || 0
+  return {
+    label: isOneShotQuota(sub, active.key) ? t('userSubscriptions.termQuota') : t(`userSubscriptions.${active.key}`),
+    used,
+    limit,
+    pct: Math.min((used / limit) * 100, 100)
+  }
+})
 
 const redeemCode = ref('')
 const submitting = ref(false)
@@ -467,6 +523,9 @@ const handleRedeem = async () => {
 
 onMounted(async () => {
   fetchHistory()
+  subscriptionStore.fetchActiveSubscriptions().catch((error) => {
+    console.error('Failed to load active subscriptions:', error)
+  })
   try {
     const settings = await authAPI.getPublicSettings()
     contactInfo.value = settings.contact_info || ''

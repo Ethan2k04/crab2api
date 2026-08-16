@@ -143,8 +143,27 @@ export default {
         configTomlHint:
           '步骤 1：将下面的内容替换本地用户目录下面的 config.toml。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开。创建或覆写 config.toml 文件后需完全重启 Codex 才会生效。',
         envHint: '步骤 2：打开命令行窗口并执行下面的指令。注意该环境变量仅在当前终端会话生效，新开终端需重新设置。',
-        note:
-          'model 可按需替换为 claude-opus-5 / claude-sonnet-5 / claude-haiku-4-5 / claude-fable-5，切换后记得同步调整 model_context_window（opus-5、fable-5 是 1M 窗口，其余为标准窗口）。若该分组管理员开启了「Claude Code 客户端限制」，Codex 请求会被拒绝——该限制只放行官方 Claude Code CLI。'
+        configHeader:
+          'Codex CLI → Crab2API Claude 分组，网关会自动把 OpenAI Responses API\n' +
+          '转换成 Anthropic 原生格式，Codex 无需任何 OpenAI 账号即可使用。\n' +
+          '切换模型／推理强度请直接改下面的字段——Codex 的 /model 指令只列出\n' +
+          'OpenAI 自家模型，在这里不生效。\n' +
+          '若该分组开启了「Claude Code 客户端限制」，Codex 请求会被拒绝，\n' +
+          '该限制只放行官方 Claude Code CLI。',
+        configModelOptions:
+          '可选模型：claude-sonnet-5（默认）| claude-opus-5 | claude-haiku-4-5 | claude-fable-5',
+        configReasoningOptions:
+          '推理强度：minimal | low | medium（默认）| high | xhigh | max',
+        configContextWindowNote:
+          'Codex 只内置了 OpenAI 自家模型的元数据，其他模型会提示\n' +
+          '"Model metadata not found" 并瞎猜窗口大小，这里直接写死真实值：\n' +
+          'claude-sonnet-5 / claude-haiku-4-5 用标准窗口；换成 claude-opus-5\n' +
+          '或 claude-fable-5（1M 窗口版本）时记得把这里改成 1000000。',
+        configOptional: '可选：',
+        configEnvKeyNote: '优先用 env_key（变量名）。不要和 experimental_bearer_token 同时使用。',
+        configBearerFallbackNote: '仅在无法设置环境变量时使用（不推荐——密钥会明文存在磁盘上）：',
+        configNoAuthNote: 'API Key 模式无需 ChatGPT OAuth 登录',
+        configNoWebsocketNote: '该链路是 HTTP/SSE，非 WebSocket；关闭 WS 避免 Codex 优先尝试它。'
       },
       openai: {
         description: '将以下配置文件添加到 Codex CLI 配置目录中。',
@@ -163,8 +182,7 @@ export default {
         geminiCli: 'Gemini CLI',
         codexCli: 'Codex CLI',
         codexCliWs: 'Codex CLI (WebSocket)',
-        grokCli: 'Grok CLI',
-        opencode: 'OpenCode'
+        grokCli: 'Grok CLI'
       },
       antigravity: {
         description: '为 Antigravity 分组配置 API 访问。请根据您使用的客户端选择对应的配置方式。',
@@ -183,7 +201,7 @@ export default {
       },
       grok: {
         description:
-          '配置 Grok CLI、Claude Code、Codex 或 OpenCode，让请求通过当前 Crab2API Grok 分组发送。文本模型走 Responses；图片/视频使用 Imagine 模型 ID 与媒体端点。',
+          '配置 Grok CLI、Claude Code 或 Codex，让请求通过当前 Crab2API Grok 分组发送。文本模型走 Responses；图片/视频使用 Imagine 模型 ID 与媒体端点。',
         claudeDescription: '配置 Claude Code，让 Messages API 请求通过当前 Crab2API Grok 分组发送。',
         codexDescription: '配置 Codex，让 Responses API 请求通过当前 Crab2API Grok 分组发送。',
         configTomlHint:
@@ -200,11 +218,6 @@ export default {
           '导出 CRAB2API_API_KEY，将 config.toml 保存到 ~/.codex（可用 mkdir -p ~/.codex）。优先 env_key，勿提交密钥。',
         codexNoteWindows:
           '设置 $env:CRAB2API_API_KEY，将 config.toml 保存到 %USERPROFILE%\\.codex。优先 env_key，勿提交密钥。'
-      },
-      opencode: {
-        title: 'OpenCode 配置示例',
-        subtitle: 'opencode.json',
-        hint: '配置文件路径：~/.config/opencode/opencode.json（或 opencode.jsonc），不存在需手动创建。可使用默认 provider（openai/anthropic/google）或自定义 provider_id。API Key 支持直接配置或通过客户端 /connect 命令配置。示例仅供参考，模型与选项可按需调整。'
       }
     },
     customKeyLabel: '自定义密钥',
@@ -657,8 +670,9 @@ export default {
   // Redeem
   redeem: {
     title: '兑换码',
-    description: '输入兑换码以充值余额或获取其他权益',
-    currentBalance: '当前余额',
+    description: '输入兑换码以兑换订阅或其他权益',
+    currentSubscription: '当前订阅',
+    noSubscription: '无订阅',
     requests: '请求',
     redeemCodeLabel: '兑换码',
     redeemCodePlaceholder: '请输入兑换码',
@@ -671,9 +685,10 @@ export default {
     newBalance: '新余额',
     aboutCodes: '关于兑换码',
     codeRule1: '每个兑换码只能使用一次',
-    codeRule2: '兑换码可以增加余额或试用权限',
+    codeRule2: '兑换码可以为你分配订阅套餐或试用权限',
+    codeRuleSubscription: '订阅类兑换码会立即开通对应分组的访问权限，有效期从兑换时刻开始计算',
     codeRule3: '如有兑换问题，请联系客服',
-    codeRule4: '余额即时更新',
+    codeRule4: '订阅状态即时更新',
     recentActivity: '最近活动',
     historyWillAppear: '您的兑换历史将显示在这里',
     balanceAddedRedeem: '余额充值（兑换）',
