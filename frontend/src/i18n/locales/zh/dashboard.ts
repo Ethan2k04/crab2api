@@ -141,7 +141,7 @@ export default {
         description:
           '配置 Codex，请按下方的步骤顺序配置。',
         configTomlHint:
-          '步骤：将下面的内容替换本地用户目录下面的 config.toml。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开。创建或覆写 config.toml 文件后需完全重启 Codex 才会生效。',
+          '步骤：用文本编辑器打开 ~/.codex/config.toml 这个文件（没有就新建一个）。如果连 .codex 文件夹都不存在，macOS/Linux 先运行 mkdir -p ~/.codex 创建；Windows 按 Win+R，输入 %userprofile%\\.codex 打开后手动新建 .codex 文件夹。打开后用下面的内容整个替换掉文件里原有的内容并保存，保存后需完全重启 Codex 才会生效。',
         configUseNote: '使用 Crab2API 接口',
         configModelOptions:
           '选择模型：claude-haiku-4-5 / claude-sonnet-5 / claude-opus-5 / claude-fable-5',
