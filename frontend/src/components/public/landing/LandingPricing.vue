@@ -21,53 +21,11 @@
       </div>
 
       <template v-else>
-        <!-- Comparison against Anthropic's own consumer plans. Our 30-day tier
-             is the only like-for-like: theirs are all monthly subscriptions. -->
-        <div
-          v-if="comparison"
-          class="mt-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-dark-700"
-        >
-          <div class="flex flex-wrap items-stretch divide-x divide-gray-200 dark:divide-dark-700">
-            <div
-              v-for="plan in comparison.official"
-              :key="plan.key"
-              class="min-w-[9rem] flex-1 px-5 py-4"
-            >
-              <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500 dark:text-dark-400">
-                {{ t(`landing.pricing.compare.plans.${plan.key}`) }}
-              </p>
-              <p class="mt-1.5 text-xl font-semibold text-gray-700 dark:text-dark-200">
-                ${{ plan.priceUSD }}<span class="text-xs font-normal text-gray-500 dark:text-dark-400">{{ t('landing.pricing.compare.perMonth') }}</span>
-              </p>
-              <p class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
-                {{ t('landing.pricing.compare.approx', { cny: plan.priceCNY }) }}
-              </p>
-            </div>
-
-            <div class="min-w-[11rem] flex-1 bg-primary-50 px-5 py-4 dark:bg-primary-900/20">
-              <p class="font-mono text-[11px] uppercase tracking-wider text-primary-700 dark:text-primary-300">
-                {{ t('landing.pricing.compare.ours') }}
-              </p>
-              <p class="mt-1.5 text-xl font-semibold text-primary-700 dark:text-primary-300">
-                {{ comparison.oursDisplay }}<span class="text-xs font-normal">{{ t('landing.pricing.compare.perMonth') }}</span>
-              </p>
-              <p class="mt-0.5 text-xs font-medium text-primary-600 dark:text-primary-400">
-                {{ t('landing.pricing.compare.cheaperThanPro', { percent: comparison.cheaperThanProPercent }) }}
-              </p>
-            </div>
-          </div>
-        </div>
-
         <p
-          v-if="comparison || usingFallback"
+          v-if="usingFallback"
           class="mt-3 max-w-4xl text-xs leading-relaxed text-gray-500 dark:text-dark-400"
         >
-          <template v-if="comparison">
-            {{ t('landing.pricing.compare.note', { rate: USD_TO_CNY_DISPLAY_RATE, date: OFFICIAL_PLAN_PRICING_CHECKED_ON }) }}
-          </template>
-          <template v-if="usingFallback">
-            {{ t('landing.pricing.fallbackNotice') }}
-          </template>
+          {{ t('landing.pricing.fallbackNotice') }}
         </p>
 
         <!-- Empty -->
@@ -126,17 +84,7 @@
               </li>
             </ul>
 
-            <!-- Suspended tiers render the same card with an inert action, so
-                 the price stays visible without offering a dead link into the
-                 console — see config/alphaGate.ts -->
-            <span
-              v-if="card.suspended"
-              class="mt-7 inline-flex h-10 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100 text-sm font-medium text-gray-400 dark:bg-dark-800 dark:text-dark-500"
-            >
-              {{ t('payment.notYetAvailable') }}
-            </span>
             <router-link
-              v-else
               :to="card.href"
               class="mt-7 inline-flex h-10 items-center justify-center rounded-xl text-sm font-medium transition-colors"
               :class="
@@ -167,12 +115,7 @@ import { paymentAPI, type PublicSubscriptionPlan } from '@/api/payment'
 import { currencySymbol, formatPaymentAmount } from '@/components/payment/currency'
 import { pickPlanLines, pickPlanText } from '@/utils/planText'
 import { isPlanSuspended, isSuspendedTerm } from '@/config/alphaGate'
-import {
-  FALLBACK_PLANS,
-  OFFICIAL_PLANS,
-  OFFICIAL_PLAN_PRICING_CHECKED_ON,
-  USD_TO_CNY_DISPLAY_RATE
-} from '@/config/brand'
+import { FALLBACK_PLANS } from '@/config/brand'
 
 interface PlanCard {
   key: string
@@ -184,12 +127,6 @@ interface PlanCard {
   features: string[]
   featured: boolean
   href: string
-  /** Term length in days — drives the like-for-like official comparison. */
-  periodDays: number
-  /** Numeric price in CNY, for arithmetic the display string can't do. */
-  priceCNY: number
-  /** Withheld for the alpha — shown, but not purchasable. */
-  suspended: boolean
 }
 
 const { t, locale } = useI18n()
@@ -215,29 +152,28 @@ function periodLabel(days: number): string {
 }
 
 /**
- * Which card gets the "Most Popular" badge.
- *
- * Normally that's an editorial choice (the middle card, or the first when
- * there are fewer than three) — but during the alpha only one tier is
- * actually buyable, and badging a greyed-out card the visitor can't purchase
- * would be actively misleading. So: when exactly one tier is purchasable,
- * that one wins regardless of position; otherwise fall back to the
- * positional heuristic. This self-reverts the moment alphaGate empties and
- * more than one tier is purchasable again.
+ * Same rate limit on every tier (users.request_limit_5h) — appended to every
+ * card's feature list rather than duplicated into each plan's DB copy.
  */
-function pickFeaturedIndex(suspended: boolean[]): number {
-  const purchasableIndexes = suspended.reduce<number[]>((acc, isSuspended, index) => {
-    if (!isSuspended) acc.push(index)
-    return acc
-  }, [])
-  if (purchasableIndexes.length === 1) return purchasableIndexes[0]
-  return suspended.length >= 3 ? 1 : 0
+function withRequestLimitLine(features: string[]): string[] {
+  return [...features, t('landing.pricing.requestLimit5h')]
 }
 
-const liveFeaturedIndex = computed(() => pickFeaturedIndex(livePlans.value.map((plan) => isPlanSuspended(plan))))
+/** The middle card of three is the editorial "most popular" pick. */
+function pickFeaturedIndex(count: number): number {
+  return count >= 3 ? 1 : 0
+}
+
+// Week/month passes stay in the database (see config/alphaGate.ts) but their
+// pricing model isn't decided yet, so the frontend drops them entirely rather
+// than showing a card nobody can act on.
+const purchasableLivePlans = computed(() => livePlans.value.filter((plan) => !isPlanSuspended(plan)))
+const purchasableFallbackPlans = FALLBACK_PLANS.filter((plan) => !isSuspendedTerm(plan.periodDays))
+
+const liveFeaturedIndex = computed(() => pickFeaturedIndex(purchasableLivePlans.value.length))
 
 const liveCards = computed<PlanCard[]>(() =>
-  livePlans.value.map((plan, index) => ({
+  purchasableLivePlans.value.map((plan, index) => ({
     key: `live-${plan.id}`,
     // Plan copy is operator-authored, so i18n can't reach it — see planText.ts
     // for the `zh || en` convention that keeps these cards bilingual.
@@ -249,24 +185,19 @@ const liveCards = computed<PlanCard[]>(() =>
         ? formatPaymentAmount(plan.original_price, plan.currency, locale.value)
         : '',
     periodLabel: periodLabel(plan.validity_days),
-    features: pickPlanLines(plan.features, locale.value),
+    features: withRequestLimitLine(pickPlanLines(plan.features, locale.value)),
     featured: index === liveFeaturedIndex.value,
     // The purchase page opens on the balance tab by default; ?tab=subscription
     // is the param it already understands. Deep-linking a single plan would
     // need its group id, which the public endpoint deliberately withholds.
-    href: PURCHASE_PATH,
-    periodDays: plan.validity_days,
-    priceCNY: plan.currency === 'CNY' ? plan.price : 0,
-    suspended: isPlanSuspended(plan)
+    href: PURCHASE_PATH
   }))
 )
 
-const fallbackFeaturedIndex = computed(() =>
-  pickFeaturedIndex(FALLBACK_PLANS.map((plan) => isSuspendedTerm(plan.periodDays)))
-)
+const fallbackFeaturedIndex = pickFeaturedIndex(purchasableFallbackPlans.length)
 
 const fallbackCards = computed<PlanCard[]>(() =>
-  FALLBACK_PLANS.map((plan, index) => ({
+  purchasableFallbackPlans.map((plan, index) => ({
     key: `fallback-${plan.key}`,
     name: t(`landing.pricing.plans.${plan.key}.name`),
     description: t(`landing.pricing.plans.${plan.key}.desc`),
@@ -275,48 +206,13 @@ const fallbackCards = computed<PlanCard[]>(() =>
     priceDisplay: `${currencySymbol('CNY')}${plan.priceCNY}`,
     originalPriceDisplay: '',
     periodLabel: periodLabel(plan.periodDays),
-    features: [1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`)),
-    featured: index === fallbackFeaturedIndex.value,
-    href: PURCHASE_PATH,
-    periodDays: plan.periodDays,
-    priceCNY: plan.priceCNY,
-    // Fallback tiers are declared directly in days, so no unit to resolve.
-    suspended: isSuspendedTerm(plan.periodDays)
+    features: withRequestLimitLine([1, 2, 3, 4].map((i) => t(`landing.pricing.plans.${plan.key}.features.f${i}`))),
+    featured: index === fallbackFeaturedIndex,
+    href: PURCHASE_PATH
   }))
 )
 
 const cards = computed<PlanCard[]>(() => (usingFallback.value ? fallbackCards.value : liveCards.value))
-
-/**
- * Anthropic's plans are all 30-day subscriptions, so the only honest comparison
- * is against our 30-day tier. Matching on the term rather than the plan name
- * keeps this working if the plan is renamed in admin.
- *
- * Returns null — hiding the whole strip — when there is no 30-day CNY plan to
- * compare against, rather than quoting a number we cannot substantiate.
- */
-const comparison = computed(() => {
-  // Only ever compare against a tier that is actually on the page. Reaching for
-  // a fallback price while live plans are showing would quote something the
-  // visitor cannot buy.
-  const monthly = cards.value.find((card) => card.periodDays === 30 && card.priceCNY > 0)
-  if (!monthly) return null
-
-  const official = OFFICIAL_PLANS.map((plan) => ({
-    key: plan.key,
-    priceUSD: plan.priceUSD,
-    priceCNY: Math.round(plan.priceUSD * USD_TO_CNY_DISPLAY_RATE)
-  }))
-
-  const pro = official.find((plan) => plan.key === 'pro')
-  if (!pro) return null
-
-  return {
-    official,
-    oursDisplay: `${currencySymbol('CNY')}${monthly.priceCNY}`,
-    cheaperThanProPercent: Math.round((1 - monthly.priceCNY / pro.priceCNY) * 100)
-  }
-})
 
 onMounted(async () => {
   try {

@@ -1163,7 +1163,11 @@ async function resumeWechatPaymentFromQuery() {
 onMounted(async () => {
   try {
     const res = await paymentAPI.getCheckoutInfo()
-    checkout.value = res.data
+    // Week/month passes stay in the database (see config/alphaGate.ts) but
+    // their pricing model isn't decided yet, so drop them here — the only
+    // place the purchase page ever pulls its plan list from — rather than
+    // rendering a card nobody can act on.
+    checkout.value = { ...res.data, plans: res.data.plans.filter((p) => !isPlanSuspended(p)) }
     if (enabledMethods.value.length) {
       const order: readonly string[] = METHOD_ORDER
       const sorted = [...enabledMethods.value].sort((a, b) => {

@@ -149,12 +149,21 @@ const { t, locale } = useI18n()
 // planText.ts handles the `zh || en` convention admins use to write both.
 const planName = computed(() => pickPlanText(props.plan.name, locale.value))
 const planDescription = computed(() => pickPlanText(props.plan.description, locale.value))
-const planFeatures = computed(() =>
-  (props.plan.features || []).map((feature) => pickPlanText(feature, locale.value)).filter(Boolean)
-)
 
-/** Withheld for the alpha: card still renders, purchase action is dead. */
+/**
+ * Defensive fallback: the purchase page filters withheld tiers (week/month —
+ * see config/alphaGate.ts) out of the plan list before it ever reaches this
+ * component, so in practice this is always false. Kept so a suspended plan
+ * that somehow slips through renders inert rather than purchasable.
+ */
 const suspended = computed(() => isPlanSuspended(props.plan))
+
+// Same rate limit on every tier (users.request_limit_5h) — appended here
+// rather than duplicated into each plan's DB feature text.
+const planFeatures = computed(() => [
+  ...(props.plan.features || []).map((feature) => pickPlanText(feature, locale.value)).filter(Boolean),
+  t('payment.planCard.requestLimit5h')
+])
 
 const platform = computed(() => props.plan.group_platform || '')
 const isRenewal = computed(() =>

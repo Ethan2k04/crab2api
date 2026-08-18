@@ -175,18 +175,6 @@ export default {
       title: '订阅套餐',
       subtitle: '选好额度，拿到 Key，直接开用。没有隐藏的按人头收费。',
       fallbackNotice: '此处为参考价格，请登录控制台查看当前账号可购买的套餐。',
-      compare: {
-        ours: '本站月卡',
-        perMonth: ' / 月',
-        approx: '≈ ¥{cny}',
-        cheaperThanPro: '比官方 Pro 便宜 {percent}%',
-        plans: {
-          pro: 'Claude Pro',
-          max5: 'Claude Max 5×',
-          max20: 'Claude Max 20×'
-        },
-        note: '官方价格为 Anthropic 按月订阅的美元标价，于 {date} 核对；人民币金额按 1 美元 ≈ {rate} 元折算，仅供参考，实际汇率以支付时为准。官方订阅按会话窗口限流，本站按官方 API 计价扣减额度，两者计费方式不同，此处仅比较每月支出。'
-      },
       perPeriodDays: '{days} 天',
       per24h: '24 小时',
       mostPopular: '最受欢迎',
@@ -198,12 +186,14 @@ export default {
       modelsLabel: '可用模型',
       allClaudeModels: '全部 Claude 模型',
       unlimited: '不限量',
+      // 所有档位统一的限流规则，每张卡片都要展示
+      requestLimit5h: '每 5 小时最多 300 次请求',
       currencyNote: '价格以 {currency} 计。',
       forfeitNotice: '额度在有效期内一次性使用，到期未用完不结转、不退款；用完可立即再买一张。',
       plans: {
-        day: {
-          name: '日卡',
-          desc: '按天试水，或临时赶工时补一针。',
+        light: {
+          name: '日卡-轻量',
+          desc: '轻量的日常使用，先试试水。',
           features: {
             f1: '$10 额度，按官方计价扣减',
             f2: '有效期 24 小时，从下单时刻起算',
@@ -211,22 +201,22 @@ export default {
             f4: '用完可立即再买一张'
           }
         },
-        week: {
-          name: '周卡',
-          desc: '一周的日常编码量，最常见的选择。',
+        medium: {
+          name: '日卡-适中',
+          desc: '一天的常规使用量，最均衡的选择。',
           features: {
-            f1: '$30 额度，按官方计价扣减',
-            f2: '有效期 7 天，从下单时刻起算',
+            f1: '$50 额度，按官方计价扣减',
+            f2: '有效期 24 小时，从下单时刻起算',
             f3: '全部纯血 Claude 模型',
             f4: '用完可立即再买一张'
           }
         },
-        month: {
-          name: '月卡',
-          desc: '长期跑 Agent、高强度使用，单位额度最划算。',
+        full: {
+          name: '日卡-满血',
+          desc: '高强度 Agent、大批量任务的满血版。',
           features: {
-            f1: '$60 额度，按官方计价扣减',
-            f2: '有效期 30 天，从下单时刻起算',
+            f1: '$100 额度，按官方计价扣减',
+            f2: '有效期 24 小时，从下单时刻起算',
             f3: '全部纯血 Claude 模型',
             f4: '用完可立即再买一张'
           }

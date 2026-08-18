@@ -974,31 +974,15 @@ function generateCodexClaudeFiles(baseUrl: string, apiKey: string): FileConfig[]
   const isWindowsPath = shell === 'cmd' || shell === 'powershell'
   const configDir = isWindowsPath ? '%userprofile%\\.codex' : '~/.codex'
 
-  let envPath: string
-  let envContent: string
-  switch (shell) {
-    case 'cmd':
-      envPath = 'Command Prompt'
-      envContent = `set CRAB2API_API_KEY=${apiKey}`
-      break
-    case 'powershell':
-      envPath = 'PowerShell'
-      envContent = `$env:CRAB2API_API_KEY="${apiKey}"`
-      break
-    default:
-      envPath = 'Terminal'
-      envContent = `export CRAB2API_API_KEY="${apiKey}"`
-  }
-
-  const configContent = `${commentBlock(t('keys.useKeyModal.codex.configHeader'))}
-
+  const configContent = `${commentBlock(t('keys.useKeyModal.codex.configUseNote'))}
 model_provider = "crab2api"
 ${commentBlock(t('keys.useKeyModal.codex.configModelOptions'))}
 model = "claude-sonnet-5"
 ${commentBlock(t('keys.useKeyModal.codex.configReasoningOptions'))}
 model_reasoning_effort = "medium"
-${commentBlock(t('keys.useKeyModal.codex.configContextWindowNote'))}
 model_context_window = 200000
+${commentBlock(t('keys.useKeyModal.codex.configApprovalNote'))}
+approval_policy = "never"
 ${commentBlock(t('keys.useKeyModal.codex.configOptional'))}
 # review_model = "claude-sonnet-5"
 # disable_response_storage = true
@@ -1008,31 +992,16 @@ ${commentBlock(t('keys.useKeyModal.codex.configOptional'))}
 [model_providers.crab2api]
 name = "Crab2API Claude"
 base_url = "${baseUrl}"
-${commentBlock(t('keys.useKeyModal.codex.configEnvKeyNote'))}
-env_key = "CRAB2API_API_KEY"
-${commentBlock(t('keys.useKeyModal.codex.configBearerFallbackNote'))}
-# experimental_bearer_token = "${apiKey}"
+experimental_bearer_token = "${apiKey}"
 wire_api = "responses"
-${commentBlock(t('keys.useKeyModal.codex.configNoAuthNote'))}
 requires_openai_auth = false
-${commentBlock(t('keys.useKeyModal.codex.configNoWebsocketNote'))}
-supports_websockets = false
-
-${commentBlock(t('keys.useKeyModal.codex.configOptional'))}
-# [features]
-# goals = true`
+supports_websockets = false`
 
   return [
     {
       path: joinConfigPath(configDir, 'config.toml', isWindowsPath),
       content: configContent,
       hint: t('keys.useKeyModal.codex.configTomlHint'),
-      emphasizeHint: true
-    },
-    {
-      path: envPath,
-      content: envContent,
-      hint: t('keys.useKeyModal.codex.envHint'),
       emphasizeHint: true
     }
   ]

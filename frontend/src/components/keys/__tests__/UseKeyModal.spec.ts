@@ -511,46 +511,38 @@ describe('UseKeyModal', () => {
     // "Model metadata not found" — set the real window explicitly instead.
     // claude-sonnet-5 uses the standard (non-1M) window.
     expect(configToml).toContain('model_context_window = 200000')
+    expect(configToml).toContain('approval_policy = "never"')
     expect(configToml).toContain('# review_model = "claude-sonnet-5"')
     expect(configToml).toContain('base_url = "https://example.com"')
-    expect(configToml).toContain('env_key = "CRAB2API_API_KEY"')
+    // The key is baked directly into config.toml — no separate env-var step,
+    // and no reliance on the shell having CRAB2API_API_KEY exported.
+    expect(configToml).toContain('experimental_bearer_token = "sk-anthropic-codex-test"')
+    expect(configToml).not.toContain('env_key')
     expect(configToml).toContain('wire_api = "responses"')
     expect(configToml).toContain('requires_openai_auth = false')
     expect(configToml).toContain('supports_websockets = false')
-    expect(codeBlocks.join('\n')).toContain('export CRAB2API_API_KEY="sk-anthropic-codex-test"')
+    // Only one file for this tab now — no separate "export CRAB2API_API_KEY" step.
+    expect(codeBlocks.length).toBe(1)
     // No auth-mode toggle for this tab — it's a fixed API-key provider, unlike
     // the real OpenAI Codex tab's legacy/api-key radio.
     expect(wrapper.find('[role="radiogroup"]').exists()).toBe(false)
 
-    // config.toml is the prerequisite — it must render before (above) the env
-    // var block, and carry the emphasized "do this first" hint styling.
-    const configTomlIndex = codeBlocks.findIndex((c) => c.includes('[model_providers.crab2api]'))
-    const envVarIndex = codeBlocks.findIndex((c) => c.includes('export CRAB2API_API_KEY'))
-    expect(configTomlIndex).toBeLessThan(envVarIndex)
     expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHint')
-    expect(wrapper.text()).toContain('keys.useKeyModal.codex.envHint')
-    // Both step hints get the same emphasized "do this" box styling now —
-    // no plain-text hint treatment left on this tab.
-    expect(wrapper.findAll('.border-amber-300').length).toBe(2)
+    expect(wrapper.findAll('.border-amber-300').length).toBe(1)
     // The old standalone blue note box is gone — its content now lives in
-    // the config.toml comments themselves (configHeader, configOptional, etc).
+    // the config.toml comments themselves (configUseNote, configOptional, etc).
     expect(wrapper.text()).not.toContain('keys.useKeyModal.codex.note')
-    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configHeader')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configUseNote')
     expect(wrapper.text()).toContain('keys.useKeyModal.codex.configModelOptions')
     expect(wrapper.text()).toContain('keys.useKeyModal.codex.configReasoningOptions')
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configApprovalNote')
 
     const cmdTab = wrapper.findAll('button').find((button) => button.text().trim() === 'Windows CMD')
     await cmdTab!.trigger('click')
     await nextTick()
     expect(wrapper.text()).toContain('%userprofile%\\.codex\\config.toml')
     codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
-    expect(codeBlocks.join('\n')).toContain('set CRAB2API_API_KEY=sk-anthropic-codex-test')
-
-    const powershellTab = wrapper.findAll('button').find((button) => button.text().trim() === 'PowerShell')
-    await powershellTab!.trigger('click')
-    await nextTick()
-    codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
-    expect(codeBlocks.join('\n')).toContain('$env:CRAB2API_API_KEY="sk-anthropic-codex-test"')
+    expect(codeBlocks.join('\n')).toContain('experimental_bearer_token = "sk-anthropic-codex-test"')
   })
 
   it('does not render an OpenCode tab for any platform', () => {

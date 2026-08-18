@@ -470,6 +470,8 @@ export default {
       quota: '配额',
       unlimited: '无限制',
       models: '模型',
+      // 所有订阅档位统一的限流规则，不是某一档专属的特性——见 users.request_limit_5h
+      requestLimit5h: '每 5 小时最多 300 次请求',
     },
     days: '天',
     weeks: '周',

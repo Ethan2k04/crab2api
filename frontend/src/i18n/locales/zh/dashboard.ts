@@ -141,29 +141,14 @@ export default {
         description:
           '配置 Codex，请按下方的步骤顺序配置。',
         configTomlHint:
-          '步骤 1：将下面的内容替换本地用户目录下面的 config.toml。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开。创建或覆写 config.toml 文件后需完全重启 Codex 才会生效。',
-        envHint: '步骤 2：打开命令行窗口并执行下面的指令。注意该环境变量仅在当前终端会话生效，新开终端需重新设置。',
-        configHeader:
-          'Codex CLI → Crab2API Claude 分组，网关会自动把 OpenAI Responses API\n' +
-          '转换成 Anthropic 原生格式，Codex 无需任何 OpenAI 账号即可使用。\n' +
-          '切换模型／推理强度请直接改下面的字段——Codex 的 /model 指令只列出\n' +
-          'OpenAI 自家模型，在这里不生效。\n' +
-          '若该分组开启了「Claude Code 客户端限制」，Codex 请求会被拒绝，\n' +
-          '该限制只放行官方 Claude Code CLI。',
+          '步骤：将下面的内容替换本地用户目录下面的 config.toml。macOS/Linux 用户可运行 mkdir -p ~/.codex 创建目录；Windows 用户可按 Win+R，输入 %userprofile%\\.codex 打开。创建或覆写 config.toml 文件后需完全重启 Codex 才会生效。',
+        configUseNote: '使用 Crab2API 接口',
         configModelOptions:
-          '可选模型：claude-sonnet-5（默认）| claude-opus-5 | claude-haiku-4-5 | claude-fable-5',
+          '选择模型：claude-haiku-4-5 / claude-sonnet-5 / claude-opus-5 / claude-fable-5',
         configReasoningOptions:
-          '推理强度：minimal | low | medium（默认）| high | xhigh | max',
-        configContextWindowNote:
-          'Codex 只内置了 OpenAI 自家模型的元数据，其他模型会提示\n' +
-          '"Model metadata not found" 并瞎猜窗口大小，这里直接写死真实值：\n' +
-          'claude-sonnet-5 / claude-haiku-4-5 用标准窗口；换成 claude-opus-5\n' +
-          '或 claude-fable-5（1M 窗口版本）时记得把这里改成 1000000。',
-        configOptional: '可选：',
-        configEnvKeyNote: '优先用 env_key（变量名）。不要和 experimental_bearer_token 同时使用。',
-        configBearerFallbackNote: '仅在无法设置环境变量时使用（不推荐——密钥会明文存在磁盘上）：',
-        configNoAuthNote: 'API Key 模式无需 ChatGPT OAuth 登录',
-        configNoWebsocketNote: '该链路是 HTTP/SSE，非 WebSocket；关闭 WS 避免 Codex 优先尝试它。'
+          '推理强度：minimal / low / medium / high / xhigh / max',
+        configApprovalNote: '是否询问权限（never = 自动，不询问）',
+        configOptional: '可选：'
       },
       openai: {
         description: '将以下配置文件添加到 Codex CLI 配置目录中。',
@@ -178,7 +163,7 @@ export default {
           '按 Win+R，输入 %userprofile%\\.codex 打开配置目录。如目录不存在，请先手动创建。'
       },
       cliTabs: {
-        claudeCode: 'Claude Code',
+        claudeCode: 'Claude Code (推荐)',
         geminiCli: 'Gemini CLI',
         codexCli: 'Codex CLI',
         codexCliWs: 'Codex CLI (WebSocket)',

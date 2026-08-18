@@ -1,19 +1,20 @@
 /**
- * Alpha-only sales gates.
+ * Sales gates.
  *
- * Two things are withheld during the alpha: the week and month passes, and
- * balance top-up. All three come back for the public release, so nothing is
- * deleted — the plans, the groups, the balance ledger and every backend path
- * stay exactly as they are and are simply refused at the door.
+ * Two things are withheld right now: the week and month passes, and balance
+ * top-up. Both may come back later, so nothing is deleted — the plans, the
+ * groups, the balance ledger and every backend path stay exactly as they are
+ * and are simply refused at the door.
  *
  * -- 1. The week and month passes --
  *
- * During the alpha we sell the day pass only. The week and month passes stay
- * in the database, stay on sale (`for_sale = true`) and keep their price, so
- * they still render on the pricing page and in the console — their purchase
- * buttons are just greyed out. Nothing about the plans, the groups or the
- * billing path is removed, because all of it comes back for the public
- * release.
+ * Only the day pass (now split into light/medium/full quota tiers) is sold.
+ * The week and month passes stay in the database and stay on sale
+ * (`for_sale = true`), but the frontend filters them out entirely — they
+ * never render on the pricing page or in the console, not even as a greyed
+ * -out card. Their pricing model isn't decided yet, so there is nothing
+ * honest to show. Nothing about the plans, the groups or the billing path is
+ * removed, because it may come back.
  *
  * Plans are matched on **term length**, not name or id:
  *   - names are operator-authored and bilingual (`月卡 || Month Pass`), so

@@ -446,6 +446,8 @@ export default {
       quota: 'Quota',
       unlimited: 'Unlimited',
       models: 'Models',
+      // Same rate limit across every subscription tier, not tier-specific — see users.request_limit_5h
+      requestLimit5h: 'Up to 300 requests every 5 hours',
     },
     days: 'days',
     weeks: 'weeks',

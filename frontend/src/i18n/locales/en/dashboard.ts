@@ -141,30 +141,14 @@ export default {
         description:
           'Configure Codex to send Responses API traffic through your Crab2API Claude group. Follow the steps below in order.',
         configTomlHint:
-          'Step 1: save this config.toml first. macOS/Linux users can run mkdir -p ~/.codex to create the directory; Windows users can press Win+R and enter %userprofile%\\.codex. Fully restart Codex after saving or rewriting for it to take effect.',
-        envHint: 'Step 2: now set this environment variable as your API key in terminal. Only active in the current terminal session — set it again in a new one.',
-        configHeader:
-          'Codex CLI → Crab2API Claude group. Translates OpenAI Responses API\n' +
-          'to/from Anthropic\'s native format — no OpenAI account needed.\n' +
-          'Change model / reasoning effort below; Codex\'s /model command only\n' +
-          'lists OpenAI\'s own models and has no effect here.\n' +
-          'If this group has "Claude Code client restriction" enabled, Codex\n' +
-          'requests get rejected — that restriction only allows the official\n' +
-          'Claude Code CLI.',
+          'Save this config.toml. macOS/Linux users can run mkdir -p ~/.codex to create the directory; Windows users can press Win+R and enter %userprofile%\\.codex. Fully restart Codex after saving or rewriting for it to take effect.',
+        configUseNote: 'Uses the Crab2API endpoint',
         configModelOptions:
-          'Model options: claude-sonnet-5 (default) | claude-opus-5 | claude-haiku-4-5 | claude-fable-5',
+          'Pick a model: claude-haiku-4-5 / claude-sonnet-5 / claude-opus-5 / claude-fable-5',
         configReasoningOptions:
-          'Reasoning effort: minimal | low | medium (default) | high | xhigh | max',
-        configContextWindowNote:
-          'Codex only ships built-in metadata for OpenAI\'s own models, so it warns\n' +
-          '"Model metadata not found" and guesses at limits otherwise. Set the real\n' +
-          'window explicitly: claude-sonnet-5 / claude-haiku-4-5 use the standard\n' +
-          'window; use 1000000 for claude-opus-5 or claude-fable-5 (1M variants).',
+          'Reasoning effort: minimal / low / medium / high / xhigh / max',
+        configApprovalNote: 'Ask before acting? (never = auto, no prompts)',
         configOptional: 'Optional:',
-        configEnvKeyNote: 'Prefer env_key (variable NAME). Do not combine with experimental_bearer_token.',
-        configBearerFallbackNote: 'Fallback only if you cannot set env (discouraged — keeps secret on disk):',
-        configNoAuthNote: 'API-key providers: do not require ChatGPT OAuth login',
-        configNoWebsocketNote: 'This path is HTTP/SSE, not WebSocket; disable WS so Codex doesn\'t try it first.',
       },
       openai: {
         description: 'Add the following configuration files to your Codex CLI config directory.',
@@ -178,7 +162,7 @@ export default {
         noteWindows: 'Press Win+R and enter %userprofile%\\.codex to open the config directory. Create it manually if it does not exist.',
       },
       cliTabs: {
-        claudeCode: 'Claude Code',
+        claudeCode: 'Claude Code (Recommend)',
         geminiCli: 'Gemini CLI',
         codexCli: 'Codex CLI',
         codexCliWs: 'Codex CLI (WebSocket)',

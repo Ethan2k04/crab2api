@@ -121,7 +121,7 @@ func (User) Fields() []ent.Field {
 		// 官方 5h 限额的滑动开窗语义一致。与 rpm_limit 正交：rpm 挡瞬时突发，
 		// 这条挡的是持续高频占满上游 5h 配额。
 		field.Int("request_limit_5h").
-			Default(30),
+			Default(300),
 		// 5h 窗口用量告警阈值（百分比 1-100）。用量达到 limit × pct% 时，
 		// 前端把「使用记录」里的窗口计数标红并弹出减速提示。纯展示，不影响放行。
 		field.Int("request_alert_pct_5h").

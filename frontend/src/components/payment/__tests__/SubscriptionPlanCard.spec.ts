@@ -88,12 +88,15 @@ describe("SubscriptionPlanCard", () => {
   });
 
   it("uses the configured currency symbol while preserving USD for legacy plans", () => {
-    const cnyPlan = mountPlanCard("openai", { currency: "CNY", original_price: 20 }).text();
+    // validity_days: 1, not the fixture's 30 — a 30-day term is withheld
+    // during the alpha (config/alphaGate.ts) and its exact price is masked
+    // as "??" (mystery pricing), which would break the assertions below.
+    const cnyPlan = mountPlanCard("openai", { currency: "CNY", original_price: 20, validity_days: 1 }).text();
 
     expect(cnyPlan).toContain("¥10CNY");
     expect(cnyPlan).toContain("¥20CNY");
-    expect(mountPlanCard("openai", { currency: "USD" }).text()).toContain("$10USD");
-    expect(mountPlanCard("openai", { currency: "" }).text()).toContain("$10");
+    expect(mountPlanCard("openai", { currency: "USD", validity_days: 1 }).text()).toContain("$10USD");
+    expect(mountPlanCard("openai", { currency: "", validity_days: 1 }).text()).toContain("$10");
   });
 
   it.each([
@@ -159,6 +162,13 @@ describe("SubscriptionPlanCard", () => {
 
     await button.trigger("click");
     expect(wrapper.emitted("select")).toBeUndefined();
+  });
+
+  it("appends the shared 5h request-rate line to every plan's features", () => {
+    const wrapper = mountPlanCard("openai", { features: ["$10 额度，按官方计价扣减"] });
+
+    expect(wrapper.text()).toContain("$10 额度，按官方计价扣减");
+    expect(wrapper.text()).toContain("payment.planCard.requestLimit5h");
   });
 
   it("keeps the day pass — the only purchasable tier during the alpha — live", async () => {

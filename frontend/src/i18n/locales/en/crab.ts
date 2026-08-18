@@ -176,18 +176,6 @@ export default {
       subtitle: 'Pick a quota, get a key, start calling. No hidden per-seat fees.',
       fallbackNotice:
         'Indicative pricing — sign in to the console for the current plans available to your account.',
-      compare: {
-        ours: 'Our Month Pass',
-        perMonth: ' / mo',
-        approx: '≈ ¥{cny}',
-        cheaperThanPro: '{percent}% below official Pro',
-        plans: {
-          pro: 'Claude Pro',
-          max5: 'Claude Max 5×',
-          max20: 'Claude Max 20×'
-        },
-        note: "Official prices are Anthropic's monthly USD list prices, checked {date}. CNY figures convert at 1 USD ≈ {rate} CNY and are indicative only. Official subscriptions are rate-limited per session window while this site draws down an allowance at upstream API rates — the two meter differently; only monthly outlay is compared here."
-      },
       perPeriodDays: '{days} days',
       per24h: '24 hours',
       mostPopular: 'Most popular',
@@ -199,13 +187,15 @@ export default {
       modelsLabel: 'Models',
       allClaudeModels: 'All Claude models',
       unlimited: 'Unlimited',
+      // Same rate limit across every tier — shown on every card
+      requestLimit5h: 'Up to 300 requests every 5 hours',
       currencyNote: 'Prices shown in {currency}.',
       forfeitNotice:
         'The allowance is a single pool spent within the term. Anything left when it lapses is forfeited, not carried over or refunded — buy another pass to continue immediately.',
       plans: {
-        day: {
-          name: 'Day Pass',
-          desc: 'Try the service, or top up mid-crunch.',
+        light: {
+          name: 'Day Pass-Light',
+          desc: 'Light everyday use — dip a toe in.',
           features: {
             f1: '$10 allowance, billed at upstream rates',
             f2: 'Valid 24 hours from purchase',
@@ -213,22 +203,22 @@ export default {
             f4: 'Buy another the moment it runs out'
           }
         },
-        week: {
-          name: 'Week Pass',
-          desc: "A week of everyday coding — the usual pick.",
+        medium: {
+          name: 'Day Pass-Medium',
+          desc: 'A day of everyday use — the balanced pick.',
           features: {
-            f1: '$30 allowance, billed at upstream rates',
-            f2: 'Valid 7 days from purchase',
+            f1: '$50 allowance, billed at upstream rates',
+            f2: 'Valid 24 hours from purchase',
             f3: 'Every pure-blood Claude model',
             f4: 'Buy another the moment it runs out'
           }
         },
-        month: {
-          name: 'Month Pass',
-          desc: 'Sustained agent workloads; best value per dollar of allowance.',
+        full: {
+          name: 'Day Pass-Full',
+          desc: 'Full power for heavy agent workloads.',
           features: {
-            f1: '$60 allowance, billed at upstream rates',
-            f2: 'Valid 30 days from purchase',
+            f1: '$100 allowance, billed at upstream rates',
+            f2: 'Valid 24 hours from purchase',
             f3: 'Every pure-blood Claude model',
             f4: 'Buy another the moment it runs out'
           }

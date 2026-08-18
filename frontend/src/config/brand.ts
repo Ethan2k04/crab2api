@@ -58,10 +58,13 @@ export const ADVERTISED_MODELS: AdvertisedModel[] = [
  * These render only when payment is disabled or the endpoint is unreachable, so
  * the pricing section never collapses into an empty state.
  *
- * Keep these in step with the seeded plans — `221_crab2api_subscription_tiers.sql`
- * creates them, `222_crab2api_tier_price_bump.sql` sets the prices and
- * `224_crab2api_quota_bump.sql` sets the allowances. Copy lives in i18n under
- * `landing.pricing.plans.*` so the fallback stays bilingual.
+ * Only the day pass is sold, split into three quota tiers — light/medium/full.
+ * Week and month passes stay in the database (see config/alphaGate.ts) but are
+ * filtered out of the frontend entirely, so they have no fallback entry here.
+ *
+ * Keep these in step with the seeded plans — `227_crab2api_day_pass_tiers.sql`
+ * creates/prices them. Copy lives in i18n under `landing.pricing.plans.*` so
+ * the fallback stays bilingual.
  */
 export interface FallbackPlan {
   key: string
@@ -74,42 +77,9 @@ export interface FallbackPlan {
 }
 
 export const FALLBACK_PLANS: FallbackPlan[] = [
-  { key: 'day', priceCNY: 6.99, quotaUSD: 10, periodDays: 1 },
-  { key: 'week', priceCNY: 29.99, quotaUSD: 30, periodDays: 7 },
-  { key: 'month', priceCNY: 69.99, quotaUSD: 60, periodDays: 30 }
-]
-
-/**
- * Anthropic's own consumer plan prices, for the landing-page comparison strip.
- *
- * These are typed in by hand on purpose. Anthropic publishes no pricing API,
- * claude.com sends no CORS headers a browser fetch could use, and scraping the
- * marketing page would break on the next redesign — so a wrong number would
- * surface as a silently wrong comparison rather than a visible error. Static
- * values with a stamped date keep the claim auditable.
- *
- * Verified 2026-08-13 against claude.com/pricing and the Max plan help article.
- * Re-check before quoting these in any campaign.
- */
-export const OFFICIAL_PLAN_PRICING_CHECKED_ON = '2026-08-13'
-
-/**
- * USD -> CNY rate used only to render an indicative "≈ ¥N" next to the official
- * USD prices. Nothing is charged in USD, so this never touches billing — it
- * exists so a CNY-paying visitor can compare like with like.
- */
-export const USD_TO_CNY_DISPLAY_RATE = 7.2
-
-export interface OfficialPlan {
-  key: string
-  /** Anthropic's list price, USD per month, billed monthly. */
-  priceUSD: number
-}
-
-export const OFFICIAL_PLANS: OfficialPlan[] = [
-  { key: 'pro', priceUSD: 20 },
-  { key: 'max5', priceUSD: 100 },
-  { key: 'max20', priceUSD: 200 }
+  { key: 'light', priceCNY: 5.99, quotaUSD: 10, periodDays: 1 },
+  { key: 'medium', priceCNY: 9.99, quotaUSD: 50, periodDays: 1 },
+  { key: 'full', priceCNY: 15.99, quotaUSD: 100, periodDays: 1 }
 ]
 
 /**
