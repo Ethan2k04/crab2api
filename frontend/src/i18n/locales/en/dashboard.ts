@@ -140,8 +140,10 @@ export default {
       codex: {
         description:
           'Configure Codex to send Responses API traffic through your Crab2API Claude group. Follow the steps below in order.',
-        configTomlHint:
-          'Open ~/.codex/config.toml in a text editor (create the file if it doesn\'t exist yet). If the .codex folder itself is missing, macOS/Linux users can run mkdir -p ~/.codex to create it; Windows users can press Win+R, enter %userprofile%\\.codex, and create the .codex folder manually. Replace the entire file contents with what\'s below and save — then fully restart Codex for it to take effect.',
+        configTomlHintUnix:
+          'Open ~/.codex/config.toml in a text editor. If the .codex folder doesn\'t exist yet, run mkdir -p ~/.codex to create it. Replace the entire file contents with what\'s below and save — then fully restart Codex for it to take effect.',
+        configTomlHintWindows:
+          'Open %userprofile%\\.codex\\config.toml in a text editor (press Win+R and enter %userprofile%\\.codex\\config.toml to jump straight to it). If the .codex folder doesn\'t exist yet, create it manually. Replace the entire file contents with what\'s below and save — then fully restart Codex for it to take effect.',
         configUseNote: 'Uses the Crab2API endpoint',
         configModelOptions:
           'Pick a model: claude-haiku-4-5 / claude-sonnet-5 / claude-opus-5 / claude-fable-5',

@@ -527,7 +527,9 @@ describe('UseKeyModal', () => {
     // the real OpenAI Codex tab's legacy/api-key radio.
     expect(wrapper.find('[role="radiogroup"]').exists()).toBe(false)
 
-    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHint')
+    // macOS/Linux tab (default) gets the Unix-specific hint, not the Windows one.
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHintUnix')
+    expect(wrapper.text()).not.toContain('keys.useKeyModal.codex.configTomlHintWindows')
     expect(wrapper.findAll('.border-amber-300').length).toBe(1)
     // The old standalone blue note box is gone — its content now lives in
     // the config.toml comments themselves (configUseNote, configOptional, etc).
@@ -541,8 +543,18 @@ describe('UseKeyModal', () => {
     await cmdTab!.trigger('click')
     await nextTick()
     expect(wrapper.text()).toContain('%userprofile%\\.codex\\config.toml')
+    // Switching to a Windows shell tab swaps in the Windows-specific hint.
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHintWindows')
+    expect(wrapper.text()).not.toContain('keys.useKeyModal.codex.configTomlHintUnix')
     codeBlocks = wrapper.findAll('pre code').map((code) => code.text())
     expect(codeBlocks.join('\n')).toContain('experimental_bearer_token = "sk-anthropic-codex-test"')
+
+    const powershellTab = wrapper.findAll('button').find((button) => button.text().trim() === 'PowerShell')
+    await powershellTab!.trigger('click')
+    await nextTick()
+    // PowerShell shares the same Windows-style hint as CMD — one hint per OS,
+    // not one per shell.
+    expect(wrapper.text()).toContain('keys.useKeyModal.codex.configTomlHintWindows')
   })
 
   it('does not render an OpenCode tab for any platform', () => {

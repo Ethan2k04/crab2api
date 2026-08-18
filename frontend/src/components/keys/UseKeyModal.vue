@@ -1001,7 +1001,9 @@ supports_websockets = false`
     {
       path: joinConfigPath(configDir, 'config.toml', isWindowsPath),
       content: configContent,
-      hint: t('keys.useKeyModal.codex.configTomlHint'),
+      hint: isWindowsPath
+        ? t('keys.useKeyModal.codex.configTomlHintWindows')
+        : t('keys.useKeyModal.codex.configTomlHintUnix'),
       emphasizeHint: true
     }
   ]
