@@ -280,11 +280,11 @@ export default {
       title: '快速开始',
       step1: {
         title: '注册并订阅',
-        desc: '注册并登录控制台，然后在「充值/订阅」页面选择一档套餐（日卡 / 周卡 / 月卡）。'
+        desc: '注册并登录控制台，然后在「充值/订阅」页面选择一档套餐。'
       },
       step2: {
         title: '创建 API Key',
-        desc: '在控制台的「API 密钥」页面创建 Key，分组选择你已订阅的那一档。请立即复制保存——完整 Key 只在创建时展示一次。'
+        desc: '在控制台的「API 密钥」页面创建密钥，分组选择你已订阅的那一档。阅读客户端配置指南，并立即复制保存密钥。完整密钥只在创建时展示一次。'
       },
       step3: {
         title: '把客户端指向 Crab2API',
@@ -305,42 +305,6 @@ export default {
       auth: '鉴权方式',
       authDesc:
         '可用 `x-api-key`（Anthropic 风格）或 `Authorization: Bearer <key>`（OpenAI 风格）传递 Key，两种方式在各自的接口上都被接受。'
-    },
-
-    clients: {
-      title: '客户端配置',
-      claudeCode: {
-        title: 'Claude Code',
-        desc: 'Claude Code 通过两个环境变量识别中转站：`ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN`。设好之后照常运行 `claude` 即可。',
-        sessionTitle: '会话级配置（仅当前终端有效）',
-        sessionDesc:
-          '变量只存在于你输入命令的那个终端窗口，关掉就没了。适合先试跑、或者临时切换到别的中转站。',
-        persistTitle: '用户级持久配置（新开终端也生效）',
-        persistDesc: '写入当前用户的环境，重开终端或重启电脑后依然有效。',
-        noteUnix:
-          '用 bash 就把 `~/.zshrc` 换成 `~/.bashrc`。macOS 从 Catalina 起默认 shell 是 zsh。',
-        noteSetx:
-          '`setx` 只对之后新开的窗口生效，当前这个 CMD 窗口不会变——设置完请重开一个终端。',
-        notePwsh:
-          '写入的是「用户」范围，不需要管理员权限；当前 PowerShell 窗口不会自动刷新，请重开一个终端。'
-      },
-      curl: {
-        title: 'curl',
-        desc: '最小可用请求，适合用来验证 Key 是否生效。'
-      },
-      python: {
-        title: 'Python SDK',
-        desc: '官方 `anthropic` 包支持自定义 Base URL。'
-      },
-      node: {
-        title: 'Node SDK',
-        // 注意：消息文本中不要出现 "@"，vue-i18n 会当成链接消息语法解析。
-        desc: '官方 Anthropic Node SDK 同理。'
-      },
-      thirdParty: {
-        title: '桌面客户端',
-        desc: '在 Cherry Studio、ChatBox 等工具中选择 Claude / Anthropic 供应商，把 API 地址改成 Crab2API 的 Base URL，再粘贴你的 Key 即可。'
-      }
     },
 
     models: {

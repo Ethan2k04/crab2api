@@ -45,6 +45,18 @@
                   <p class="mt-1 text-sm leading-relaxed text-gray-600 dark:text-dark-400">
                     {{ step.desc }}
                   </p>
+                  <div v-if="step.images.length" class="mt-3 flex flex-wrap gap-3">
+                    <img
+                      v-for="(img, imgIdx) in step.images"
+                      :key="img"
+                      :src="img"
+                      :alt="`${step.title} ${imgIdx + 1}`"
+                      :class="[
+                        'w-full rounded-lg border border-gray-200 dark:border-dark-700',
+                        step.images.length > 1 ? 'max-w-sm' : 'max-w-xl'
+                      ]"
+                    />
+                  </div>
                 </div>
               </li>
             </ol>
@@ -74,50 +86,6 @@
 
             <h3 class="doc-h3">{{ t('docsPage.endpoints.auth') }}</h3>
             <p class="doc-p">{{ t('docsPage.endpoints.authDesc') }}</p>
-          </section>
-
-          <!-- Client setup -->
-          <section id="clients" class="scroll-mt-24">
-            <h2 class="doc-h2">{{ t('docsPage.clients.title') }}</h2>
-
-            <h3 class="doc-h3">{{ t('docsPage.clients.claudeCode.title') }}</h3>
-            <p class="doc-p">{{ t('docsPage.clients.claudeCode.desc') }}</p>
-
-            <!-- Session-scoped: the variables live only in the current shell. -->
-            <h4 class="doc-h4">{{ t('docsPage.clients.claudeCode.sessionTitle') }}</h4>
-            <p class="doc-p">{{ t('docsPage.clients.claudeCode.sessionDesc') }}</p>
-            <div class="mt-3 space-y-4">
-              <div v-for="s in sessionShells" :key="s.key">
-                <p class="mono-label mb-1.5">{{ s.label }}</p>
-                <CodeBlock :label="s.lang" :code="s.code" />
-              </div>
-            </div>
-
-            <!-- Persistent: survives a new terminal / reboot. -->
-            <h4 class="doc-h4">{{ t('docsPage.clients.claudeCode.persistTitle') }}</h4>
-            <p class="doc-p">{{ t('docsPage.clients.claudeCode.persistDesc') }}</p>
-            <div class="mt-3 space-y-4">
-              <div v-for="s in persistShells" :key="s.key">
-                <p class="mono-label mb-1.5">{{ s.label }}</p>
-                <CodeBlock :label="s.lang" :code="s.code" />
-                <p v-if="s.note" class="mt-1.5 text-xs text-gray-500 dark:text-dark-400">{{ s.note }}</p>
-              </div>
-            </div>
-
-            <h3 class="doc-h3">{{ t('docsPage.clients.curl.title') }}</h3>
-            <p class="doc-p">{{ t('docsPage.clients.curl.desc') }}</p>
-            <CodeBlock class="mt-3" label="bash" :code="snippets.curl" />
-
-            <h3 class="doc-h3">{{ t('docsPage.clients.python.title') }}</h3>
-            <p class="doc-p">{{ t('docsPage.clients.python.desc') }}</p>
-            <CodeBlock class="mt-3" label="python" :code="snippets.python" />
-
-            <h3 class="doc-h3">{{ t('docsPage.clients.node.title') }}</h3>
-            <p class="doc-p">{{ t('docsPage.clients.node.desc') }}</p>
-            <CodeBlock class="mt-3" label="typescript" :code="snippets.node" />
-
-            <h3 class="doc-h3">{{ t('docsPage.clients.thirdParty.title') }}</h3>
-            <p class="doc-p">{{ t('docsPage.clients.thirdParty.desc') }}</p>
           </section>
 
           <!-- Models -->
@@ -207,7 +175,6 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/components/public/PublicLayout.vue'
-import CodeBlock from '@/components/public/CodeBlock.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { useAppStore } from '@/stores'
 import {
@@ -231,17 +198,25 @@ const baseUrl = computed(() => {
 const sections = computed(() => [
   { id: 'quickstart', label: t('docsPage.quickstart.title') },
   { id: 'endpoints', label: t('docsPage.endpoints.title') },
-  { id: 'clients', label: t('docsPage.clients.title') },
   { id: 'models', label: t('docsPage.models.title') },
   { id: 'errors', label: t('docsPage.errors.title') },
   { id: 'help', label: t('docsPage.help.title') }
 ])
 
+/** Screenshots for the quickstart steps; step 2 gets two. */
+const QUICKSTART_IMAGES: Record<'step1' | 'step2' | 'step3' | 'step4', string[]> = {
+  step1: ['/docs/quickstart-step1.png'],
+  step2: ['/docs/quickstart-step2a.png', '/docs/quickstart-step2b.png'],
+  step3: ['/docs/quickstart-step3.png'],
+  step4: ['/docs/quickstart-step4.png']
+}
+
 const quickstartSteps = computed(() =>
   (['step1', 'step2', 'step3', 'step4'] as const).map((key) => ({
     key,
     title: t(`docsPage.quickstart.${key}.title`),
-    desc: t(`docsPage.quickstart.${key}.desc`)
+    desc: t(`docsPage.quickstart.${key}.desc`),
+    images: QUICKSTART_IMAGES[key]
   }))
 )
 
@@ -257,122 +232,6 @@ const errorRows = computed(() => [
   { code: '429', desc: t('docsPage.errors.col429') },
   { code: '5xx', desc: t('docsPage.errors.col5xx') }
 ])
-
-const SAMPLE_KEY = 'sk-crab-xxxxxxxxxxxx'
-
-/**
- * Session-scoped setup: the variables exist only in the shell you typed them
- * into. Closing the terminal discards them — that is the point, and it is why
- * this is the safer default for trying a key out.
- */
-const sessionShells = computed(() => [
-  {
-    key: 'unix',
-    label: 'macOS / Linux (bash · zsh)',
-    lang: 'bash',
-    code: `export ANTHROPIC_BASE_URL="${baseUrl.value}"
-export ANTHROPIC_AUTH_TOKEN="${SAMPLE_KEY}"
-
-claude`
-  },
-  {
-    key: 'cmd',
-    label: 'Windows CMD',
-    lang: 'bat',
-    // No quotes: cmd would take them as part of the value.
-    code: `set ANTHROPIC_BASE_URL=${baseUrl.value}
-set ANTHROPIC_AUTH_TOKEN=${SAMPLE_KEY}
-
-claude`
-  },
-  {
-    key: 'powershell',
-    label: 'Windows PowerShell',
-    lang: 'powershell',
-    code: `$env:ANTHROPIC_BASE_URL = "${baseUrl.value}"
-$env:ANTHROPIC_AUTH_TOKEN = "${SAMPLE_KEY}"
-
-claude`
-  }
-])
-
-/**
- * Persistent setup: survives new terminals and reboots. Each snippet writes to
- * the place that shell actually reads at startup, then reloads it so the
- * current session picks the values up without reopening the terminal.
- */
-const persistShells = computed(() => [
-  {
-    key: 'unix',
-    label: 'macOS / Linux (bash · zsh)',
-    lang: 'bash',
-    code: `# bash: ~/.bashrc  |  zsh: ~/.zshrc  |  macOS default shell is zsh
-cat >> ~/.zshrc <<'EOF'
-export ANTHROPIC_BASE_URL="${baseUrl.value}"
-export ANTHROPIC_AUTH_TOKEN="${SAMPLE_KEY}"
-EOF
-
-source ~/.zshrc`,
-    note: t('docsPage.clients.claudeCode.noteUnix')
-  },
-  {
-    key: 'cmd',
-    label: 'Windows CMD',
-    lang: 'bat',
-    code: `setx ANTHROPIC_BASE_URL "${baseUrl.value}"
-setx ANTHROPIC_AUTH_TOKEN "${SAMPLE_KEY}"`,
-    note: t('docsPage.clients.claudeCode.noteSetx')
-  },
-  {
-    key: 'powershell',
-    label: 'Windows PowerShell',
-    lang: 'powershell',
-    code: `[Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', '${baseUrl.value}', 'User')
-[Environment]::SetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', '${SAMPLE_KEY}', 'User')`,
-    note: t('docsPage.clients.claudeCode.notePwsh')
-  }
-])
-
-const snippets = computed(() => ({
-
-  curl: `curl ${baseUrl.value}${ANTHROPIC_ENDPOINT} \\
-  -H "x-api-key: sk-crab-xxxxxxxxxxxx" \\
-  -H "anthropic-version: 2023-06-01" \\
-  -H "content-type: application/json" \\
-  -d '{
-    "model": "claude-sonnet-4-5",
-    "max_tokens": 256,
-    "messages": [{ "role": "user", "content": "Hello, Crab2API!" }]
-  }'`,
-
-  python: `from anthropic import Anthropic
-
-client = Anthropic(
-    base_url="${baseUrl.value}",
-    api_key="sk-crab-xxxxxxxxxxxx",
-)
-
-message = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=256,
-    messages=[{"role": "user", "content": "Hello, Crab2API!"}],
-)
-print(message.content[0].text)`,
-
-  node: `import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({
-  baseURL: '${baseUrl.value}',
-  apiKey: 'sk-crab-xxxxxxxxxxxx',
-})
-
-const message = await client.messages.create({
-  model: 'claude-sonnet-4-5',
-  max_tokens: 256,
-  messages: [{ role: 'user', content: 'Hello, Crab2API!' }],
-})
-console.log(message.content[0])`
-}))
 
 onMounted(() => {
   if (!appStore.publicSettingsLoaded) {
