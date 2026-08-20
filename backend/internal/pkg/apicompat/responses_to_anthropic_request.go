@@ -224,6 +224,10 @@ func convertResponsesInputToAnthropic(instructions string, inputRaw json.RawMess
 		}
 	}
 
+	// Drop anything Anthropic cannot ingest before the repair passes run, so a
+	// single malformed item cannot poison the merge (see anthropicContentIsSendable).
+	messages = sanitizeAnthropicMessages(messages)
+
 	// Repair tool_use/tool_result pairing, then merge consecutive same-role
 	// messages (Anthropic requires alternating roles). The first merge groups
 	// parallel calls (and their results) so the pairing pass sees them together;
@@ -434,6 +438,46 @@ func anthropicContentIsEmpty(content json.RawMessage) bool {
 	return false
 }
 
+// anthropicContentIsSendable 判断 content 是否是 Anthropic 会接受的形态：
+// 非空字符串，或至少含一个元素的数组。
+//
+// 其余形态（对象、数字、布尔、null）一律被上游以 400 拒绝，报文是
+// "messages.N.content: Input should be a valid array"——长会话里只要有一条
+// 消息踩中，整轮请求就会被打挂，且不可重试（issue #5329 的同一族问题）。
+func anthropicContentIsSendable(content json.RawMessage) bool {
+	trimmed := strings.TrimSpace(string(content))
+	if trimmed == "" {
+		return false
+	}
+	// 注意：json.Unmarshal("null", &string) 会成功并留下空串，因此 null 在这里
+	// 被判为不可发送，正是我们要的结果。
+	var s string
+	if err := json.Unmarshal([]byte(trimmed), &s); err == nil {
+		return strings.TrimSpace(s) != ""
+	}
+	var elems []json.RawMessage
+	if err := json.Unmarshal([]byte(trimmed), &elems); err != nil {
+		return false
+	}
+	return len(elems) > 0
+}
+
+// sanitizeAnthropicMessages 剔除 content 形态不可发送的消息。
+//
+// 这类消息不可能携带有效的 tool_use / tool_result（parseContentBlocks 对它们
+// 返回 nil），所以在配对修复之前丢掉不会破坏配对不变式；反过来，留到修复之后
+// 才丢才会破坏 user/assistant 交替。
+func sanitizeAnthropicMessages(messages []AnthropicMessage) []AnthropicMessage {
+	out := make([]AnthropicMessage, 0, len(messages))
+	for _, m := range messages {
+		if !anthropicContentIsSendable(m.Content) {
+			continue
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
 // anthropicContentIsOnlyBlankText 判断内容是否只由空白 text 块组成。
 func anthropicContentIsOnlyBlankText(content json.RawMessage) bool {
 	blocks := parseContentBlocks(content)
@@ -448,6 +492,51 @@ func anthropicContentIsOnlyBlankText(content json.RawMessage) bool {
 	return true
 }
 
+// decodeResponsesContentParts 尽力把 content 字段解析成 Responses 分片列表。
+//
+// 除了标准的分片数组，还容忍两种在真实客户端流量里出现过的形态：
+//   - 单个分片对象，没有包成数组；
+//   - 数组里混有解析不了的元素（image_url 写成对象、text 不是字符串等）——
+//     逐个元素解析，坏元素单独丢弃而不是整条放弃。
+//
+// 一个分片都解析不出时返回 nil，调用方据此把该消息判为空内容并整条丢掉。
+// 这里绝不能把 raw 原样返回：Responses 专有形态透传进 Anthropic 请求体后，
+// 上游会拒掉整轮请求——content 是对象/标量时报
+// "messages.N.content: Input should be a valid array"，是数组但块类型不认识时
+// 报 "Request body format invalid"（issue #5329）。
+func decodeResponsesContentParts(raw json.RawMessage) []ResponsesContentPart {
+	var parts []ResponsesContentPart
+	if err := json.Unmarshal(raw, &parts); err == nil {
+		return parts
+	}
+
+	// 数组，但个别元素的类型对不上。
+	var elems []json.RawMessage
+	if err := json.Unmarshal(raw, &elems); err == nil {
+		out := make([]ResponsesContentPart, 0, len(elems))
+		for _, elem := range elems {
+			var part ResponsesContentPart
+			if err := json.Unmarshal(elem, &part); err == nil {
+				out = append(out, part)
+				continue
+			}
+			// 元素本身就是字符串时按纯文本收下，别白丢内容。
+			var text string
+			if err := json.Unmarshal(elem, &text); err == nil && text != "" {
+				out = append(out, ResponsesContentPart{Type: "input_text", Text: text})
+			}
+		}
+		return out
+	}
+
+	// 单个分片对象。
+	var single ResponsesContentPart
+	if err := json.Unmarshal(raw, &single); err == nil && single.Type != "" {
+		return []ResponsesContentPart{single}
+	}
+	return nil
+}
+
 func convertResponsesUserToAnthropicContent(raw json.RawMessage) (json.RawMessage, error) {
 	if len(raw) == 0 {
 		return json.Marshal("") // empty string content
@@ -460,14 +549,8 @@ func convertResponsesUserToAnthropicContent(raw json.RawMessage) (json.RawMessag
 	}
 
 	// Array of content parts → Anthropic content blocks.
-	var parts []ResponsesContentPart
-	if err := json.Unmarshal(raw, &parts); err != nil {
-		// Pass through as-is if we can't parse
-		return raw, nil
-	}
-
 	var blocks []AnthropicContentBlock
-	for _, p := range parts {
+	for _, p := range decodeResponsesContentParts(raw) {
 		switch p.Type {
 		case "input_text", "text":
 			if p.Text != "" {
@@ -507,13 +590,8 @@ func convertResponsesAssistantToAnthropicContent(raw json.RawMessage) (json.RawM
 	}
 
 	// Array of content parts → Anthropic content blocks.
-	var parts []ResponsesContentPart
-	if err := json.Unmarshal(raw, &parts); err != nil {
-		return raw, nil
-	}
-
 	var blocks []AnthropicContentBlock
-	for _, p := range parts {
+	for _, p := range decodeResponsesContentParts(raw) {
 		switch p.Type {
 		case "output_text", "text":
 			if p.Text != "" {
@@ -590,6 +668,12 @@ func mergeConsecutiveMessages(messages []AnthropicMessage) []AnthropicMessage {
 		lastBlocks := parseContentBlocks(last.Content)
 		newBlocks := parseContentBlocks(msg.Content)
 		combined := append(lastBlocks, newBlocks...)
+		if len(combined) == 0 {
+			// 两侧都解析不出 block（内容是对象/标量/null）——保持上一条不变，
+			// 否则 json.Marshal 会写出 content:null，被上游按
+			// "Input should be a valid array" 拒掉。
+			continue
+		}
 		last.Content, _ = json.Marshal(combined)
 	}
 	return merged
